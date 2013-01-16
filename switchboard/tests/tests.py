@@ -1,8 +1,5 @@
 """
-switchboard.tests.tests
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-:copyright: (c) 2012 Kyle Adams.
+:copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
@@ -64,17 +61,17 @@ class TestAPI(object):
         teardown_db()
 
     def test_builtin_registration(self):
-        assert_true('sf.switchboard.builtins.QueryStringConditionSet'
+        assert_true('switchboard.builtins.QueryStringConditionSet'
                     in self.operator._registry)
-        assert_true('sf.switchboard.builtins.IPAddressConditionSet'
+        assert_true('switchboard.builtins.IPAddressConditionSet'
                     in self.operator._registry)
-        assert_true('sf.switchboard.builtins.HostConditionSet'
+        assert_true('switchboard.builtins.HostConditionSet'
                     in self.operator._registry)
         assert_equals(len(list(self.operator.get_condition_sets())), 3,
                       self.operator)
 
     def test_exclusions(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -102,7 +99,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_only_exclusions(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -125,7 +122,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_decorator_for_ip_address(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -270,7 +267,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test'))
 
     def test_ip_address_internal_ips(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -298,7 +295,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_ip_address(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -359,7 +356,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_to_dict(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             label='my switch',
@@ -408,7 +405,7 @@ class TestAPI(object):
         assert_false(inner_condition[3])
 
     def test_remove_condition(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -466,7 +463,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('active_by_default'))
 
     def test_invalid_condition(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -490,7 +487,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req2))
 
     def test_inheritance(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -562,7 +559,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child'))
 
     def test_parent_override_child_condition(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -592,7 +589,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child'))
 
     def test_child_condition_differing_than_parent_loses(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -633,7 +630,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child'))
 
     def test_child_condition_including_parent_wins(self):
-        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -732,7 +729,7 @@ class TestHostConditionSet(object):
         teardown_db()
 
     def test_simple(self):
-        condition_set = 'sf.switchboard.builtins.HostConditionSet'
+        condition_set = 'switchboard.builtins.HostConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -764,8 +761,8 @@ class TestQueryStringConditionSet(object):
         switch = self.operator['test']
         assert_false(self.operator.is_active('test', req))
         switch.add_condition(
-            condition_set='sf.switchboard.builtins.QueryStringConditionSet',
-            field_name='value',
+            condition_set='switchboard.builtins.QueryStringConditionSet',
+            field_name='substring',
             condition='alpha',
         )
         return switch

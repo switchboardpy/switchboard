@@ -2,7 +2,7 @@
 switchboard.conditions
 ~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2012 Kyle Adams.
+:copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
@@ -51,8 +51,8 @@ class Field(object):
         return value
 
     def render(self, value):
-        markup = Markup('<input type="text" value="%s" name="%s"/>')
-        return markup % (value or '', self.name)
+        return (Markup('<input type="text" value="%s" name="%s"/>')
+                % (value or '', self.name))
 
     def display(self, value):
         return value
@@ -63,8 +63,8 @@ class Boolean(Field):
         return bool(value)
 
     def render(self, value):
-        markup = Markup('<input type="hidden" value="1" name="%s"/>')
-        return markup % (self.name,)
+        return (Markup('<input type="hidden" value="1" name="%s"/>')
+                % (self.name,))
 
     def display(self, value):
         return self.label
@@ -89,7 +89,10 @@ class Range(Field):
         return value >= condition[0] and value <= condition[1]
 
     def validate(self, data):
-        value = filter(None, [data.get(self.name + '[min]'), data.get(self.name + '[max]')]) or None
+        value = filter(None, [
+            data.get(self.name + '[min]'),
+            data.get(self.name + '[max]')
+        ]) or None
         return self.clean(value)
 
     def clean(self, value):
@@ -103,7 +106,9 @@ class Range(Field):
     def render(self, value):
         if not value:
             value = ['', '']
-        return (Markup('<input type="text" value="%s" placeholder="from" name="%s[min]"/> - <input type="text" placeholder="to" value="%s" name="%s[max]"/>') %
+        return (Markup('<input type="text" value="%s" placeholder="from"' +
+                       ' name="%s[min]"/> - <input type="text"' +
+                       ' placeholder="to" value="%s" name="%s[max]"/>') %
                 (value[0], self.name, value[1], self.name))
 
     def display(self, value):
@@ -121,7 +126,12 @@ class Percent(Range):
 
     def display(self, value):
         value = value.split('-')
-        return '%s: %s%% (%s-%s)' % (self.label, int(value[1]) - int(value[0]), value[0], value[1])
+        return ('%s: %s%% (%s-%s)' % (
+            self.label,
+            int(value[1]) - int(value[0]),
+            value[0],
+            value[1])
+        )
 
     def clean(self, value):
         value = super(Percent, self).clean(value)
@@ -139,6 +149,8 @@ class String(Field):
 
 
 import re
+
+
 class Regex(String):
     def is_active(self, condition, value):
         return bool(re.search(condition, value))
@@ -159,7 +171,8 @@ class AbstractDate(Field):
         try:
             date = self.str_to_date(value)
         except ValueError, e:
-            raise Invalid("Date must be a valid date in the format YYYY-MM-DD.\n(%s)" % e.message)
+            raise Invalid("Date must be a valid date in the format" +
+                          " YYYY-MM-DD.\n(%s)" % e.message)
 
         return date.strftime(self.DATE_FORMAT)
 
@@ -167,12 +180,14 @@ class AbstractDate(Field):
         if not value:
             value = datetime.date.today().strftime(self.DATE_FORMAT)
 
-        return Markup('<input type="text" value="%s" name="%s"/>') % (value, self.name)
+        return (Markup('<input type="text" value="%s" name="%s"/>')
+                % (value, self.name))
 
     def is_active(self, condition, value):
         assert isinstance(value, datetime.date)
         if isinstance(value, datetime.datetime):
-            # datetime.datetime cannot be compared to datetime.date with > and < operators
+            # datetime.datetime cannot be compared to datetime.date with > and
+            # < operators
             value = value.date()
 
         condition_date = self.str_to_date(condition)
@@ -211,7 +226,8 @@ class ConditionSetBase(type):
                 field.set_values(field_name)
                 attrs['fields'][field_name] = field
 
-        instance = super(ConditionSetBase, cls).__new__(cls, name, bases, attrs)
+        instance = super(ConditionSetBase, cls).__new__(cls, name,
+                                                        bases, attrs)
 
         return instance
 
@@ -238,8 +254,8 @@ class ConditionSet(object):
 
     def get_namespace(self):
         """
-        Returns a string specifying a unique registration namespace for this ConditionSet
-        instance.
+        Returns a string specifying a unique registration namespace for this
+        ConditionSet instance.
         """
         return self.__class__.__name__
 
@@ -283,7 +299,8 @@ class ConditionSet(object):
         """
         return_value = None
         for name, field in self.fields.iteritems():
-            field_conditions = conditions.get(self.get_namespace(), {}).get(name)
+            field_conditions = conditions.get(self.get_namespace(),
+                                              {}).get(name)
             if field_conditions:
                 value = self.get_field_value(instance, name)
                 for status, condition in field_conditions:
@@ -315,7 +332,8 @@ class ModelConditionSet(ConditionSet):
         return isinstance(instance, self.model)
 
     def get_id(self):
-        return '%s.%s(%s)' % (self.__module__, self.__class__.__name__, self.get_namespace())
+        return '%s.%s(%s)' % (self.__module__, self.__class__.__name__,
+                              self.get_namespace())
 
     def get_namespace(self):
         return self.model.__tablename__

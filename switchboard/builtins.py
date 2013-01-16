@@ -2,7 +2,7 @@
 switchboard.builtins
 ~~~~~~~~~~~~~~~
 
-:copyright: (c) 2012 Kyle Adams.
+:copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 import socket
@@ -54,7 +54,7 @@ operator.register(IPAddressConditionSet())
 
 
 class QueryStringConditionSet(RequestConditionSet):
-    value = Regex()
+    substring = Regex()
 
     def get_namespace(self):
         return 'querystring'

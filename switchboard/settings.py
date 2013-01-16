@@ -2,7 +2,7 @@
 switchboard.settings
 ~~~~~~~~~~~~~
 
-:copyright: (c) 2012 Kyle Adams.
+:copyright: (c) 2012 Sourceforge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
@@ -15,6 +15,8 @@ class Settings(object):
         cfg = config.get('switchboard')
         if not cfg:
             return
+        if cfg.get('debug'):
+            self.DEBUG = cfg['debug']
         if cfg.get('switch_defaults'):
             self.SWITCHBOARD_SWITCH_DEFAULTS = cfg['switch_defaults']
         if cfg.get('auto_create'):

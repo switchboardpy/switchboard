@@ -3,7 +3,8 @@ from paste.registry import StackedObjectProxy
 
 from switchboard.models import (
     Switch,
-    DISABLED, SELECTIVE, GLOBAL, INHERIT, INCLUDE, EXCLUDE
+    DISABLED, SELECTIVE, GLOBAL, INHERIT,
+    INCLUDE, EXCLUDE
 )
 from switchboard.proxy import SwitchProxy
 from switchboard.settings import settings
@@ -42,6 +43,12 @@ class SwitchManager(dict):
                 raise KeyError
             self[key] = switch
         return SwitchProxy(self, switch)
+
+    def __setitem__(self, key, value):
+        # Make sure we're storing a switch and not a proxy
+        if isinstance(value, SwitchProxy):
+            value = value._switch
+        super(SwitchManager, self).__setitem__(key, value)
 
     def is_active(self, key, *instances, **kwargs):
         """
@@ -156,7 +163,7 @@ class SwitchManager(dict):
                 yield condition_set.get_id(), group, field
 
     def as_request(self, user=None, ip_address=None):
-        from sf.switchboard.helpers import MockRequest
+        from switchboard.helpers import MockRequest
 
         return MockRequest(user, ip_address)
 

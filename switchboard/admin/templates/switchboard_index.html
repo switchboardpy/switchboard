@@ -1,0 +1,211 @@
+{% extends "switchboard_template.html" %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/3.0.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/switchboard.css">
+    <script>
+        var SWITCHBOARD = {
+            addSwitch:    "add",
+            updateSwitch: "update",
+            deleteSwitch: "delete",
+            updateStatus: "status",
+            addCondition: "add_condition",
+            delCondition: "remove_condition",
+        };
+    </script>
+{% endblock %}
+
+{% block body_end %}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.rc.1/handlebars.min.js"></script>
+    <script>window.Handlebars || document.write('<script src="/static/js/vendor/handlebars-1.0.rc.1.js"><\/script>')</script>
+    <script src="/static/js/string_score.min.js"></script>
+    <script src="/static/js/switchboard.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="switchboard">
+      <h1>Switchboard <span class="spinner" style="display: none;"><i class="icon-spinner icon-spin"></i></span></h1>
+        <div class="toolbar" data-sort="{{ sorted_by }}">
+            <a class="btn btn-success add-switch" href="#add-switch"><i class="icon-plus"></i> Add a Switch</a>
+
+            <input type="search" placeholder="search">
+
+            <ul class="sort">
+                <li class="date_created">
+                    <a href="?by={{'date_created'|sort_by_key(sorted_by)}}">Date Created</a>
+                </li>
+                <li class="date_modified">
+                    <a href="?by={{'date_modified'|sort_by_key(sorted_by)}}">Date Modified</a>
+                </li>
+                <li class="label">
+                    <a href="?by={{'label'|sort_by_key(sorted_by)}}">Label</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="drawer"></div>
+
+        <div class="no-switches" {% if switches %}style="display: none;"{% endif %}>
+            You do not have any switches yet. <a href="#add-switch" class="add-switch">Add the first one</a>.
+        </div>
+
+        <table class="switches {% if not switches %}empty{% endif %}">
+            {% for switch in switches %}
+            <tr id="id_{{ switch.key }}" data-switch-key="{{ switch.key }}" data-switch-label="{{ switch.label }}" data-switch-description="{{ switch.description or '' }}" data-switch-status="{{ switch.status }}">
+                <td class="name">
+                    <h5 class="title">
+                        <i class="icon-circle status-icn"></i>
+                        {% if switch.label %}{{ switch.label }}{% else %}{{ switch.key|title }}{% endif %}
+                        <small class="command">({{ switch.key }})</small>
+                        <div class="actions btn-group">
+                            <a href="#edit-switch" class="btn btn-link edit" title="Edit Switch"><i class="icon-pencil"></i></a>
+                            <a href="#delete-switch" class="btn btn-link delete" title="Delete Switch"><i class="icon-remove"></i></a>
+                        </div>
+                    </h5>
+                    <h6 class="timestamp">
+                        {% if sorted_by|sort_field == 'date_created' %}
+                            Created {{ switch.date_created|timesince }} ago
+                        {% else %}
+                            Last modified {{ switch.date_modified|timesince }} ago
+                        {% endif %}
+                    </h6>
+                    <div class="inner">
+                        {% if switch.description %}
+                            <p>{{ switch.description }}</p>
+                        {% endif %}
+
+                        <div class="conditions">
+                            {% for group in switch.conditions %}
+                                <div class="group">
+                                    <label>{{ group.label }}</label>
+                                    {% for field, value, display, is_exclude in group.conditions %}
+                                        <span data-switch="{{ group.id }}" data-field="{{ field }}" data-value="{{ value }}" class="value">
+                                            <nobr>{% if is_exclude %}<strong>not</strong> {% endif %}{{ display }}
+                                                <a href="#delete-condition" class="btn btn-link delete-condition" title="Delete this condition">
+                                                  <i class="icon-remove"></i>
+                                                </a>
+                                            </nobr>
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="add-condition"><a class="btn btn-success" href="#add-condition"><i class="icon-plus"></i> Add a condition</a></div>
+                        <div class="conditions-form" style="display: none;"></div>
+                    </div>
+                </td>
+
+                <td class="status">
+                    <div class="btn-group">
+                        <a class="btn {% if switch.status == 1 %}toggled{% endif %}" data-status="1" title="Disabled for everyone" href="#status-diabled"><i class="icon-ban-circle"></i></a>
+                        <a class="btn {% if switch.status == 2 %}toggled{% endif %}" data-status="2" title="Active for conditions" href="#status-selective"><i class="icon-filter"></i></a>
+                        <a class="btn {% if switch.status == 4 %}toggled{% endif %}" data-status="4" title="Inherit from parent" href="#status-inherit"><i class="icon-sitemap"></i></a>
+                        <a class="btn {% if switch.status == 3 %}toggled{% endif %}" data-status="3" title="Active for everyone" href="#status-global"><i class="icon-globe"></i></a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% raw %}
+            <script type="text/x-handlebars-template" id="switchForm">
+                <div class="field">
+                    <label for="label">Label</label>
+                    <input name="label" type="text" value="{{#if label}}{{label}}{{/if}}" placeholder="A descriptive name for this switch.">
+                </div>
+                <div class="field">
+                    <label for="key">Key</label>
+                    <input name="key" type="text" value="{{#if key}}{{key}}{{/if}}" placeholder="The key can be any valid JSON string.">
+                </div>
+                <div class="field">
+                    <label for="description">Description</label>
+                    <textarea name="description" placeholder="A brief description on what this switch accomplishes.">{{#if description}}{{description}}{{/if}}</textarea>
+                </div>
+                <div class="actions">
+                    <a data-action="{{#if add}}add{{else}}update{{/if}}" data-curkey="{{curkey}}" class="btn submit-switch primary-action" href="#submit-switch">{{#if add}}Add{{else}}Update{{/if}}</a>
+                    or <a href="#cancel" class="cancel secondary-action">cancel</a>
+                </div>
+            </script>
+
+            <script type="text/x-handlebars-template" id="switchData">
+                <tr id="id_{{key}}" data-switch-key="{{key}}" data-switch-label="{{label}}" data-switch-description="{{description}}" data-switch-status="{{status}}">
+                    <td class="name">
+                        <h5 class="title">
+                            <i class="icon-circle status-icn"></i>
+                            {{label}} <small class="command">({{key}})</small>
+                            <div class="actions btn-group">
+                                <a href="#edit-switch" class="edit btn-link btn"><i class="icon-pencil"></i></a>
+                                <a href="#delete-switch" class="delete btn-link btn"><i class="icon-remove"></i></a>
+                            </div>
+                        </h5>
+                        <div class="inner">
+                            {{#if description}}
+                                <p>{{description}}</p>
+                            {{/if}}
+
+                            <div class="conditions">
+                                {{#each conditions}}
+                                    <div class="group">
+                                        <label>{{label}}</label>
+                                        {{#each conditions}}
+                                            <span data-switch="{{../id}}" data-field="{{[0]}}" data-value="{{[1]}}" class="value">
+                                                <nobr>{{#if [3]}}<strong>not</strong> {{/if}}{{[2]}}
+                                                  <a href="#delete-condition" class="btn btn-link delete-condition" title="Delete this condition">
+                                                    <i class="icon-remove"></i>
+                                                  </a>
+                                                </nobr>
+                                            </span>
+                                        {{/each}}
+                                    </div>
+                                {{/each}}
+                            </div>
+
+                            <div class="add-condition"><a class="btn btn-success" href="#add-condition"><i class="icon-plus"></i> Add a condition</a></div>
+                            <div class="conditions-form" style="display: none;"></div>
+                        </div>
+                    </td>
+
+                    <td class="status">
+                        <div class="btn-group">
+                            <a class="btn {{#ifToggled 1}}toggled{{/ifToggled}}" data-status="1" title="Disabled for everyone" href="#status-diabled"><i class="icon-ban-circle"></i></a>
+                            <a class="btn {{#ifToggled 2}}toggled{{/ifToggled}}" data-status="2" title="Active for conditions" href="#status-selective"><i class="icon-filter"></i></a>
+                            <a class="btn {{#ifToggled 4}}toggled{{/ifToggled}}" data-status="4" title="Inherit from parent" href="#status-inherit"><i class="icon-sitemap"></i></a>
+                            <a class="btn {{#ifToggled 3}}toggled{{/ifToggled}}" data-status="3" title="Active for everyone" href="#status-global"><i class="icon-globe"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            </script>
+        {% endraw %}
+
+        <script type="text/x-handlebars-template" id="switchConditions">
+            <select name="condition">
+                <option></option>
+                {% set last_group = None %}
+                {% for id, group, field in all_conditions %}
+                    {% if group != last_group %}
+                        {% if not loop.first %}</optgroup>{% endif %}
+                        <optgroup label="{{ group }}">
+                        {% set last_group = group %}
+                    {% endif %}
+
+                    <option value="{{ id }},{{ field.name }}">{% if group != field.label %}{{ group }}: {% endif %}{{ field.label }}</option>
+                {% endfor %}
+                </optgroup>
+            </select>
+
+            {% for id, group, field in all_conditions %}
+                <div class="fields" data-path="{{ id }}.{{ field.name }}" style="display:none;">
+                    <form action="" method="get" data-switch="{{ id }}" data-field="{{ field.name }}">
+                        {{ field|render_field }}
+                        <label><input type="checkbox" name="exclude" value="1"/> Exclude</label>
+                        <button type="submit">Add</button>
+                        {% if field.help_text %}
+                            <div class="helptext">{{ field.help_text }}</div>
+                        {% endif %}
+                    </form>
+                </div>
+            {% endfor %}
+        </script>
+    </div>
+{% endblock %}
+

@@ -2,7 +2,7 @@
 switchboard.decorators
 ~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2012 Kyle Adams.
+:copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 

@@ -2,7 +2,7 @@
 switchboard.models
 ~~~~~~~~~~~~~
 
-:copyright: (c) 2012 Kyle Adams.
+:copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
@@ -42,12 +42,12 @@ class Switch(Document):
         session = Session.by_name('gutenberg')
         name = 'switchboard_switches'
 
-    STATUS_CHOICES = (
-        (DISABLED, 'Disabled'),
-        (SELECTIVE, 'Selective'),
-        (GLOBAL, 'Global'),
-        (INHERIT, 'Inherit'),
-    )
+    STATUS_CHOICES = {
+        INHERIT: 'Inherit',
+        GLOBAL: 'Global',
+        SELECTIVE: 'Selective',
+        DISABLED: 'Disabled',
+    }
 
     STATUS_LABELS = {
         INHERIT: 'Inherit from parent',
@@ -63,7 +63,7 @@ class Switch(Document):
     label = Field(str)
     _date_created = Field('date_created', datetime,
                           if_missing=datetime.utcnow)
-    _date_modified = Field('date_updated', datetime,
+    _date_modified = Field('date_modified', datetime,
                            if_missing=datetime.utcnow)
     description = Field(str)
     status = Field(int, if_missing=DISABLED)
@@ -124,6 +124,9 @@ class Switch(Document):
         if last:
             data['conditions'].append(last)
         return data
+
+    def get_status_display(self):
+        return self.STATUS_CHOICES[self.status]
 
     def add_condition(self, manager, condition_set, field_name, condition,
                       exclude=False, commit=True):
@@ -235,7 +238,8 @@ class Switch(Document):
         >>> for label, set_id, field, value, exclude in gargoyle.get_all_conditions(): #doctest: +SKIP
         >>>     print "%(label)s: %(field)s = %(value)s (exclude: %(exclude)s)" % (label, field.label, value, exclude) #doctest: +SKIP
         """
-        for condition_set in sorted(manager.get_condition_sets(), key=lambda x: x.get_group_label()):
+        for condition_set in sorted(manager.get_condition_sets(),
+                                    key=lambda x: x.get_group_label()):
             ns = condition_set.get_namespace()
             condition_set_id = condition_set.get_id()
             if ns in self.value:
@@ -243,7 +247,8 @@ class Switch(Document):
                 for name, field in condition_set.fields.iteritems():
                     for value in self.value[ns].get(name, []):
                         try:
-                            yield condition_set_id, group, field, value[1], value[0] == EXCLUDE
+                            yield (condition_set_id, group, field, value[1],
+                                   value[0] == EXCLUDE)
                         except TypeError:
                             continue
 

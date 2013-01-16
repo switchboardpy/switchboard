@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {%- block head %}
+    <title>{% block title %}Switchboard{% endblock %}</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/2.0.1/normalize.css">
+    <style type="text/css">
+      body { font-size: 87.5%; line-height: 1.5; color: #333; }
+      h1 { font-size: 3.4285714285714284em; line-height: 1.3125em; }
+      h2 { font-size: 2.2857142857142856em; line-height: 1.96875em; }
+      h3 { font-size: 1.7142857142857142em; line-height: 1.75em; }
+      h4 { font-size: 1.5em; line-height: 2em; }
+      h5 { font-size: 1.2857142857142858em; line-height: 2.3333333333333335em; }
+      h6 { font-size: 1.1428571428571428em; line-height: 2.625em; }
+      p { -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; margin-bottom: 1.5em; }
+      #content { width: 50%; margin: 0 auto; }
+    </style>
+    {%- endblock %}
+  </head>
+  <body>
+    <div id="container">
+      <div id="content">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/static/js/vendor/jquery-1.8.3.min.js"><\/script>')</script>
+    {% block body_end %}{% endblock %}
+  </body>
+</html>
