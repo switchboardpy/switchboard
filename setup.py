@@ -25,6 +25,7 @@ setup(name='switchboard',
           'TurboGears2 >= 2',
           'Jinja2 >= 2.6',
           'Paste >= 1.7.5',
+          'pylibmc >= 1.2',
       ],
       tests_require=[
         'nose >= 0.11',
