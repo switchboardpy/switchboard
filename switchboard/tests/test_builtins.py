@@ -32,7 +32,7 @@ class TestHostConditionSet(object):
         teardown_collection()
 
     def test_simple(self):
-        condition_set = 'sf.switchboard.builtins.HostConditionSet'
+        condition_set = 'switchboard.builtins.HostConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -64,7 +64,7 @@ class TestQueryStringConditionSet(object):
         switch = self.operator['test']
         assert_false(self.operator.is_active('test', req))
         switch.add_condition(
-            condition_set='sf.switchboard.builtins.QueryStringConditionSet',
+            condition_set='switchboard.builtins.QueryStringConditionSet',
             field_name='substring',
             condition='alpha',
         )
