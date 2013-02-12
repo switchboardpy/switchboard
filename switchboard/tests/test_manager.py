@@ -1,9 +1,10 @@
 """
+switchboard.tests.test_manager
+~~~~~~~~~~~~~~~
+
 :copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
-
-import socket
 
 from nose.tools import (
     assert_equals,
@@ -13,7 +14,6 @@ from nose.tools import (
 )
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
-import ming
 
 from switchboard.settings import settings
 from switchboard.builtins import (
@@ -22,34 +22,29 @@ from switchboard.builtins import (
     QueryStringConditionSet,
 )
 from switchboard.decorators import switch_is_active
-from switchboard.helpers import MockRequest
-from switchboard.models import Switch, SELECTIVE, DISABLED, GLOBAL, INHERIT
+from switchboard.models import (
+    Switch,
+    SELECTIVE, DISABLED, GLOBAL, INHERIT,
+)
 from switchboard.manager import SwitchManager
-from switchboard.testutils import switches
-
-config = {
-        'ming.gutenberg.uri': 'mim://test/gutenberg'
-}
-ming.configure(**config)
 
 
-def teardown_db():
-    switch_collection = Switch.m.session._impl(Switch)
-    switch_collection.drop()
+def teardown_collection():
+    Switch.c.drop()
 
 
 class TestAPI(object):
     def setup(self):
         settings.SWITCHBOARD_SWITCH_DEFAULTS = {
             'active_by_default': {
-              'is_active': True,
-              'label': 'Default Active',
-              'description': 'When you want the newness',
+                'is_active': True,
+                'label': 'Default Active',
+                'description': 'When you want the newness',
             },
             'inactive_by_default': {
-              'is_active': False,
-              'label': 'Default Inactive',
-              'description': 'Controls the funkiness.',
+                'is_active': False,
+                'label': 'Default Inactive',
+                'description': 'Controls the funkiness.',
             },
         }
         self.operator = SwitchManager(auto_create=True)
@@ -58,7 +53,7 @@ class TestAPI(object):
         self.operator.register(HostConditionSet)
 
     def teardown(self):
-        teardown_db()
+        teardown_collection()
 
     def test_builtin_registration(self):
         assert_true('switchboard.builtins.QueryStringConditionSet'
@@ -226,7 +221,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
         switch.status = GLOBAL
-        switch.m.save()
+        switch.save()
 
         assert_true(self.operator.is_active('test'))
         assert_true(self.operator.is_active('test', req))
@@ -239,7 +234,7 @@ class TestAPI(object):
         req = Request.blank('/')
 
         switch.status = DISABLED
-        switch.m.save()
+        switch.save()
 
         assert_false(self.operator.is_active('test'))
 
@@ -262,7 +257,7 @@ class TestAPI(object):
         switch = self.operator['test']
 
         switch.status = DISABLED
-        switch.m.save()
+        switch.save()
 
         assert_false(self.operator.is_active('test'))
 
@@ -342,8 +337,8 @@ class TestAPI(object):
         assert_true(self.operator.is_active('test', req))
 
         # test with mock request
-        assert_true(self.operator.is_active('test',
-            self.operator.as_request(ip_address='192.168.1.1')))
+        req = self.operator.as_request(ip_address='192.168.1.1')
+        assert_true(self.operator.is_active('test', req))
 
         switch.clear_conditions(
             condition_set=condition_set,
@@ -674,159 +669,3 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child', req))
 
         assert_false(self.operator.is_active('test:child'))
-
-
-class TestConstant(object):
-    def setup(self):
-        self.operator = SwitchManager()
-
-    def test_disabled(self):
-        assert_true(hasattr(self.operator, 'DISABLED'))
-        assert_equals(self.operator.DISABLED, 1)
-
-    def test_selective(self):
-        assert_true(hasattr(self.operator, 'SELECTIVE'))
-        assert_equals(self.operator.SELECTIVE, 2)
-
-    def test_global(self):
-        assert_true(hasattr(self.operator, 'GLOBAL'))
-        assert_equals(self.operator.GLOBAL, 3)
-
-    def test_include(self):
-        assert_true(hasattr(self.operator, 'INCLUDE'))
-        assert_equals(self.operator.INCLUDE, 'i')
-
-    def test_exclude(self):
-        assert_true(hasattr(self.operator, 'EXCLUDE'))
-        assert_equals(self.operator.EXCLUDE, 'e')
-
-
-class TestMockRequest(object):
-    def setup(self):
-        self.operator = SwitchManager()
-
-    def test_empty_attrs(self):
-        req = MockRequest()
-        assert_equals(req.remote_addr, None)
-        assert_equals(req.user, None)
-
-    def test_ip(self):
-        req = MockRequest(ip_address='127.0.0.1')
-        assert_equals(req.remote_addr, '127.0.0.1')
-        assert_equals(req.user, None)
-
-    def test_as_request(self):
-        req = self.operator.as_request(ip_address='127.0.0.1')
-        assert_equals(req.remote_addr, '127.0.0.1')
-
-
-class TestHostConditionSet(object):
-    def setup(self):
-        self.operator = SwitchManager(auto_create=True)
-        self.operator.register(HostConditionSet())
-
-    def teardown(self):
-        teardown_db()
-
-    def test_simple(self):
-        condition_set = 'switchboard.builtins.HostConditionSet'
-
-        switch = Switch.create(
-            key='test',
-            status=SELECTIVE,
-        )
-        switch = self.operator['test']
-
-        assert_false(self.operator.is_active('test'))
-
-        switch.add_condition(
-            condition_set=condition_set,
-            field_name='hostname',
-            condition=socket.gethostname(),
-        )
-
-        assert_true(self.operator.is_active('test'))
-
-
-class TestQueryStringConditionSet(object):
-    def setup(self):
-        self.operator = SwitchManager(auto_create=True)
-        self.operator.register(QueryStringConditionSet())
-
-    def setup_switch(self, req):
-        switch = Switch.create(
-            key='test',
-            status=SELECTIVE,
-        )
-        switch = self.operator['test']
-        assert_false(self.operator.is_active('test', req))
-        switch.add_condition(
-            condition_set='switchboard.builtins.QueryStringConditionSet',
-            field_name='substring',
-            condition='alpha',
-        )
-        return switch
-
-    def teardown(self):
-        teardown_db()
-
-    def test_flag_present(self):
-        req = Request.blank('/?alpha')
-        self.setup_switch(req)
-        assert_true(self.operator.is_active('test', req))
-
-    def test_flag_missing(self):
-        req = Request.blank('/?beta')
-        self.setup_switch(req)
-        assert_false(self.operator.is_active('test', req))
-
-    def test_no_querystring(self):
-        req = Request.blank('/')
-        self.setup_switch(req)
-        assert_false(self.operator.is_active('test', req))
-
-
-class TestSwitchContextManager(object):
-    def setup(self):
-        self.operator = SwitchManager(auto_create=True)
-
-    def teardown(self):
-        teardown_db()
-
-    def test_as_decorator(self):
-        switch = self.operator['test']
-        switch.status = DISABLED
-
-        @switches(self.operator, test=True)
-        def test():
-            return self.operator.is_active('test')
-
-        assert_true(test())
-        assert_equals(self.operator['test'].status, DISABLED)
-
-        switch.status = GLOBAL
-        switch.m.save()
-
-        @switches(self.operator, test=False)
-        def test2():
-            return self.operator.is_active('test')
-
-        assert_false(test2())
-        assert_equals(self.operator['test'].status, GLOBAL)
-
-    def test_context_manager(self):
-        switch = self.operator['test']
-        switch.status = DISABLED
-
-        with switches(self.operator, test=True):
-            assert_true(self.operator.is_active('test'))
-
-        assert_equals(self.operator['test'].status, DISABLED)
-
-        switch.status = GLOBAL
-        switch.m.save()
-
-        with switches(self.operator, test=False):
-            assert_false(self.operator.is_active('test'))
-
-        assert_equals(self.operator['test'].status, GLOBAL)

@@ -47,7 +47,8 @@ jQuery(function($) {
         $drawer.children('input:first').focus();
     });
 
-    $('.switches', $sb).on('click', '.edit', function() {
+    $('.switches', $sb).on('click', '.edit', function(e) {
+        e.preventDefault();
         var $row = $(this).parents('tr:first');
         var html = templates.switchForm({
             add:           false,
@@ -60,7 +61,8 @@ jQuery(function($) {
         $drawer.children('input:first').focus();
     });
 
-    $('.switches', $sb).on('click', '.delete', function() {
+    $('.switches', $sb).on('click', '.delete', function(e) {
+        e.preventDefault();
         var $row = $(this).parents('tr:first');
         var $table = $row.parents('table:first');
 
@@ -81,7 +83,7 @@ jQuery(function($) {
         e.preventDefault();
         var $row = $(this).parents('tr:first');
         var $el = $(this);
-        var status = $el.attr('data-status');
+        var status = parseInt($el.attr('data-status'), 10);
         var labels = {
             4: "(Inherit from parent)",
             3: "(Active for everyone)",

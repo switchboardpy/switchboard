@@ -9,8 +9,8 @@ import socket
 
 from formencode import validators
 
-from switchboard import operator
-from switchboard.conditions import (
+from . import operator
+from .conditions import (
     RequestConditionSet,
     Percent,
     String,
@@ -18,7 +18,7 @@ from switchboard.conditions import (
     Regex,
     ConditionSet,
 )
-from switchboard.settings import settings
+from .settings import settings
 
 
 class IPAddress(String):
@@ -44,8 +44,7 @@ class IPAddressConditionSet(RequestConditionSet):
             return instance.remote_addr
         elif field_name == 'internal_ip':
             return instance.remote_addr in settings.SWITCHBOARD_INTERNAL_IPS
-        return super(IPAddressConditionSet, self).get_field_value(instance,
-                                                                  field_name)
+        return super(IPAddressConditionSet, self).get_field_value(instance, field_name)
 
     def get_group_label(self):
         return 'IP Address'

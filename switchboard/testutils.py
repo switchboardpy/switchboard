@@ -8,7 +8,7 @@ switchboard.testutils
 
 from functools import wraps
 
-from switchboard import operator
+from . import operator
 
 
 class SwitchContextManager(object):

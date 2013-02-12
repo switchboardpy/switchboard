@@ -49,7 +49,8 @@ input[type=search] { margin: 0 0 0 1em; }
 .switchboard .switches td { vertical-align: top; padding: 1em 0; }
 /* names */
 .switchboard .switches .title, .switchboard .switches .timestamp { margin: 0; }
-.switchboard .switches .timestamp { font-size: .714285714em; line-height: 1em; margin-top: -1em; color: #999; font-weight: normal; }
+.switchboard .switches .title { margin-bottom: 1em; }
+.switchboard .switches .timestamp { font-size: .714285714em; line-height: 1em; margin-top: -3em; color: #999; font-weight: normal; float: left; }
 .switchboard .switches .name small { font-size: 0.714286em; color: #666; }
 .switchboard .switches p { margin-bottom: 1em; }
 .switchboard tr[data-switch-status="1"] .status-icn { color: #cc4036; }

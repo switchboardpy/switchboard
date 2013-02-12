@@ -14,4 +14,4 @@ try:
 except Exception, e:
     VERSION = 'unknown'
 
-from switchboard.manager import operator
+from .manager import operator, configure

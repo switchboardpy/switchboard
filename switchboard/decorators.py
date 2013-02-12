@@ -10,8 +10,7 @@ from functools import wraps
 
 from webob.exc import HTTPNotFound, HTTPFound
 
-from switchboard import operator
-
+from . import operator
 
 def switch_is_active(key, request, redirect_to=None, operator=operator):
     def _switch_is_active(func):

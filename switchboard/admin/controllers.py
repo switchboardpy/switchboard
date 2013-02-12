@@ -9,13 +9,13 @@ switchboard.admin.controllers
 import logging
 from decorator import decorator
 from datetime import datetime
+from operator import attrgetter
 
 from webob.exc import HTTPNotFound
 from tg import expose
 from tg.decorators import with_trailing_slash
-import pymongo
 
-from switchboard import operator
+from switchboard import operator, signals
 from switchboard.models import Switch
 from switchboard.conditions import Invalid
 from switchboard.settings import settings
@@ -70,11 +70,11 @@ class SwitchboardController(object):
         if by not in self.valid_sort_orders:
             raise HTTPNotFound('Invalid sort order.')
 
-        is_negative = by.find('-') is 0
-        order = pymongo.DESCENDING if is_negative else pymongo.ASCENDING
+        reverse = by.find('-') is 0
         sort_by = by.lstrip('-')
 
-        switches = Switch.m.find().sort(sort_by, order).all()
+        switches = Switch.all()
+        switches.sort(key=attrgetter(sort_by), reverse=reverse)
 
         return dict(
             switches=[s.to_dict(operator) for s in switches],
@@ -96,29 +96,24 @@ class SwitchboardController(object):
             raise SwitchboardException("Name must be less than or equal to 32"
                                        + " characters in length")
 
-        log.debug("Count for %s: %s", key, Switch.m.find(key=key).count())
-        if Switch.m.find(dict(key=key)).count():
+        if Switch.get(key=key):
             raise SwitchboardException("Switch with key %s already exists"
                                        % key)
 
-        switch = Switch(dict(
-            key=key,
-            label=label or None,
-            description=description
-        ))
-        switch.m.save()
+        switch = Switch.create(key=key, label=label or None,
+                               description=description)
 
         log.info('Switch %r added (%%s)' % switch.key,
                  ', '.join('%s=%r' % (k, getattr(switch, k)) for k in
                            sorted(('key', 'label', 'description', ))))
 
-        operator[key] = switch
+        signals.switch_added.send(switch)
         return switch.to_dict(operator)
 
     @expose('json')
     @json_api
     def update(self, curkey, key, label='', description=None):
-        switch = Switch.m.get(key=curkey)
+        switch = Switch.get(key=curkey)
 
         if len(key) > 32:
             raise SwitchboardException("Key must be less than or equal to 32"
@@ -142,25 +137,26 @@ class SwitchboardController(object):
 
         if changes:
             if switch.key != key:
-                switch.m.delete()
+                switch.delete()
                 switch.key = key
 
             switch.label = label
             switch.description = description
             switch.date_modified = datetime.utcnow()
-            switch.m.save()
+            switch.save()
 
             log.info('Switch %r updated %%s' % switch.key,
                      ', '.join('%s=%r->%r' % (k, v[0], v[1]) for k, v in
                                sorted(changes.iteritems())))
 
-        operator[key] = switch
+            signals.switch_updated.send(switch)
+
         return switch.to_dict(operator)
 
     @expose('json')
     @json_api
     def status(self, key, status):
-        switch = Switch.m.get(key=key)
+        switch = Switch.get(key=key)
 
         try:
             status = int(status)
@@ -172,24 +168,21 @@ class SwitchboardController(object):
         if switch.status != status:
             switch.status = status
             switch.date_modified = datetime.utcnow()
-            switch.m.save()
+            switch.save()
 
             log.info('Switch %r updated (status=%%s->%%s)' % switch.key,
                      old_status_label, switch.get_status_display())
 
-        operator[key] = switch
+            signals.switch_status_updated.send(switch)
+
         return switch.to_dict(operator)
 
     @expose('json')
     @json_api
     def delete(self, key):
-        switch = Switch.m.get(key=key)
-        switch.m.delete()
-
-        log.info('Switch %r removed' % switch.key)
-
-        if key in operator:
-            del operator[key]
+        switch = Switch.remove(key=key)
+        log.info('Switch %r removed' % key)
+        signals.switch_deleted.send(switch)
         return {}
 
     @expose('json')
@@ -215,7 +208,8 @@ class SwitchboardController(object):
                  switch.key, condition_set_id, field_name, value,
                  bool(exclude))
 
-        operator[key] = switch
+        signals.switch_condition_added.send(switch)
+
         return switch.to_dict(operator)
 
     @expose('json')
@@ -235,7 +229,8 @@ class SwitchboardController(object):
         log.info('Condition removed from %r (%r, %s=%r)' % (switch.key,
                  condition_set_id, field_name, value))
 
-        operator[key] = switch
+        signals.switch_condition_removed.send(switch)
+
         return switch.to_dict(operator)
 
     @property

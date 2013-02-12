@@ -1,16 +1,31 @@
+"""
+switchboard.manager
+~~~~~~~~~~~~~~~~
+
+:copyright: (c) 2012 SourceForge.
+:license: Apache License 2.0, see LICENSE for more details.
+"""
+
 from webob import Request
 from paste.registry import StackedObjectProxy
+import logging
 
-from switchboard.models import (
+from pymongo import Connection
+
+from .base import MongoModelDict
+from .models import (
     Switch,
     DISABLED, SELECTIVE, GLOBAL, INHERIT,
-    INCLUDE, EXCLUDE
+    INCLUDE, EXCLUDE,
 )
-from switchboard.proxy import SwitchProxy
-from switchboard.settings import settings
+from .proxy import SwitchProxy
+from .settings import settings, Settings
+from .helpers import get_cache
+
+log = logging.getLogger(__name__)
 
 
-class SwitchManager(dict):
+class SwitchManager(MongoModelDict):
     DISABLED = DISABLED
     SELECTIVE = SELECTIVE
     GLOBAL = GLOBAL
@@ -19,14 +34,23 @@ class SwitchManager(dict):
     INCLUDE = INCLUDE
     EXCLUDE = EXCLUDE
 
-    def __init__(self, auto_create=False, *args, **kwargs):
-        self.auto_create = auto_create
+    def __init__(self, *args, **kwargs):
         # We'll store available conditions in the registry
         self._registry = {}
-        super(SwitchManager, self).__init__(*args, **kwargs)
+        # Inject args and kwargs that are known quantities; the SwitchManager
+        # will always deal with the Switch model and so on.
+        new_args = [Switch]
+        for a in args:
+            new_args.append(a)
+        kwargs['key'] = 'key'
+        kwargs['value'] = 'value'
+        kwargs['cache'] = get_cache()
+        super(SwitchManager, self).__init__(*new_args, **kwargs)
 
-    def __repr__(self):
-        return "<%s: %s>" % (self.__class__.__name__, self._registry.values())
+    def __unicode__(self):
+        return "<%s: %s (%s)>" % (self.__class__.__name__,
+                                  getattr(self, 'model', ''),
+                                  self._registry.values())
 
     def __getitem__(self, key):
         """
@@ -34,21 +58,7 @@ class SwitchManager(dict):
         easily extend the Switches method and automatically include our
         manager instance.
         """
-        switch = self.get(key)
-        if not switch:
-            switch = Switch.m.get(key=key)
-            if not switch and self.auto_create:
-                switch = Switch.create(key=key)
-            if not switch:
-                raise KeyError
-            self[key] = switch
-        return SwitchProxy(self, switch)
-
-    def __setitem__(self, key, value):
-        # Make sure we're storing a switch and not a proxy
-        if isinstance(value, SwitchProxy):
-            value = value._switch
-        super(SwitchManager, self).__setitem__(key, value)
+        return SwitchProxy(self, super(SwitchManager, self).__getitem__(key))
 
     def is_active(self, key, *instances, **kwargs):
         """
@@ -167,5 +177,34 @@ class SwitchManager(dict):
 
         return MockRequest(user, ip_address)
 
-operator = SwitchManager(auto_create=getattr(settings,
-                         'SWITCHBOARD_AUTO_CREATE', True))
+
+auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)
+operator = SwitchManager(auto_create=auto_create)
+
+
+def nested_config(config):
+    cfg = {}
+    token = 'switchboard.'
+    for k, v in config.iteritems():
+        if k.startswith(token):
+            cfg[k.replace(token, '')] = v
+    return cfg
+
+
+def configure(config, nested=False):
+    """
+    Useful for when you need to control Switchboard's setup
+    """
+    if nested:
+        config = nested_config(config)
+    # Re-read settings to make sure we have everything
+    settings = Settings(**config)
+    # Establish the connection to Mongo
+    conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
+                      settings.SWITCHBOARD_MONGO_PORT)
+    db = conn[settings.SWITCHBOARD_MONGO_DB]
+    collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
+    Switch.c = collection
+    # Setup the cache
+    cache_hosts = getattr(settings, 'SWITCHBOARD_CACHE_HOSTS', None)
+    operator.cache = get_cache(cache_hosts)

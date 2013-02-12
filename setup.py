@@ -22,6 +22,7 @@ setup(name='switchboard',
       install_requires=[
           'setuptools',
           'pymongo >= 1.9',
+          'blinker >= 1.2',
       ],
       tests_require=[
         'nose >= 0.11.1',

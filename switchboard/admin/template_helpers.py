@@ -1,5 +1,5 @@
 """
-switchboard.admin.template_helpers
+switchboard.admin.jinja_helpers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :copyright: (c) 2012 SourceForge.
