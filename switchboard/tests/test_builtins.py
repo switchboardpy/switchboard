@@ -11,12 +11,12 @@ import socket
 from nose.tools import assert_true, assert_false
 from webob import Request
 
-from switchboard.manager import SwitchManager
-from switchboard.builtins import (
+from ..manager import SwitchManager
+from ..builtins import (
     HostConditionSet,
     QueryStringConditionSet,
 )
-from switchboard.models import Switch, SELECTIVE
+from ..models import Switch, SELECTIVE
 
 
 def teardown_collection():
@@ -32,7 +32,7 @@ class TestHostConditionSet(object):
         teardown_collection()
 
     def test_simple(self):
-        condition_set = 'switchboard.builtins.HostConditionSet'
+        condition_set = 'sf.switchboard.builtins.HostConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -64,7 +64,7 @@ class TestQueryStringConditionSet(object):
         switch = self.operator['test']
         assert_false(self.operator.is_active('test', req))
         switch.add_condition(
-            condition_set='switchboard.builtins.QueryStringConditionSet',
+            condition_set='sf.switchboard.builtins.QueryStringConditionSet',
             field_name='substring',
             condition='alpha',
         )

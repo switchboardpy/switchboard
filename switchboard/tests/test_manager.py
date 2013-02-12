@@ -12,21 +12,24 @@ from nose.tools import (
     assert_false,
     assert_raises
 )
+from mock import patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
-from switchboard.settings import settings
-from switchboard.builtins import (
+from .. import configure, operator
+from ..builtins import (
     IPAddressConditionSet,
     HostConditionSet,
     QueryStringConditionSet,
 )
-from switchboard.decorators import switch_is_active
-from switchboard.models import (
+from ..decorators import switch_is_active
+from ..models import (
     Switch,
     SELECTIVE, DISABLED, GLOBAL, INHERIT,
 )
-from switchboard.manager import SwitchManager
+from ..manager import SwitchManager
+from ..helpers import MockCache, MockCollection
+from ..settings import settings
 
 
 def teardown_collection():
@@ -56,17 +59,23 @@ class TestAPI(object):
         teardown_collection()
 
     def test_builtin_registration(self):
-        assert_true('switchboard.builtins.QueryStringConditionSet'
+        assert_true('sf.switchboard.builtins.QueryStringConditionSet'
                     in self.operator._registry)
-        assert_true('switchboard.builtins.IPAddressConditionSet'
+        assert_true('sf.switchboard.builtins.IPAddressConditionSet'
                     in self.operator._registry)
-        assert_true('switchboard.builtins.HostConditionSet'
+        assert_true('sf.switchboard.builtins.HostConditionSet'
                     in self.operator._registry)
         assert_equals(len(list(self.operator.get_condition_sets())), 3,
                       self.operator)
 
+    @patch('sf.switchboard.base.MongoModelDict.get_default')
+    def test_error(self, get_default):
+        # force the is_active call to fail right away
+        get_default.side_effect = Exception('Boom!')
+        assert_false(self.operator.is_active('test'))
+
     def test_exclusions(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -94,7 +103,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_only_exclusions(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -117,7 +126,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_decorator_for_ip_address(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -262,7 +271,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test'))
 
     def test_ip_address_internal_ips(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -290,7 +299,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_ip_address(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -351,7 +360,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req))
 
     def test_to_dict(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             label='my switch',
@@ -400,7 +409,7 @@ class TestAPI(object):
         assert_false(inner_condition[3])
 
     def test_remove_condition(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -458,7 +467,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('active_by_default'))
 
     def test_invalid_condition(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -482,7 +491,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test', req2))
 
     def test_inheritance(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         switch = Switch.create(
             key='test',
@@ -554,7 +563,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child'))
 
     def test_parent_override_child_condition(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -584,7 +593,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child'))
 
     def test_child_condition_differing_than_parent_loses(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -625,7 +634,7 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child'))
 
     def test_child_condition_including_parent_wins(self):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
+        condition_set = 'sf.switchboard.builtins.IPAddressConditionSet'
 
         Switch.create(
             key='test',
@@ -669,3 +678,62 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child', req))
 
         assert_false(self.operator.is_active('test:child'))
+
+
+class TestConfigure(object):
+    def setup(self):
+        self.config = dict(
+            mongo_host='mongodb',
+            mongo_port=8080,
+            mongo_db='test',
+            mongo_collection='test_switches',
+            debug=True,
+            switch_defaults=dict(a=1),
+            auto_create=True,
+            internal_ips='127.0.0.1',
+            cache_hosts=['127.0.0.1']
+        )
+
+    def teardown(self):
+        Switch.c = MockCollection()
+        operator.cache = MockCache()
+
+    def assert_settings(self):
+        for k, v in self.config.iteritems():
+            assert_equals(getattr(settings, 'SWITCHBOARD_%s' % k.upper()), v)
+
+    @patch('sf.switchboard.manager.Connection')
+    @patch('sf.switchboard.manager.get_cache')
+    def test_unnested(self, get_cache, Connection):
+        configure(self.config)
+        self.assert_settings()
+        assert_false(isinstance(operator.cache, MockCache))
+        assert_false(isinstance(Switch.c, MockCollection))
+
+    @patch('sf.switchboard.manager.Connection')
+    @patch('sf.switchboard.manager.get_cache')
+    def test_nested(self, get_cache, Connection):
+        cfg = {}
+        for k, v in self.config.iteritems():
+            cfg['switchboard.%s' % k] = v
+        cfg['foo.bar'] = 'baz'
+        configure(cfg, nested=True)
+        self.assert_settings()
+        assert_false(isinstance(operator.cache, MockCache))
+        assert_false(isinstance(Switch.c, MockCollection))
+
+    @patch('sf.switchboard.manager.Connection')
+    @patch('sf.switchboard.manager.get_cache')
+    def test_database_failure(self, get_cache, Connection):
+        Connection.side_effect = Exception('Boom!')
+        configure(self.config)
+        assert_false(isinstance(operator.cache, MockCache))
+        assert_true(isinstance(Switch.c, MockCollection))
+
+    @patch('sf.switchboard.manager.Connection')
+    @patch('pylibmc.Client')
+    def test_cache_failure(self, Client, Connection):
+        Client.side_effect = Exception('Boom!')
+        configure(self.config)
+        assert_true(isinstance(operator.cache, MockCache))
+        assert_false(isinstance(Switch.c, MockCollection))

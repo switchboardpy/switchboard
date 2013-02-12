@@ -8,7 +8,7 @@ switchboard.tests.test_models
 
 from nose.tools import assert_equals, assert_true
 
-from switchboard.manager import SwitchManager
+from ..manager import SwitchManager
 
 
 class TestConstant(object):

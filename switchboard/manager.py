@@ -6,10 +6,10 @@ switchboard.manager
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from webob import Request
-from paste.registry import StackedObjectProxy
 import logging
 
+from webob import Request
+from paste.registry import StackedObjectProxy
 from pymongo import Connection
 
 from .base import MongoModelDict
@@ -23,6 +23,42 @@ from .settings import settings, Settings
 from .helpers import get_cache
 
 log = logging.getLogger(__name__)
+
+
+def nested_config(config):
+    cfg = {}
+    token = 'switchboard.'
+    for k, v in config.iteritems():
+        if k.startswith(token):
+            cfg[k.replace(token, '')] = v
+    return cfg
+
+
+def configure(config, nested=False):
+    """
+    Useful for when you need to control Switchboard's setup
+    """
+    if nested:
+        config = nested_config(config)
+    # Re-read settings to make sure we have everything
+    Settings.init(**config)
+    # Establish the connection to Mongo
+    mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
+    # The config is in ms to match memcached, but pymongo wants seconds
+    mongo_timeout = mongo_timeout // 1000 if mongo_timeout else mongo_timeout
+    try:
+        conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
+                          settings.SWITCHBOARD_MONGO_PORT,
+                          network_timeout=mongo_timeout)
+        db = conn[settings.SWITCHBOARD_MONGO_DB]
+        collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
+        Switch.c = collection
+    except:
+        log.exception('Unable to connect to the datastore')
+    # Setup the cache
+    cache_hosts = getattr(settings, 'SWITCHBOARD_CACHE_HOSTS', None)
+    cache_timeout = getattr(settings, 'SWITCHBOARD_CACHE_TIMEOUT', None)
+    operator.cache = get_cache(cache_hosts, cache_timeout)
 
 
 class SwitchManager(MongoModelDict):
@@ -67,58 +103,62 @@ class SwitchManager(MongoModelDict):
 
         >>> opersator.is_active('my_feature', request) #doctest: +SKIP
         """
-        default = kwargs.pop('default', False)
-
-        # Check all parents for a disabled state
-        parts = key.split(':')
-        if len(parts) > 1:
-            child_kwargs = kwargs.copy()
-            child_kwargs['default'] = None
-            result = self.is_active(':'.join(parts[:-1]), *instances,
-                                    **child_kwargs)
-
-            if result is False:
-                return result
-            elif result is True:
-                default = result
-
         try:
-            switch = self[key]
-        except KeyError:
-            # switch is not defined, defer to parent
-            return default
+            default = kwargs.pop('default', False)
 
-        if switch.status == GLOBAL:
-            return True
-        elif switch.status == DISABLED:
-            return False
-        elif switch.status == INHERIT:
-            return default
+            # Check all parents for a disabled state
+            parts = key.split(':')
+            if len(parts) > 1:
+                child_kwargs = kwargs.copy()
+                child_kwargs['default'] = None
+                result = self.is_active(':'.join(parts[:-1]), *instances,
+                                        **child_kwargs)
 
-        conditions = switch.value
-        # If no conditions are set, we inherit from parents
-        if not conditions:
-            return default
+                if result is False:
+                    return result
+                elif result is True:
+                    default = result
 
-        if instances:
-            instances = list(instances)
-            for v in instances:
-                # HACK: support request.user by swapping in User instance
-                if isinstance(v, Request) and hasattr(v, 'user'):
-                    instances.append(v.user)
-                # HACK: unwrapped objects inside a proxy
-                if isinstance(v, StackedObjectProxy):
-                    instances.append(v._current_obj())
+            try:
+                switch = self[key]
+            except KeyError:
+                # switch is not defined, defer to parent
+                return default
 
-        # check each switch to see if it can execute
-        return_value = False
-
-        for switch in self._registry.itervalues():
-            result = switch.has_active_condition(conditions, instances)
-            if result is False:
+            if switch.status == GLOBAL:
+                return True
+            elif switch.status == DISABLED:
                 return False
-            elif result is True:
-                return_value = True
+            elif switch.status == INHERIT:
+                return default
+
+            conditions = switch.value
+            # If no conditions are set, we inherit from parents
+            if not conditions:
+                return default
+
+            if instances:
+                instances = list(instances)
+                for v in instances:
+                    # HACK: support request.user by swapping in User instance
+                    if isinstance(v, Request) and hasattr(v, 'user'):
+                        instances.append(v.user)
+                    # HACK: unwrapped objects inside a proxy
+                    if isinstance(v, StackedObjectProxy):
+                        instances.append(v._current_obj())
+
+            # check each switch to see if it can execute
+            return_value = False
+
+            for switch in self._registry.itervalues():
+                result = switch.has_active_condition(conditions, instances)
+                if result is False:
+                    return False
+                elif result is True:
+                    return_value = True
+        except:
+            log.exception('Error checking if switch "%s" is active', key)
+            return_value = False
 
         # there were no matching conditions, so it must not be enabled
         return return_value
@@ -173,38 +213,10 @@ class SwitchManager(MongoModelDict):
                 yield condition_set.get_id(), group, field
 
     def as_request(self, user=None, ip_address=None):
-        from switchboard.helpers import MockRequest
+        from .helpers import MockRequest
 
         return MockRequest(user, ip_address)
 
 
 auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)
 operator = SwitchManager(auto_create=auto_create)
-
-
-def nested_config(config):
-    cfg = {}
-    token = 'switchboard.'
-    for k, v in config.iteritems():
-        if k.startswith(token):
-            cfg[k.replace(token, '')] = v
-    return cfg
-
-
-def configure(config, nested=False):
-    """
-    Useful for when you need to control Switchboard's setup
-    """
-    if nested:
-        config = nested_config(config)
-    # Re-read settings to make sure we have everything
-    settings = Settings(**config)
-    # Establish the connection to Mongo
-    conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
-                      settings.SWITCHBOARD_MONGO_PORT)
-    db = conn[settings.SWITCHBOARD_MONGO_DB]
-    collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
-    Switch.c = collection
-    # Setup the cache
-    cache_hosts = getattr(settings, 'SWITCHBOARD_CACHE_HOSTS', None)
-    operator.cache = get_cache(cache_hosts)

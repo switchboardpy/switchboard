@@ -8,8 +8,8 @@ switchboard.tests.test_helpers
 
 from nose.tools import assert_equals
 
-from switchboard.helpers import MockRequest
-from switchboard.manager import SwitchManager
+from ..helpers import MockRequest
+from ..manager import SwitchManager
 
 
 class TestMockRequest(object):

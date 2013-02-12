@@ -6,26 +6,37 @@ switchboard.settings
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+NoValue = object()
+
 
 class Settings(object):
 
-    def __init__(self, mongo_host='localhost', mongo_port=27017,
-                 mongo_db='switchboard', mongo_collection='switches',
-                 **kwargs):
-        self.SWITCHBOARD_MONGO_HOST = mongo_host
-        self.SWITCHBOARD_MONGO_PORT = mongo_port
-        self.SWITCHBOARD_MONGO_DB = mongo_db
-        self.SWITCHBOARD_MONGO_COLLECTION = mongo_collection
-        if kwargs.get('debug'):
-            self.DEBUG = kwargs['debug']
-        if kwargs.get('switch_defaults'):
-            self.SWITCHBOARD_SWITCH_DEFAULTS = kwargs['switch_defaults']
-        if kwargs.get('auto_create'):
-            self.SWITCHBOARD_AUTO_CREATE = kwargs['auto_create']
-        if kwargs.get('interal_ips'):
-            self.SWITCHBOARD_INTERNAL_IPS = kwargs['internal_ips']
-        if kwargs.get('cache_hosts'):
-            self.SWITCHBOARD_CACHE_HOSTS = kwargs['cache_hosts']
+    _state = {}
+
+    @classmethod
+    def init(cls, mongo_host='localhost', mongo_port=27017,
+             mongo_db='switchboard', mongo_collection='switches',
+             **kwargs):
+        cls._state['SWITCHBOARD_MONGO_HOST'] = mongo_host
+        cls._state['SWITCHBOARD_MONGO_PORT'] = mongo_port
+        cls._state['SWITCHBOARD_MONGO_DB'] = mongo_db
+        cls._state['SWITCHBOARD_MONGO_COLLECTION'] = mongo_collection
+        remainder = kwargs.iteritems()
+        remainder = [('SWITCHBOARD_%s' % k.upper(), v) for k, v in remainder]
+        cls._state.update(dict(remainder))
+        return cls()
+
+    def __getattr__(self, name, default=NoValue):
+        value = self._state.get(name, default)
+        if value is NoValue:
+            raise AttributeError
+        return value
+
+    def __delattr__(self, name):
+        del self._state[name]
+
+    def __setattr__(self, name, value):
+        self._state[name] = value
 
 
-settings = Settings()
+settings = Settings.init()

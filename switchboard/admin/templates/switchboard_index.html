@@ -25,7 +25,21 @@
 
 {% block content %}
     <div class="switchboard">
-      <h1>Switchboard <span class="spinner" style="display: none;"><i class="icon-spinner icon-spin"></i></span></h1>
+        <h1>Switchboard <span class="spinner" style="display: none;"><i class="icon-spinner icon-spin"></i></span></h1>
+        <div class="messages">
+            {%- if errors|count %}
+            <div class="message error">
+                <p>Switchboard detected errors during startup and configuration:</p>
+                <ul>
+                    {%- for e in errors %}
+                    <li>{{ e }}</li>
+                    {%- endfor %}
+                </ul>
+                <p>These errors must be fixed before Switchboard can be used. Additionally, all switches will be inactive until the errors are fixed. Check your logs for more details.</p>
+            </div>
+            {%- endif %}
+        </div>
+        {%- if not errors|count %}
         <div class="toolbar" data-sort="{{ sorted_by }}">
             <a class="btn btn-success add-switch" href="#add-switch"><i class="icon-plus"></i> Add a Switch</a>
 
@@ -206,6 +220,7 @@
                 </div>
             {% endfor %}
         </script>
+        {%- endif %} {# Hide UI if configuration errors are found #}
     </div>
 {% endblock %}
 

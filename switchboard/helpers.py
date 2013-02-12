@@ -108,11 +108,22 @@ class MockCache(dict):
         self[key] = value
 
 
-def get_cache(hosts=None):
+def get_cache(hosts=None, timeout=None):
     if hosts:
         if not isinstance(hosts, list):
             hosts = [hosts]
         import pylibmc
-        return pylibmc.Client(hosts)
+        try:
+            if timeout:
+                cache = pylibmc.Client(hosts,
+                                       behaviors=dict(connect_timeout=timeout))
+            else:
+                cache = pylibmc.Client(hosts)
+            # test for a good connection
+            cache.get_stats()
+        except:
+            log.exception('Unable to connect to cache')
+            cache = MockCache()
+        return cache
     else:
         return MockCache()

@@ -15,10 +15,10 @@ from webob.exc import HTTPNotFound
 from tg import expose
 from tg.decorators import with_trailing_slash
 
-from switchboard import operator, signals
-from switchboard.models import Switch
-from switchboard.conditions import Invalid
-from switchboard.settings import settings
+from .. import operator, signals, settings
+from ..models import Switch
+from ..conditions import Invalid
+from ..helpers import MockCache, MockCollection
 
 
 log = logging.getLogger(__name__)
@@ -76,10 +76,19 @@ class SwitchboardController(object):
         switches = Switch.all()
         switches.sort(key=attrgetter(sort_by), reverse=reverse)
 
+        errors = []
+        if isinstance(operator.cache, MockCache):
+            errors.append("The global cache is in test mode, likely due to an "
+                          + "error with the real cache.")
+        if isinstance(Switch.c, MockCollection):
+            errors.append("The datastore is in test mode, likely due to an "
+                          + "error with the real datastore.")
+
         return dict(
             switches=[s.to_dict(operator) for s in switches],
             all_conditions=list(operator.get_all_conditions()),
-            sorted_by=by
+            sorted_by=by,
+            errors=errors,
         )
 
     @expose('json')

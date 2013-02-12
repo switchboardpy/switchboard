@@ -17,9 +17,9 @@ from nose.tools import (
 from mock import Mock, patch
 from blinker import Signal
 
-from switchboard.base import MongoModelDict, CachedDict
-from switchboard.models import MongoModel, post_save, post_delete
-from switchboard.signals import request_finished
+from ..base import MongoModelDict, CachedDict
+from ..models import MongoModel, post_save, post_delete
+from ..signals import request_finished
 
 
 class MockModel(MongoModel):
@@ -250,10 +250,10 @@ class TestCachedDict(object):
         self.cache = Mock()
         self.mydict = CachedDict(timeout=100, cache=self.cache)
 
-    @patch('switchboard.base.CachedDict._update_cache_data')
-    @patch('switchboard.base.CachedDict.is_local_expired',
+    @patch('sf.switchboard.base.CachedDict._update_cache_data')
+    @patch('sf.switchboard.base.CachedDict.is_local_expired',
            Mock(return_value=True))
-    @patch('switchboard.base.CachedDict.has_global_changed',
+    @patch('sf.switchboard.base.CachedDict.has_global_changed',
            Mock(return_value=False))
     def test_expired_does_update_data(self, _update_cache_data):
         self.mydict._cache = {}
@@ -262,10 +262,10 @@ class TestCachedDict(object):
 
         assert_false(_update_cache_data.called)
 
-    @patch('switchboard.base.CachedDict._update_cache_data')
-    @patch('switchboard.base.CachedDict.is_local_expired',
+    @patch('sf.switchboard.base.CachedDict._update_cache_data')
+    @patch('sf.switchboard.base.CachedDict.is_local_expired',
            Mock(return_value=False))
-    @patch('switchboard.base.CachedDict.has_global_changed',
+    @patch('sf.switchboard.base.CachedDict.has_global_changed',
            Mock(return_value=True))
     def test_reset_does_expire(self, _update_cache_data):
         self.mydict._cache = {}
@@ -274,10 +274,10 @@ class TestCachedDict(object):
 
         _update_cache_data.assert_called_once_with()
 
-    @patch('switchboard.base.CachedDict._update_cache_data')
-    @patch('switchboard.base.CachedDict.is_local_expired',
+    @patch('sf.switchboard.base.CachedDict._update_cache_data')
+    @patch('sf.switchboard.base.CachedDict.is_local_expired',
            Mock(return_value=False))
-    @patch('switchboard.base.CachedDict.has_global_changed',
+    @patch('sf.switchboard.base.CachedDict.has_global_changed',
            Mock(return_value=True))
     def test_does_not_expire_by_default(self, _update_cache_data):
         self.mydict._cache = {}

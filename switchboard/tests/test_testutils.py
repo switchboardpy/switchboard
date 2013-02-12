@@ -12,12 +12,12 @@ from nose.tools import (
     assert_false,
 )
 
-from switchboard.models import (
+from ..models import (
     Switch,
     DISABLED, GLOBAL,
 )
-from switchboard.manager import SwitchManager
-from switchboard.testutils import switches
+from ..manager import SwitchManager
+from ..testutils import switches
 
 
 def teardown_collection():
