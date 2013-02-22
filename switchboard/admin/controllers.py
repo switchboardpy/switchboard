@@ -15,7 +15,8 @@ from webob.exc import HTTPNotFound
 from tg import expose
 from tg.decorators import with_trailing_slash
 
-from .. import operator, signals, settings
+from .. import operator, signals
+from ..settings import settings
 from ..models import Switch
 from ..conditions import Invalid
 from ..helpers import MockCache, MockCollection

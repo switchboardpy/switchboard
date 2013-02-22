@@ -1,5 +1,17 @@
 from blinker import signal
 
+#: This signal is sent when a switch is checked via the operator.is_active
+#: function.
+#:
+#: Example subscriber::
+#:
+#:      def switch_checked_callback(key):
+#:          logging.debug('Switch was checked: %r', key)
+#:
+#:      from switchboard.signals import switch_checked
+#:      switch_checked.connect(switch_checked_callback)
+switch_checked = signal('switch_checked')
+
 #: This signal is sent when a switch is added.
 #:
 #: Example subscriber::
