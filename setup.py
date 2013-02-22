@@ -26,6 +26,7 @@ setup(name='switchboard',
           'Jinja2 >= 2.6',
           'Paste >= 1.7.5',
           'pylibmc >= 1.2',
+          'decorator',
       ],
       tests_require=[
         'nose >= 0.11',
