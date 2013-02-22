@@ -2,11 +2,12 @@
 switchboard.template_helpers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2010 Dice.
+:copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
 from . import operator
+
 
 def is_active(key, *args):
     """
@@ -19,7 +20,7 @@ def is_active(key, *args):
     As with the operator.is_active() method, arbitrary objects may be
     passed in for use in testing whether the switch is active:
 
-    {% if 'my_switch' is active(request, user) %}
+    {% if 'my_switch' is active(foo) %}
     ...
     {% endif %}
 
@@ -30,4 +31,3 @@ def is_active(key, *args):
     environment.tests['active'] = is_active
     """
     return operator.is_active(key, *args)
-

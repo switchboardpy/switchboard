@@ -163,8 +163,10 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
+        original_func = self.operator.get_request
+        self.operator.get_request = lambda: req
 
-        @switch_is_active('test', req, operator=self.operator)
+        @switch_is_active('test', operator=self.operator)
         def test():
             return True
 
@@ -229,6 +231,7 @@ class TestAPI(object):
         )
 
         assert_raises(HTTPNotFound, test)
+        self.operator.get_request = original_func
 
     def test_decorator_with_redirect(self):
         Switch.create(
@@ -237,12 +240,15 @@ class TestAPI(object):
         )
 
         req = Request.blank('/')
+        original_func = self.operator.get_request
+        self.operator.get_request = lambda: req
 
-        @switch_is_active('test', req, redirect_to='/foo')
+        @switch_is_active('test', redirect_to='/foo')
         def test():
             return True
 
         assert_raises(HTTPFound, test)
+        self.operator.get_request = original_func
 
     def test_global(self):
         switch = Switch.create(

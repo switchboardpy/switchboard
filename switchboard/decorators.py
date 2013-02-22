@@ -12,11 +12,12 @@ from webob.exc import HTTPNotFound, HTTPFound
 
 from . import operator
 
-def switch_is_active(key, request, redirect_to=None, operator=operator):
+
+def switch_is_active(key, redirect_to=None, operator=operator):
     def _switch_is_active(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
-            if not operator.is_active(key, request):
+            if not operator.is_active(key):
                 if not redirect_to:
                     raise HTTPNotFound('Switch \'%s\' is not active' % key)
                 else:

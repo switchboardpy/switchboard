@@ -148,15 +148,13 @@ class SwitchManager(MongoModelDict):
             if not conditions:
                 return default
 
-            if instances:
-                instances = list(instances)
-                for v in instances:
-                    # HACK: support request.user by swapping in User instance
-                    if isinstance(v, Request) and hasattr(v, 'user'):
-                        instances.append(v.user)
-                    # HACK: unwrapped objects inside a proxy
-                    if isinstance(v, StackedObjectProxy):
-                        instances.append(v._current_obj())
+            instances = list(instances) if instances else []
+            request = self.get_request()
+            if request:
+                instances.append(request)
+            user = self.get_user()
+            if user:
+                instances.append(user)
 
             # check each switch to see if it can execute
             return_value = False
@@ -228,6 +226,20 @@ class SwitchManager(MongoModelDict):
         from .helpers import MockRequest
 
         return MockRequest(user, ip_address)
+
+    def get_request(self):
+        """
+        A callback to get the request object should be setup during
+        switchboard setup.
+        """
+        pass
+
+    def get_user(self):
+        """
+        A callback to get the request object should be setup during
+        switchboard setup.
+        """
+        pass
 
 
 auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)
