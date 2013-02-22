@@ -254,6 +254,19 @@ class TestCachedDict(object):
     @patch('switchboard.base.CachedDict.is_local_expired',
            Mock(return_value=True))
     @patch('switchboard.base.CachedDict.has_global_changed',
+           Mock(return_value=True))
+    def test_error_causes_reset(self, _update_cache_data):
+        self.cache.get.return_value = 1
+        self.mydict._cache = {}
+        self.mydict._last_updated = time.time()
+        self.mydict._populate()
+
+        assert_true(_update_cache_data.called)
+
+    @patch('switchboard.base.CachedDict._update_cache_data')
+    @patch('switchboard.base.CachedDict.is_local_expired',
+           Mock(return_value=True))
+    @patch('switchboard.base.CachedDict.has_global_changed',
            Mock(return_value=False))
     def test_expired_does_update_data(self, _update_cache_data):
         self.mydict._cache = {}

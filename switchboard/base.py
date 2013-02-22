@@ -178,7 +178,9 @@ class CachedDict(object):
                 # The value may or may not exist in the cache
                 try:
                     self._cache = self.cache.get(self.cache_key)
-                except:  # pragma: nocover
+                    assert isinstance(self._cache, dict)
+                except:
+                    self._cache = None
                     log.exception('Unable to refresh local cache from global')
 
                 # If for some reason last_updated_cache_key was None (but the
