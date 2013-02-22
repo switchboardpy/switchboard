@@ -9,8 +9,6 @@ switchboard.manager
 import logging
 from decorator import decorator
 
-from webob import Request
-from paste.registry import StackedObjectProxy
 from pymongo import Connection
 
 from . import signals
