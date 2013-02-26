@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.0.1'
+version = '1.0.2'
 
 setup(name='switchboard',
       version=version,
@@ -17,6 +17,7 @@ setup(name='switchboard',
       download_url='https://sf.net/projects/switchboardpy/files/latest',
       license='Apache License',
       packages=find_packages(exclude=['ez_setup']),
+      include_package_data=True,
       install_requires=[
           'FormEncode >= 1.2',
           'pymongo >= 2.3',
