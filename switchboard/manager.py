@@ -132,6 +132,7 @@ class SwitchManager(MongoModelDict):
                 switch = self[key]
             except KeyError:
                 # switch is not defined, defer to parent
+                signals.switch_checked.send(None, active=default)
                 return default
 
             if switch.status == GLOBAL:
