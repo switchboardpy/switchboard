@@ -12,8 +12,6 @@ from datetime import datetime
 from operator import attrgetter
 
 from webob.exc import HTTPNotFound
-from tg import expose
-from tg.decorators import with_trailing_slash
 
 from .. import operator, signals
 from ..settings import settings
@@ -64,9 +62,7 @@ def json_api(func, *args, **kwargs):
     return response
 
 
-class SwitchboardController(object):
-    @with_trailing_slash
-    @expose('switchboard_index.html')
+class CoreAdminController(object):
     def index(self, by='-date_modified'):
         if by not in self.valid_sort_orders:
             raise HTTPNotFound('Invalid sort order.')
@@ -92,7 +88,6 @@ class SwitchboardController(object):
             errors=errors,
         )
 
-    @expose('json')
     @json_api
     def add(self, key, label='', description=None, **kwargs):
         if not key:
@@ -120,7 +115,6 @@ class SwitchboardController(object):
         signals.switch_added.send(switch)
         return switch.to_dict(operator)
 
-    @expose('json')
     @json_api
     def update(self, curkey, key, label='', description=None):
         switch = Switch.get(key=curkey)
@@ -163,7 +157,6 @@ class SwitchboardController(object):
 
         return switch.to_dict(operator)
 
-    @expose('json')
     @json_api
     def status(self, key, status):
         switch = Switch.get(key=key)
@@ -187,7 +180,6 @@ class SwitchboardController(object):
 
         return switch.to_dict(operator)
 
-    @expose('json')
     @json_api
     def delete(self, key):
         switch = Switch.remove(key=key)
@@ -195,7 +187,6 @@ class SwitchboardController(object):
         signals.switch_deleted.send(switch)
         return {}
 
-    @expose('json')
     @json_api
     def add_condition(self, *args, **kwargs):
         key = kwargs.get("key")
@@ -222,7 +213,6 @@ class SwitchboardController(object):
 
         return switch.to_dict(operator)
 
-    @expose('json')
     @json_api
     def remove_condition(self, *args, **kwargs):
         key = kwargs.get("key")

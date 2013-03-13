@@ -1,4 +1,3 @@
 include README.rst LICENSE
-exclude examples
 recursive-include switchboard/admin/templates *
 recursive-include switchboard/admin/public *
