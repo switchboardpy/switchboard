@@ -5,6 +5,7 @@ switchboard.admin.jinja_helpers
 :copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
+from datetime import datetime
 
 
 def render_field(field, value=None):
@@ -26,8 +27,18 @@ def sort_by_key(field, currently):
 def sort_field(sort_string):
     return sort_string.lstrip('-')
 
-jinja_filters = dict(
-    render_field=render_field,
-    sort_by_key=sort_by_key,
-    sort_field=sort_field,
-)
+
+def timesince(dt):
+    delta = datetime.utcnow() - dt
+    days = delta.days + float(delta.seconds) / 86400
+    if days > 1:
+        return '%d days' % round(days)
+    # since days is < 1, a fraction, we multiply to get hours
+    hours = days * 24
+    if hours > 1:
+        return '%d hours' % round(hours)
+    minutes = hours * 60
+    if minutes > 1:
+        return '%d minutes' % round(minutes)
+    seconds = minutes * 60
+    return '%d seconds' % round(seconds)

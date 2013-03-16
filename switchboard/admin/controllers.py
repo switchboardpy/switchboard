@@ -73,19 +73,23 @@ class CoreAdminController(object):
         switches = Switch.all()
         switches.sort(key=attrgetter(sort_by), reverse=reverse)
 
-        errors = []
+        messages = []
         if isinstance(operator.cache, MockCache):
-            errors.append("The global cache is in test mode, likely due to an "
-                          + "error with the real cache.")
+            m = dict(status='warning',
+                     message='The global cache is in test mode, possibly due \
+                             to an error with the real cache.')
+            messages.append(m)
         if isinstance(Switch.c, MockCollection):
-            errors.append("The datastore is in test mode, likely due to an "
-                          + "error with the real datastore.")
+            m = dict(status='warning',
+                     message='The datastore is in test mode, possibly due \
+                             to an error with the real datastore.')
+            messages.append(m)
 
         return dict(
             switches=[s.to_dict(operator) for s in switches],
             all_conditions=list(operator.get_all_conditions()),
             sorted_by=by,
-            errors=errors,
+            messages=messages,
         )
 
     @json_api
