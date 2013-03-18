@@ -27,6 +27,7 @@ setup(name='switchboard',
           'pylibmc >= 1.2',
           'decorator',
       ],
+      zip_safe=False,
       tests_require=[
         'nose >= 0.11',
         'mock >= 1.0',
