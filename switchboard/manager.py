@@ -59,6 +59,8 @@ def configure(config, nested=False):
     cache_hosts = getattr(settings, 'SWITCHBOARD_CACHE_HOSTS', None)
     cache_timeout = getattr(settings, 'SWITCHBOARD_CACHE_TIMEOUT', None)
     operator.cache = get_cache(cache_hosts, cache_timeout)
+    # Register the builtins
+    __import__('switchboard.builtins')
 
 
 @decorator
