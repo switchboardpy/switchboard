@@ -385,10 +385,11 @@
             <option></option>
             <%
               last_group = None
+              loop_first = True
             %>
             % for id, group, field in all_conditions:
               % if group != last_group:
-                % if not loop.first:
+                % if not loop_first:
                   </optgroup>
                 % endif
                 <optgroup label="${group}">
@@ -403,6 +404,9 @@
                 % endif
                 ${field.label}
               </option>
+              % if loop_first:
+                <% loop_first = False %>
+              % endif
             % endfor
             </optgroup>
           </select>
