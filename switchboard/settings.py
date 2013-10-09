@@ -23,6 +23,9 @@ class Settings(object):
         cls._state['SWITCHBOARD_MONGO_COLLECTION'] = mongo_collection
         remainder = kwargs.iteritems()
         remainder = [('SWITCHBOARD_%s' % k.upper(), v) for k, v in remainder]
+        # convert timeouts to ints
+        remainder = [(k, int(v) if k.endswith('TIMEOUT') else v)
+                     for k, v in remainder]
         cls._state.update(dict(remainder))
         return cls()
 
