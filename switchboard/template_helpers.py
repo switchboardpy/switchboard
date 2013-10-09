@@ -11,7 +11,8 @@ from . import operator
 
 def is_active(key, *args):
     """
-    Custom jinja test to make checking switches super easy:
+    Custom test to make checking switches super easy. For example, in
+    Jinja:
 
     {% if 'my_switch' is active %}
     ...

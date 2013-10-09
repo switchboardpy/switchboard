@@ -13,7 +13,6 @@ import datetime
 import itertools
 
 from webob import Request
-from jinja2 import Markup
 from formencode import Invalid
 
 from .models import EXCLUDE
@@ -50,7 +49,7 @@ class Field(object):
         return value
 
     def render(self, value):
-        return Markup('<input type="text" value="%s" name="%s"/>') % (value or '', self.name)
+        return '<input type="text" value="%s" name="%s"/>' % (value or '', self.name)
 
     def display(self, value):
         return value
@@ -61,7 +60,7 @@ class Boolean(Field):
         return bool(value)
 
     def render(self, value):
-        return Markup('<input type="hidden" value="1" name="%s"/>') % (self.name,)
+        return '<input type="hidden" value="1" name="%s"/>' % self.name
 
     def display(self, value):
         return self.label
@@ -100,7 +99,7 @@ class Range(Field):
     def render(self, value):
         if not value:
             value = ['', '']
-        return (Markup('<input type="text" value="%s" placeholder="from" name="%s[min]"/> - <input type="text" placeholder="to" value="%s" name="%s[max]"/>') %
+        return ('<input type="text" value="%s" placeholder="from" name="%s[min]"/> - <input type="text" placeholder="to" value="%s" name="%s[max]"/>' %
                 (value[0], self.name, value[1], self.name))
 
     def display(self, value):
@@ -164,7 +163,7 @@ class AbstractDate(Field):
         if not value:
             value = datetime.date.today().strftime(self.DATE_FORMAT)
 
-        return Markup('<input type="text" value="%s" name="%s"/>') % (value, self.name)
+        return '<input type="text" value="%s" name="%s"/>' % (value, self.name)
 
     def is_active(self, condition, value):
         assert isinstance(value, datetime.date)

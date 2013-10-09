@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.0.7'
+version = '1.0.8'
 
 setup(name='switchboard',
       version=version,
@@ -23,7 +23,7 @@ setup(name='switchboard',
           'pymongo >= 2.3',
           'blinker >= 1.2',
           'WebOb >= 0.9',
-          'Jinja2 >= 2.6',
+          'Mako >= 0.9',
           'pylibmc >= 1.2',
           'decorator',
       ],
