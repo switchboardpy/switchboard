@@ -139,6 +139,9 @@ class Regex(String):
     def is_active(self, condition, value):
         return bool(re.search(condition, value))
 
+    def render(self, value):
+        return '/<input type="text" value="%s" name="%s" placeholder="regular expression"/>/' % (value or '', self.name)
+
 
 class AbstractDate(Field):
     DATE_FORMAT = "%Y-%m-%d"
