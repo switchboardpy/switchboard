@@ -39,15 +39,11 @@ class MongoModel(object):
     def to_bson(self):
         raise NotImplementedError
 
-    def save(self):
+    def save(self, created=False):
         _id = self.c.save(self.to_bson())
-        if not hasattr(self, '_id'):
+        if created:
             self._id = _id
-        post_save.send(
-            self.__class__,
-            instance=self,
-            created=True,
-        )
+        post_save.send(self, created=created)
         return _id
 
     def delete(self):
@@ -56,7 +52,7 @@ class MongoModel(object):
     @classmethod
     def create(cls, **kwargs):
         instance = cls(**kwargs)
-        instance.save()
+        instance.save(created=True)
         return instance
 
     @classmethod
@@ -85,21 +81,14 @@ class MongoModel(object):
     def update(cls, spec, document):
         result = cls.c.update(spec, document)
         instance = cls.get(**spec)
-        post_save.send(
-            cls,
-            instance=instance,
-            created=False,
-        )
+        post_save.send(instance, created=False)
         return result
 
     @classmethod
     def remove(cls, **kwargs):
         instance = cls.get(**kwargs)
         result = cls.c.remove(kwargs)
-        post_delete.send(
-            cls,
-            instance=instance,
-        )
+        post_delete.send(instance)
         return result
 
     @classmethod

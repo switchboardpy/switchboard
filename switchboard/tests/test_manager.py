@@ -32,10 +32,6 @@ from ..helpers import MockCache, MockCollection
 from ..settings import settings
 
 
-def teardown_collection():
-    Switch.c.drop()
-
-
 class TestAPI(object):
     def setup(self):
         settings.SWITCHBOARD_SWITCH_DEFAULTS = {
@@ -56,7 +52,7 @@ class TestAPI(object):
         self.operator.register(HostConditionSet)
 
     def teardown(self):
-        teardown_collection()
+        Switch.c.drop()
 
     def test_builtin_registration(self):
         assert_true('switchboard.builtins.QueryStringConditionSet'

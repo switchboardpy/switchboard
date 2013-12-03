@@ -316,8 +316,8 @@ class MongoModelDict(CachedDict):
 
     # Signals
 
-    def _post_save(self, sender, instance, created, **kwargs):
+    def _post_save(self, sender, **kwargs):
         self._populate(reset=True)
 
-    def _post_delete(self, sender, instance, **kwargs):
+    def _post_delete(self, sender, **kwargs):
         self._populate(reset=True)
