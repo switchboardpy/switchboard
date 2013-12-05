@@ -7,6 +7,7 @@ switchboard.helpers
 """
 
 import logging
+from collections import defaultdict
 
 from webob import Request
 
@@ -30,8 +31,10 @@ class MockCollection(object):
     A quick and dirty implementation of PyMongo's Collection API,
     to allow for easy testing without a DB connection.
     """
-    def __init__(self):
+    def __init__(self, name=''):
         self._data = []
+        self.name = name
+        self.database = defaultdict(lambda: MockCollection(), name=self)
 
     def _matches(self, spec, document):
         for k, v in spec.iteritems():

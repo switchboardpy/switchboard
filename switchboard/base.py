@@ -9,7 +9,7 @@ switchboard.base
 import time
 import logging
 
-from .models import post_save, post_delete
+from .models import MongoModel
 from .signals import request_finished
 from .helpers import get_cache
 
@@ -275,10 +275,9 @@ class MongoModelDict(CachedDict):
         self.last_updated_cache_key = '%s.last_updated:%s:%s' % (cls_name,
                                                                  name,
                                                                  self.key)
-
         request_finished.connect(self._cleanup)
-        post_save.connect(self._post_save)
-        post_delete.connect(self._post_delete)
+        MongoModel.post_save.connect(self._post_save)
+        MongoModel.post_delete.connect(self._post_delete)
 
     def __setitem__(self, key, value):
         if isinstance(value, self.model):
@@ -315,7 +314,6 @@ class MongoModelDict(CachedDict):
         return dict((getattr(i, self.key), i) for i in self.model.all())
 
     # Signals
-
     def _post_save(self, sender, **kwargs):
         self._populate(reset=True)
 

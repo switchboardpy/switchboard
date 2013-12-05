@@ -8,12 +8,14 @@ switchboard.manager
 
 import logging
 from decorator import decorator
+from datetime import datetime
 
 from pymongo import Connection
 
 from . import signals
 from .base import MongoModelDict
 from .models import (
+    MongoModel,
     Switch,
     DISABLED, SELECTIVE, GLOBAL, INHERIT,
     INCLUDE, EXCLUDE,
@@ -91,6 +93,8 @@ class SwitchManager(MongoModelDict):
         kwargs['key'] = 'key'
         kwargs['value'] = 'value'
         kwargs['cache'] = get_cache()
+        MongoModel.post_save.connect(self.version_switch)
+        MongoModel.post_delete.connect(self.version_switch)
         super(SwitchManager, self).__init__(*new_args, **kwargs)
 
     def __unicode__(self):
@@ -241,6 +245,9 @@ class SwitchManager(MongoModelDict):
         switchboard setup.
         """
         pass
+
+    def version_switch(self, switch):
+        switch.save_version(user=self.get_user())
 
 
 auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)

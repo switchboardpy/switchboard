@@ -24,26 +24,34 @@ INHERIT = 4
 INCLUDE = 'i'
 EXCLUDE = 'e'
 
-post_save = signal('post_save')
-post_delete = signal('post_delete')
-
 
 class MongoModel(object):
     # May be lazy initialized to a real Mongo connection by calling
     # switchboard.configure()
     c = MockCollection()
 
+    pre_save = signal('pre_save')
+    post_save = signal('post_save')
+    pre_delete = signal('pre_delete')
+    post_delete = signal('post_delete')
+
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if '_id' in kwargs:
+            self._id = kwargs['_id']
 
     def to_bson(self):
         raise NotImplementedError
 
-    def save(self, created=False):
+    def save(self):
+        if hasattr(self, '_id'):
+            previous = self.c.find_one(dict(_id=self._id))
+        else:
+            previous = None
+        self.pre_save.send(previous)
         _id = self.c.save(self.to_bson())
-        if created:
+        if not hasattr(self, '_id'):
             self._id = _id
-        post_save.send(self, created=created)
+        self.post_save.send(self)
         return _id
 
     def delete(self):
@@ -52,7 +60,7 @@ class MongoModel(object):
     @classmethod
     def create(cls, **kwargs):
         instance = cls(**kwargs)
-        instance.save(created=True)
+        instance.save()
         return instance
 
     @classmethod
@@ -79,16 +87,19 @@ class MongoModel(object):
 
     @classmethod
     def update(cls, spec, document):
+        previous = cls.get(**spec)
+        cls.pre_save.send(previous)
         result = cls.c.update(spec, document)
-        instance = cls.get(**spec)
-        post_save.send(instance, created=False)
+        current = cls.get(**spec)
+        cls.post_save.send(current)
         return result
 
     @classmethod
     def remove(cls, **kwargs):
         instance = cls.get(**kwargs)
+        cls.pre_delete.send(instance)
         result = cls.c.remove(kwargs)
-        post_delete.send(instance)
+        cls.post_delete.send(instance)
         return result
 
     @classmethod
@@ -100,7 +111,68 @@ class MongoModel(object):
         return cls.c.count()
 
 
-class Switch(MongoModel):
+class VersioningMongoModel(MongoModel):
+
+    def __init__(self, *args, **kwargs):
+        self._previous = None
+        super(VersioningMongoModel, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def _versioned_collection(cls):
+        return cls.c.database[cls.c.name + '.versions']
+
+    def _diff(self):
+        # Need to verify that the data contained in self is actually still in
+        # the collection
+        if hasattr(self, '_id'):
+            curr = self.c.find_one(dict(_id=self._id))
+        else:
+            curr = None
+        prev = self._previous
+        # Both models are present so something's changed between them
+        if prev and curr:
+            current_fields = curr.keys()
+            previous_fields = prev.keys()
+            added = [f for f in current_fields if f not in previous_fields]
+            deleted = [f for f in previous_fields if f not in current_fields]
+            is_equal = lambda f: f in previous_fields and prev[f] == curr[f]
+            changed = [f for f in current_fields if not is_equal(f)]
+            delta = dict(
+                added=dict([(k, curr[k]) for k in added]),
+                deleted=deleted,
+                changed=dict([(k, curr[k]) for k in changed]),
+            )
+        elif prev:  # Model's been deleted
+            delta = dict(
+                added={},
+                deleted=prev.keys(),
+                changed={},
+            )
+        elif curr:  # Model's been added
+            delta = dict(
+                added=curr,
+                deleted=[],
+                changed={},
+            )
+        else:       # Neither model exists
+            delta = None
+        return delta
+
+    def save_version(self, **kwargs):
+        delta = self._diff()
+        # if nothing changed, don't save anything
+        if delta['added'] or delta['deleted'] or delta['changed']:
+            doc = dict(
+                switch_id=self._id,
+                timestamp=datetime.utcnow(),
+                delta=self._diff(),
+                **kwargs
+            )
+            self._versioned_collection().save(doc)
+        self._previous = self.to_bson()
+
+
+class Switch(VersioningMongoModel):
     """
     Stores information on all switches. Generally handled under the global
     ``switchboard`` namespace.
@@ -148,8 +220,6 @@ class Switch(MongoModel):
                 if not kwargs.get('description'):
                     kwargs['description'] = switch_default.get('description')
 
-        if '_id' in kwargs:
-            self._id = kwargs['_id']
         self.key = kwargs.get('key')
         self.value = kwargs.get('value', {})
         self.label = kwargs.get('label', '')
@@ -157,6 +227,7 @@ class Switch(MongoModel):
         self.date_modified = kwargs.get('date_modified', datetime.utcnow())
         self.description = kwargs.get('description', '')
         self.status = kwargs.get('status', DISABLED)
+        super(Switch, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
         return u'%s=%s' % (self.key, self.value)
