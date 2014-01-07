@@ -36,15 +36,16 @@ class MongoModel(object):
     post_delete = signal('post_delete')
 
     def __init__(self, *args, **kwargs):
-        if '_id' in kwargs:
-            self._id = kwargs['_id']
+        self.__dict__.update(kwargs)
 
     def to_bson(self):
-        raise NotImplementedError
+        fields = self.__dict__.keys()
+        public_fields = [f for f in fields if not f.startswith('_')]
+        return dict([(f, self.__dict__[f]) for f in public_fields])
 
     def save(self):
         if hasattr(self, '_id'):
-            previous = self.c.find_one(dict(_id=self._id))
+            previous = self.get(_id=self._id)
         else:
             previous = None
         self.pre_save.send(previous)
@@ -114,7 +115,6 @@ class MongoModel(object):
 class VersioningMongoModel(MongoModel):
 
     def __init__(self, *args, **kwargs):
-        self._previous = None
         super(VersioningMongoModel, self).__init__(*args, **kwargs)
 
     @classmethod
@@ -125,10 +125,11 @@ class VersioningMongoModel(MongoModel):
         # Need to verify that the data contained in self is actually still in
         # the collection
         if hasattr(self, '_id'):
-            curr = self.c.find_one(dict(_id=self._id))
+            curr = self.get(_id=self._id)
+            curr = curr.to_bson() if curr else None
         else:
             curr = None
-        prev = self._previous
+        prev = self.previous_version().to_bson()
         # Both models are present so something's changed between them
         if prev and curr:
             current_fields = curr.keys()
@@ -139,19 +140,19 @@ class VersioningMongoModel(MongoModel):
             changed = [f for f in current_fields if not is_equal(f)]
             delta = dict(
                 added=dict([(k, curr[k]) for k in added]),
-                deleted=deleted,
-                changed=dict([(k, curr[k]) for k in changed]),
+                deleted=dict([(k, prev[k]) for k in deleted]),
+                changed=dict([(k, (prev[k], curr[k])) for k in changed]),
             )
         elif prev:  # Model's been deleted
             delta = dict(
                 added={},
-                deleted=prev.keys(),
+                deleted=prev,
                 changed={},
             )
         elif curr:  # Model's been added
             delta = dict(
                 added=curr,
-                deleted=[],
+                deleted={},
                 changed={},
             )
         else:       # Neither model exists
@@ -165,11 +166,32 @@ class VersioningMongoModel(MongoModel):
             doc = dict(
                 switch_id=self._id,
                 timestamp=datetime.utcnow(),
-                delta=self._diff(),
+                delta=delta,
                 **kwargs
             )
             self._versioned_collection().save(doc)
-        self._previous = self.to_bson()
+
+    def previous_version(self):
+        import pdb; pdb.set_trace()
+        if not hasattr(self, '_id'):
+            return self.__class__()
+        vc = self._versioned_collection()
+        versions = vc.find(dict(switch_id=self._id)).sort('timestamp')
+        previous = dict()
+        # build up the previous state based on all past deltas
+        for v in versions:
+            delta = v.get('delta', {})
+            added = delta.get('added', {})
+            deleted = delta.get('deleted', {})
+            changed = delta.get('changed', {})
+            previous.update(added)
+            for k in deleted.keys():
+                if k in previous:
+                    del previous[k]
+            for k, v in changed.iteritems():
+                old, new = v
+                previous[k] = new
+        return self.__class__(**previous)
 
 
 class Switch(VersioningMongoModel):
@@ -365,7 +387,8 @@ class Switch(VersioningMongoModel):
 
         return self.STATUS_LABELS[status]
 
-    # TODO: Consolidate to_bson and to_dict; they should be the same.
+    # TODO: Consolidate to_bson and to_dict; they should be the same. It should
+    # be as simple as spitting out __dict__.
     def to_dict(self, manager):
         data = {
             'key': self.key,
@@ -395,18 +418,4 @@ class Switch(VersioningMongoModel):
                                        field.display(value), exclude))
         if last:
             data['conditions'].append(last)
-        return data
-
-    def to_bson(self):
-        data = dict(
-            key=self.key,
-            status=self.status,
-            label=self.label,
-            description=self.description,
-            date_created=self.date_created,
-            date_modified=self.date_modified,
-            value=self.value
-        )
-        if hasattr(self, '_id'):
-            data['_id'] = self._id
         return data

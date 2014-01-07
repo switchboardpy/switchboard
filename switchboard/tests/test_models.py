@@ -6,7 +6,8 @@ switchboard.tests.test_models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from nose.tools import assert_equals, assert_true
+from nose.tools import assert_equals, assert_true, assert_false
+from mock import Mock
 
 from ..manager import SwitchManager
 from ..models import VersioningMongoModel, Switch
@@ -20,52 +21,91 @@ class TestVersioningMongoModel(object):
         VersioningMongoModel._versioned_collection().drop()
 
     def test_diff_fields_added(self):
-        self.m._previous = dict(a=1, b=2)
+        self.m.previous_version = lambda: dict(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1, b=2, c=3)
         delta = self.m._diff()
         assert_equals(delta['added'], dict(c=3))
 
     def test_diff_fields_deleted(self):
-        self.m._previous = dict(a=1, b=2)
+        self.m.previous_version = lambda: dict(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1)
         delta = self.m._diff()
-        assert_equals(delta['deleted'], ['b'])
+        assert_equals(delta['deleted'], dict(b=2))
 
     def test_diff_fields_changed(self):
-        self.m._previous = dict(a=1, b=2)
+        self.m.previous_version = lambda: dict(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1, b=3)
         delta = self.m._diff()
-        assert_equals(delta['changed'], dict(b=3))
+        assert_equals(delta['changed'], dict(b=(2, 3)))
 
     def test_diff_fields_same(self):
-        self.m._previous = dict(a=1, b=2)
+        self.m.previous_version = lambda: dict(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1, b=2)
         delta = self.m._diff()
         assert_equals(delta['changed'], dict())
         assert_equals(delta['added'], dict())
-        assert_equals(delta['deleted'], [])
+        assert_equals(delta['deleted'], dict())
 
     def test_diff_created(self):
-        self.m._previous = None
+        self.m.previous_version = lambda: None
         self.m.c.find_one = lambda x: dict(a=1, b=2)
         delta = self.m._diff()
         assert_equals(delta['changed'], dict())
         assert_equals(delta['added'], dict(a=1, b=2))
-        assert_equals(delta['deleted'], [])
+        assert_equals(delta['deleted'], dict())
 
     def test_diff_removed(self):
-        self.m._previous = dict(a=1, b=2)
+        self.m.previous_version = lambda: dict(a=1, b=2)
         self.m.c.find_one = lambda x: None
         delta = self.m._diff()
         assert_equals(delta['changed'], dict())
         assert_equals(delta['added'], dict())
-        assert_equals(delta['deleted'], ['a', 'b'])
+        assert_equals(delta['deleted'], dict(a=1, b=2))
 
     def test_diff_noop(self):
-        self.m._previous = None
+        self.m.previous_version = lambda: None
         self.m.c.find_one = lambda x: None
         delta = self.m._diff()
         assert_equals(delta, None)
+
+    def test_previous_version_new(self):
+        c = Mock()
+        c.find.return_value = None
+        self.m._versioned_collection = lambda: c
+        prev = self.m.previous_version()
+        assert_false(prev._id)
+
+    def test_previous_version_singlediff(self):
+        delta = dict(
+            added=dict(a=1, b=2)
+        )
+        c = Mock()
+        c.find.return_value = [dict(delta=delta)]
+        self.m._versioned_collection = lambda: c
+        prev = self.m.previous_version()
+        assert_equals(prev.a, 1)
+        assert_equals(prev.b, 2)
+
+    def test_previous_version_multidiff(self):
+        v1 = dict(delta=dict(
+            added=dict(a=1, b=2)
+        ))
+        v2 = dict(delta=dict(
+            changed=dict(b=(2, 3))
+        ))
+        v3 = dict(delta=dict(
+            added=dict(c=4)
+        ))
+        v4 = dict(delta=dict(
+            deleted=dict(a=1)
+        ))
+        c = Mock()
+        c.find.return_value = [v1, v2, v3, v4]
+        self.m._versioned_collection = lambda: c
+        prev = self.m.previous_version()
+        assert_equals(prev.b, 3)
+        assert_equals(prev.c, 4)
+        assert_false(hasattr(prev.a))
 
 
 class TestConstant(object):
@@ -111,4 +151,4 @@ class TestSwitch(object):
                       self.switch.c.find_one(dict(_id=_id)))
         version = self.switch._versioned_collection().find_one(dict(_id=_id))
         assert_true(version)
-        assert_equals(version['delta']['changed']['key'], 'test2')
+        assert_equals(version['delta']['changed']['key'], ('test', 'test2'))
