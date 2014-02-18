@@ -436,4 +436,4 @@ class Switch(VersioningMongoModel):
         versions = vc.find(dict(switch_id=self._id))
         if not versions:
             return dict(versions={})
-        return versions.sort('timestamp', DESCENDING)
+        return list(versions.sort('timestamp', DESCENDING))

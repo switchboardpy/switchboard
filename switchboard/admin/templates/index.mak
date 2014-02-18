@@ -167,7 +167,7 @@
       .switchboard .switches .title { margin-bottom: 0.41429rem; }
       .switchboard .switches .timestamp { color: #999; font-weight: normal; margin-bottom: 0; }
       .switchboard .switches .name small { color: #666; }
-      .switchboard .switches .description { margin-bottom: 0; }
+      .switchboard .switches .description, .switchboard .switches .description p { margin-bottom: 0; }
       /* statuses */
       .switchboard .switches .status { text-align: right; width: 100%; position: absolute; right: 0; top: 1.65rem; }
       .switchboard .switches .status label { display: inline-block; font-weight: bold; color: #222; }
@@ -209,6 +209,7 @@
       .switchboard .status-label-2 .fa-circle { color: #faa732; }
       .switchboard .status-label-3 .fa-circle { color: #5bb75b; }
       .switchboard .status-label-4 .fa-circle { color: #006dcc; }
+      .switchboard .no-history p { margin-bottom: 0; }
     </style>
     <script>
       var SWITCHBOARD = {
@@ -332,12 +333,18 @@
 
         <script type="text/x-handlebars-template" id="switchHistory">
           <div class="close-action"><i class="fa fa-times"></i></div>
+          {{#if versions.length}}
           {{#groupByDate versions}}
           <div class="version">
             <div class="version-summary">{{summarize this}}</div>
             <div class="version-meta">{{#if username}}By {{username}}. {{/if}}At <time datetime="{{datestampFormat timestamp.$date}}">{{timeFormat timestamp.$date}}</time>.</div>
           </div>
           {{/groupByDate}}
+          {{else}}
+          <div class="no-history">
+            <p>No history found.</p>
+          </div>
+          {{/if}}
         </script>
 
         <script type="text/x-handlebars-template" id="switchForm">
@@ -449,7 +456,7 @@
           % for id, group, field in all_conditions:
           <div class="fields" data-path="${id}.${field.name}" style="display:none;">
             <form action="" method="get" data-switch="${id}" data-field="${field.name}">
-              ${field.render(None)}
+              ${field.render(None)|n}
               <label><input type="checkbox" name="exclude" value="1"/> Exclude</label>
               <button type="submit" class="btn">Add</button>
               % if field.help_text:
