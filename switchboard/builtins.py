@@ -44,7 +44,8 @@ class IPAddressConditionSet(RequestConditionSet):
             return instance.remote_addr
         elif field_name == 'internal_ip':
             return instance.remote_addr in settings.SWITCHBOARD_INTERNAL_IPS
-        return super(IPAddressConditionSet, self).get_field_value(instance, field_name)
+        return super(IPAddressConditionSet, self).get_field_value(instance,
+                                                                  field_name)
 
     def get_group_label(self):
         return 'IP Address'
@@ -53,7 +54,7 @@ operator.register(IPAddressConditionSet())
 
 
 class QueryStringConditionSet(RequestConditionSet):
-    substring = Regex()
+    regex = Regex()
 
     def get_namespace(self):
         return 'querystring'

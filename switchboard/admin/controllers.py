@@ -237,6 +237,10 @@ class CoreAdminController(object):
 
         return switch.to_dict(operator)
 
+    @json_api
+    def history(self, key):
+        return Switch.get(key=key).list_versions()
+
     @property
     def valid_sort_orders(self):
         fields = ['label', 'date_created', 'date_modified']

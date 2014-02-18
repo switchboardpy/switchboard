@@ -10,6 +10,7 @@ from datetime import datetime
 import logging
 
 from blinker import signal
+from pymongo import DESCENDING
 
 from .settings import settings
 from .helpers import MockCollection
@@ -39,9 +40,7 @@ class MongoModel(object):
         self.__dict__.update(kwargs)
 
     def to_bson(self):
-        fields = self.__dict__.keys()
-        public_fields = [f for f in fields if not f.startswith('_')]
-        return dict([(f, self.__dict__[f]) for f in public_fields])
+        return self.__dict__
 
     def save(self):
         if hasattr(self, '_id'):
@@ -136,8 +135,8 @@ class VersioningMongoModel(MongoModel):
             previous_fields = prev.keys()
             added = [f for f in current_fields if f not in previous_fields]
             deleted = [f for f in previous_fields if f not in current_fields]
-            is_equal = lambda f: f in previous_fields and prev[f] == curr[f]
-            changed = [f for f in current_fields if not is_equal(f)]
+            changed = [f for f in current_fields if (f in previous_fields
+                                                     and prev[f] != curr[f])]
             delta = dict(
                 added=dict([(k, curr[k]) for k in added]),
                 deleted=dict([(k, prev[k]) for k in deleted]),
@@ -171,26 +170,35 @@ class VersioningMongoModel(MongoModel):
             )
             self._versioned_collection().save(doc)
 
+    def _unpack_delta(self, version):
+        '''
+        Helper function that makes it easier to access the data nested with a
+        delta. Returns a tuple of (delta, added, deleted, changed).
+        '''
+        delta = version.get('delta', {})
+        added = delta.get('added', {})
+        deleted = delta.get('deleted', {})
+        changed = delta.get('changed', {})
+        return delta, added, deleted, changed
+
     def previous_version(self):
-        import pdb; pdb.set_trace()
         if not hasattr(self, '_id'):
             return self.__class__()
         vc = self._versioned_collection()
-        versions = vc.find(dict(switch_id=self._id)).sort('timestamp')
+        versions = vc.find(dict(switch_id=self._id))
         previous = dict()
         # build up the previous state based on all past deltas
-        for v in versions:
-            delta = v.get('delta', {})
-            added = delta.get('added', {})
-            deleted = delta.get('deleted', {})
-            changed = delta.get('changed', {})
-            previous.update(added)
-            for k in deleted.keys():
-                if k in previous:
-                    del previous[k]
-            for k, v in changed.iteritems():
-                old, new = v
-                previous[k] = new
+        if versions:
+            versions = versions.sort('timestamp')
+            for v in versions:
+                delta, added, deleted, changed = self._unpack_delta(v)
+                previous.update(added)
+                for k in deleted.keys():
+                    if k in previous:
+                        del previous[k]
+                for k, v in changed.iteritems():
+                    old, new = v
+                    previous[k] = new
         return self.__class__(**previous)
 
 
@@ -419,3 +427,13 @@ class Switch(VersioningMongoModel):
         if last:
             data['conditions'].append(last)
         return data
+
+    def list_versions(self):
+        '''
+        Return a display-friendly list of all versions.
+        '''
+        vc = self._versioned_collection()
+        versions = vc.find(dict(switch_id=self._id))
+        if not versions:
+            return dict(versions={})
+        return versions.sort('timestamp', DESCENDING)

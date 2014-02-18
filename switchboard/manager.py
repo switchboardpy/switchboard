@@ -36,7 +36,7 @@ def nested_config(config):
     return cfg
 
 
-def configure(config, nested=False):
+def configure(config={}, nested=False):
     """
     Useful for when you need to control Switchboard's setup
     """

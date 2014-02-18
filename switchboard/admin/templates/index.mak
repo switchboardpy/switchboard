@@ -1,4 +1,4 @@
-<%!
+﻿<%!
     '''
     Template helper functions, stored here so they can be used no matter what
     web framework is being used.
@@ -34,8 +34,8 @@
 <html>
   <head>
     <title>Switchboard</title>
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/2.0.1/normalize.css">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/3.0.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
     <style type="text/css">
       * { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
       /* typography - lifted from Typeplate, http://typeplate.com/ */
@@ -58,8 +58,8 @@
       .switchboard .sort { line-height: 2.16667rem; }
       .switchboard input[type="search"] { margin-left: 1rem; }
       /* general */
-      #content { width: 50%; margin: 0 auto; }
-      .switchboard { margin-bottom: 2rem; margin-top: 7.5rem; }
+      #content { width: 80%; margin: 0 auto; }
+      .switchboard { margin-bottom: 2rem; margin-top: 132px; }
       .switchboard a { display: inline-block; padding: 0 0.25em; border-radius: 4px; color: #666; text-decoration: underline; -webkit-transition: background-color .1s linear; transition: background-color .1s linear; }
       .switchboard a:link { color: #666; text-decoration: underline; }
       .switchboard a:visited { color: #555; }
@@ -98,12 +98,13 @@
       .switchboard .btn-link, .switchboard .btn-link:link { background-color: transparent; background-image: none; box-shadow: none; border-radius: 0; border-color: transparent; }
       .switchboard .btn-link:hover { background-color: transparent; }
       .switchboard select, .switchboard input, .switchboard textarea { font-size: 0.7778rem; margin: 0; display: inline-block; vertical-align: middle; border-radius: 4px; line-height: 1.8333rem; background-color: #fff; border: 1px solid #ccc; }
+      .switchboard textarea { line-height: 1.5em; }
       .switchboard select, .switchboard input { height: 1.8333rem; }
       .switchboard select { cursor: pointer; }
       .switchboard input { box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075); -webkit-transition: border linear 0.2s, box-shadow linear 0.2s; transition: border linear 0.2s, box-shadow linear 0.2s; }
       /* header */
       .switchboard .icon { float: left; margin: 6px 0.25em 6px 0; }
-      .switchboard > header { position: fixed; top: 0; width: 50%; background-color: rgba(255, 255, 255, 0.9); border-bottom: 1px solid #ccc; padding-top: 0.825rem; z-index: 1; }
+      .switchboard > header { position: fixed; top: 0; width: 80%; background-color: rgba(255, 255, 255, 0.9); border-bottom: 1px solid #ccc; padding-top: 0.825rem; z-index: 2; }
       .switchboard .spinner { font-size: 2.5rem; }
       /* messages */
       .switchboard .messages { position: absolute; top: 0; right: 0; width: 33%; }
@@ -158,18 +159,20 @@
       }
       /* table */
       .switchboard .switches { width: 100%; collapse; margin-bottom: 1.65rem; }
-      .switchboard .switches .switch { border-bottom: 1px solid #bbb; padding: 1.65rem 0;}
+      .switchboard .switches .switch { border-top: 1px solid #bbb; padding: 1.65rem 0; position: relative; }
+      .switchboard .switches .switch.overlayed { opacity: 0.6; }
       .switchboard .switches .switch > div { vertical-align: top; overflow:hidden; }
       /* names */
-      .switchboard .switches .name { float: left; width: 50%; margin-bottom: 0.825rem; }
+      .switchboard .switches .name { margin-bottom: 0.825rem; }
       .switchboard .switches .title { margin-bottom: 0.41429rem; }
       .switchboard .switches .timestamp { color: #999; font-weight: normal; margin-bottom: 0; }
       .switchboard .switches .name small { color: #666; }
       .switchboard .switches .description { margin-bottom: 0; }
       /* statuses */
-      .switchboard .switches .status { text-align: right; float: left; width: 50%; }
+      .switchboard .switches .status { text-align: right; width: 100%; position: absolute; right: 0; top: 1.65rem; }
       .switchboard .switches .status label { display: inline-block; font-weight: bold; color: #222; }
       .switchboard .switches .status label:after { content: ':'; }
+      .switchboard .switches .status select, .switchboard input[type="search"] { width: 25%; }
       .switchboard .switch[data-switch-status="1"] .status select { border-left: 10px solid #cc4036; }
       .switchboard .switch[data-switch-status="2"] .status select { border-left: 10px solid #faa732; }
       .switchboard .switch[data-switch-status="3"] .status select { border-left: 10px solid #5bb75b; }
@@ -181,10 +184,12 @@
       .switchboard .switches .switch:hover .actions { visibility: visible; margin: 0 0 0 1em; }
       .switchboard .switches .actions .btn-link { padding: 0; border: 0; margin-left: 0.5em; }
       /* drawer */
-      .switchboard .drawer { margin-bottom: 1em; }
+      .switchboard .drawer { display: none; margin-bottom: 1em; position: absolute; background-color: #efefef; z-index: 1; opacity: 0.9; padding: 1rem; left: 20%; width: 60%; border: 1px solid #ccc; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
+      .switchboard .drawer.header { position: fixed; z-index: 2; }
       .switchboard .drawer .field { margin-bottom: 1em; }
       .switchboard .drawer label { display: block; font-weight: bold; }
       .switchboard .drawer input, .switchboard .drawer textarea { width: 50%; }
+      .switchboard .drawer .close-action { float: right; cursor: pointer; }
       /* conditions */
       .switchboard .conditions-form { overflow: hidden; margin-top: 0.825rem; }
       .switchboard .conditions-form select, .switchboard .conditionsForm .fields { float: left; margin-right: 0.5em; }
@@ -192,6 +197,18 @@
       .switchboard .conditions label:after { content: ":"; }
       .switchboard .conditions .value { padding: 0 0.25em; margin-right: 0.25em; background-color: #e6e6e6; }
       .switchboard .conditions .delete-condition { margin-left: 0.25em; margin-top: -4px; padding: 0; border: 0; color: #666; }
+      /* versions */
+      .switchboard .version-date { border-bottom: 1px solid #ccc; padding: 1rem 0; font-size: 0.8rem; }
+      .switchboard .version-date:last-child { border-bottom: none; }
+      .switchboard .version-date h6 { margin-bottom: 1rem; }
+      .switchboard .version { margin-bottom: 0.5rem; clear: both; overflow: auto; }
+      .switchboard .version-summary { float: left; }
+      .switchboard .version-meta { float: right; font-style: italic; color: #666; }
+      .switchboard .changed { font-weight: 600; }
+      .switchboard .status-label-1 .fa-circle { color: #cc4036; }
+      .switchboard .status-label-2 .fa-circle { color: #faa732; }
+      .switchboard .status-label-3 .fa-circle { color: #5bb75b; }
+      .switchboard .status-label-4 .fa-circle { color: #006dcc; }
     </style>
     <script>
       var SWITCHBOARD = {
@@ -201,17 +218,18 @@
         updateStatus: "status",
         addCondition: "add_condition",
         delCondition: "remove_condition",
+        history:      "history"
       };
     </script>
   </head>
   <body>
     <div id="content">
       <div class="switchboard">
-        <header>
+        <header class="page-header">
           <h1 class="branding">
             <img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJ bWFnZVJlYWR5ccllPAAAAp5JREFUeNrsWc1uEzEQnkkCSpRDcmmyPByob1J4kN76Htx5AuBCJaCo pVJ72xySNeOdrDPrXXvy44CROpXc7cYZf/6+mfFP8fOXr/P5DA40pJ8z2NPz82g+my0uLiAPM8aM jG1NLoCAANWIIBtEI8iPoZwAmcwkM1aynBiCbLMM/hPJEDabzcP9Q8IhF8vFcDiMShYBZIDQPD7+ nkwm5AURuR0I4z+pdWlSVRW3XSvLkvoURcGzDUhW/4qIOh6Pp9PpsDEa3nt2yBwO4pVbNvfMU98O ZwKSaXXITgQbk8+OGweLBmaSsG1bR81zZDhbh5RK3Xzk4TZtY5mcyQ7eV7Qqs19h9Mag4Wmu3PJ7 ood7MjKWqYtVegtmmbp0OARMuzdjVo1NIu4av9clUwsju5NQHBp671KMAfUmmotr1yFWGGE/hqQj xiG5kWkf56kX0G7/WUumVGo3OacRJ5QE1CUvVJBEnrSIkau9gmhXQtoyccJ7gdWbgBIZ9CJqxxBU Wgyt1+tuafaKUygfJSyaGETrMJmNoT0Z8riRdTLCUA+gKs5QrVkcEDPU5aZbC7okyWBSGdpKFs+y 64/X3gqwSw0Mpq8Xqk79q7fvo2mv7hgRbz7dJNx+XL37EF+plEptKXiVcguGB1bqPg1eQ2i3cPS2 MC6Z7NHXNwlDxo/6IyWzlCWVjByqkmnbj7SAlMVVP5dhakB4WpZhE9SnxY10qElmzi+Z2Vsyu/2A 2LkMU0tGDuOHnDqGIHguw78b1PrZfoADe4WUkCE6HZjq+LN98Wb57fI2IaBiufxx9+v4U8f3n3dp 9Yo7rA+KWd0xAmR2P2Re7hiDuy55LfzPr9BM5tfC5wSEeCCgugybc0750C+MyrI8jaGU/6darVZ/ BBgAR3TOY3mg+C4AAAAASUVORK5CYII=" alt="Switchboard Icon">
             Switchboard
-            <span class="spinner" style="display: none;"><i class="icon-spinner icon-spin"></i></span>
+            <span class="spinner" style="display: none;"><i class="fa fa-spinner fa-spin"></i></span>
           </h1>
           <div class="messages micro">
             % for m in messages:
@@ -222,7 +240,7 @@
             % endfor
           </div>
           <div class="toolbar" data-sort="${sorted_by}">
-            <a class="btn btn-success add-switch" href="#add-switch"><i class="icon-plus"></i> Add a Switch</a>
+            <a class="btn btn-success add-switch" href="#add-switch"><i class="fa fa-plus"></i> Add a Switch</a>
 
             <input type="search" placeholder="search">
 
@@ -239,41 +257,9 @@
             </ul>
           </div>
         </header>
-
-        <div class="drawer"></div>
-
-        <div class="no-switches" style="${'display: none' if switches else ''}">
-          You do not have any switches yet. <a href="#add-switch" class="add-switch">Add the first one</a>.
-        </div>
-
         <div class="switches ${'empty' if not switches else ''}">
           % for switch in switches:
           <div id="id_${switch['key']}" class="switch" data-switch-key="${switch['key']}" data-switch-label="${switch.get('label', '')}" data-switch-description="${switch.get('description', '')}" data-switch-status="${switch['status']}">
-            <div class="name">
-              <h5 class="title">
-                % if switch.get('label'):
-                ${switch['label']}
-                % else:
-                ${switch['key'].title()}
-                % endif
-                <small class="command micro">(${switch['key']})</small>
-                <div class="actions btn-group">
-                  <a href="#edit-switch" class="btn btn-link edit" title="Edit Switch"><i class="icon-pencil"></i></a>
-                  <a href="#delete-switch" class="btn btn-link delete" title="Delete Switch"><i class="icon-remove"></i></a>
-                </div>
-              </h5>
-              <h6 class="timestamp micro">
-                % if sorted_by.lstrip('-') == 'date_created':
-                Created ${timesince(switch['date_created'])} ago
-                % else:
-                Last modified ${timesince(switch['date_modified'])} ago
-                % endif
-              </h6>
-              % if switch.get('description'):
-              <p class="description">${switch['description']}</p>
-              % endif
-            </div>
-
             <div class="status">
               <label for="status_${switch['key']}">Status</label>
               <select name="status_${switch['key']}">
@@ -283,7 +269,33 @@
                 <option value="3" ${'selected' if switch['status'] == 3 else ''}>Active for everyone</option>
               </select>
             </div>
-
+            <div class="name">
+              <h5 class="title">
+                % if switch.get('label'):
+                ${switch['label']}
+                % else:
+                ${switch['key'].title()}
+                % endif
+                <small class="command micro">(${switch['key']})</small>
+                <div class="actions btn-group">
+                  <a href="#edit-switch" class="btn btn-link edit" title="Edit Switch"><i class="fa fa-pencil"></i></a>
+                  <a href="#delete-switch" class="btn btn-link delete" title="Delete Switch"><i class="fa fa-trash-o"></i></a>
+                  <a href="#history-switch" class="btn btn-link history" title="View Switch History"><i class="fa fa-clock-o"></i></a>
+                </div>
+              </h5>
+              <h6 class="timestamp micro">
+                % if sorted_by.lstrip('-') == 'date_created':
+                Created ${timesince(switch['date_created'])} ago
+                % else:
+                Last modified ${timesince(switch['date_modified'])} ago
+                % endif
+              </h6>
+            </div>
+            % if switch.get('description'):
+            <div class="description">
+              <p>${switch['description']}</p>
+            </div>
+            % endif
             <div class="metadata">
               <div class="micro conditions">
                 % for group in switch.get('conditions', []):
@@ -297,7 +309,7 @@
                       % endif
                       ${display}
                       <a href="#delete-condition" class="btn btn-link delete-condition" title="Delete this condition">
-                        <i class="icon-remove"></i>
+                        <i class="fa fa-times"></i>
                       </a>
                     </nobr>
                   </span>
@@ -305,12 +317,28 @@
                 </div>
                 % endfor
               </div>
-              <div class="add-condition"><a class="btn btn-success" href="#add-condition"><i class="icon-plus"></i> Add a Condition</a></div>
+              <div class="add-condition"><a class="btn btn-success" href="#add-condition"><i class="fa fa-plus"></i> Add a Condition</a></div>
               <div class="conditions-form" style="display: none;"></div>
             </div>
           </div>
           % endfor
         </div>
+
+        <div class="drawer"></div>
+
+        <div class="no-switches" style="${'display: none' if switches else ''}">
+          You do not have any switches yet. <a href="#add-switch" class="add-switch">Add the first one</a>.
+        </div>
+
+        <script type="text/x-handlebars-template" id="switchHistory">
+          <div class="close-action"><i class="fa fa-times"></i></div>
+          {{#groupByDate versions}}
+          <div class="version">
+            <div class="version-summary">{{summarize this}}</div>
+            <div class="version-meta">{{#if username}}By {{username}}. {{/if}}At <time datetime="{{datestampFormat timestamp.$date}}">{{timeFormat timestamp.$date}}</time>.</div>
+          </div>
+          {{/groupByDate}}
+        </script>
 
         <script type="text/x-handlebars-template" id="switchForm">
           <div class="field">
@@ -333,19 +361,6 @@
 
         <script type="text/x-handlebars-template" id="switchData">
           <div id="id_{{key}}" class="switch" data-switch-key="{{key}}" data-switch-label="{{label}}" data-switch-description="{{description}}" data-switch-status="{{status}}">
-            <div class="name">
-              <h5 class="title">
-                {{label}} <small class="command micro">({{key}})</small>
-                <div class="actions btn-group">
-                  <a href="#edit-switch" class="edit btn-link btn"><i class="icon-pencil"></i></a>
-                  <a href="#delete-switch" class="delete btn-link btn"><i class="icon-remove"></i></a>
-                </div>
-              </h5>
-              {{#if description}}
-              <p class="description">{{description}}</p>
-              {{/if}}
-            </div>
-
             <div class="status">
               <label for="status_{{key}}">Status</label>
               <select name="status_{{key}}">
@@ -356,6 +371,26 @@
               </select>
             </div>
 
+            <div class="name">
+              <h5 class="title">
+                {{label}} <small class="command micro">({{key}})</small>
+                <div class="actions btn-group">
+                  <a href="#edit-switch" class="edit btn-link btn" title="Edit Switch"><i class="fa fa-pencil"></i></a>
+                  <a href="#delete-switch" class="delete btn-link btn" title="Delete Switch"><i class="fa fa-trash-o"></i></a>
+                  <a href="#history-switch" class="btn btn-link history" title="View Switch History"><i class="fa fa-clock-o"></i></a>
+                </div>
+              </h5>
+              <h6 class="timestamp micro">
+                Created {{timeSince date_created}}
+              </h6>
+            </div>
+
+            {{#if description}}
+            <div class="description">
+              <p>{{description}}</p>
+            </div>
+            {{/if}}
+
             <div class="metadata">
               <div class="micro conditions">
                 {{#each conditions}}
@@ -365,7 +400,7 @@
                       <span data-switch="{{../id}}" data-field="{{[0]}}" data-value="{{[1]}}" class="value">
                         <nobr>{{#if [3]}}<strong>not</strong> {{/if}}{{[2]}}
                           <a href="#delete-condition" class="btn btn-link delete-condition" title="Delete this condition">
-                            <i class="icon-remove"></i>
+                            <i class="fa fa-times"></i>
                           </a>
                         </nobr>
                       </span>
@@ -374,7 +409,7 @@
                 {{/each}}
               </div>
 
-              <div class="add-condition"><a class="btn btn-success" href="#add-condition"><i class="icon-plus"></i> Add a condition</a></div>
+              <div class="add-condition"><a class="btn btn-success" href="#add-condition"><i class="fa fa-plus"></i> Add a condition</a></div>
               <div class="conditions-form" style="display: none;"></div>
             </div>
           </div>
@@ -426,8 +461,9 @@
         </script>
       </div>
     </div>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.rc.1/handlebars.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.3.0/handlebars.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.js"></script>
     <script type="text/javascript">
       /*!
        * string_score.js: String Scoring Algorithm 0.1.10
@@ -479,6 +515,88 @@
                   return options.fn(this);
               }
           });
+          Handlebars.registerHelper('summarize', function(version) {
+              var added, changed, deleted;
+              if (version['delta']) {
+                  added = version['delta']['added'];
+                  changed = version['delta']['changed'];
+                  deleted = version['delta']['deleted'];
+              }
+              var summary = '';
+              if (added || changed) {
+                  summary = 'Switch edited.';
+                  if (changed['status']) {
+                      var oldStatus = changed['status'][0],
+                          newStatus = changed['status'][1],
+                          statusLabel = [
+                              null, // statuses are not 0-based
+                              'Disabled',
+                              'Selective',
+                              'Global',
+                              'Inherit'
+                          ];
+                      summary = 'Status changed from <span class="changed status-label-' + oldStatus + '"><i class="fa fa-circle"></i> ' + statusLabel[oldStatus] + '</span>' +
+                                ' to <span class="changed status-label-' + newStatus + '"><i class="fa fa-circle"></i> ' + statusLabel[newStatus] + '</span>.';
+                  } else if (changed['value']) {
+                      var oldValue = changed['value'][0],
+                          newValue = changed['value'][1],
+                          oldConditions = Object.keys(oldValue).join(', '),
+                          newConditions = Object.keys(newValue).join(', ');
+                      summary = 'Conditions updated.';
+                      if (oldConditions) {
+                          summary += ' Old conditions: <span class="changed">' + oldConditions + '</span>.';
+                      }
+                      if (newConditions) {
+                          summary += ' New conditions: <span class="changed">' + newConditions + '</span>.';
+                      }
+                  } else {
+                      summary += ' Fields changed: <span class="changed">' + Object.keys(changed).join(', ') + '</span>.';
+                  }
+              } else if (deleted) {
+                  summary = 'Switch deleted.';
+              }
+              return new Handlebars.SafeString(summary);
+          });
+          // TODO: replace with https://github.com/helpers/handlebars-helper-moment
+          Handlebars.registerHelper('timeSince', function(date) {
+              return moment(date).fromNow();
+          });
+          Handlebars.registerHelper('datestampFormat', function(date) {
+              return moment(date).format();
+          });
+          Handlebars.registerHelper('dateFormat', function(date) {
+              return moment(date).format('MMMM Do YYYY, h:mm:ss a');
+          });
+          Handlebars.registerHelper('timeFormat', function(date) {
+              return moment(date).format('h:mm:ss a');
+          });
+          Handlebars.registerHelper('groupByDate', function(versions, options) {
+              function dateHeader(date) {
+                  return '<div class="version-date"><h6><i class="fa fa-calendar"></i> ' + moment(date).format('MMM Do, YYYY') + '</h6>';
+              }
+              function stripTime(version) {
+                  var ms = version.timestamp.$date,
+                      date = new Date(ms);
+                  // return milliseconds since epoch after zeroing out the time
+                  return date.setHours(0, 0, 0, 0)
+              }
+              if (!versions || versions.length === 0) {
+                  return '';
+              }
+              var currentDate = stripTime(versions[0]),
+                  out = dateHeader(currentDate);
+              for (var i = 0, l = versions.length; i < l; i++) {
+                  var version = versions[i],
+                      nextDate = stripTime(version);
+                  if (currentDate !== nextDate) {
+                      currentDate = nextDate;
+                      out += '</div>';
+                      out += dateHeader(currentDate);
+                  }
+                  out = out + options.fn(version);
+              }
+              return out + '</div>';
+          });
           var templates = {};
           $('script[type*="template"]').each(function() {
               templates[this.id] = Handlebars.compile($(this).html());
@@ -489,8 +607,7 @@
           $('.add-switch', $sb).on('click', function(e) {
               e.preventDefault();
               var html = templates.switchForm({add: true});
-              $drawer.html(html).show();
-              $drawer.children('input:first').focus();
+              $drawer.trigger('drawer:show', [html, $(this)]);
           });
 
           $('.switches', $sb).on('click', '.edit', function(e) {
@@ -503,8 +620,7 @@
                   label:         $row.attr('data-switch-label'),
                   description:   $row.attr('data-switch-description')
               });
-              $drawer.html(html).show();
-              $drawer.children('input:first').focus();
+              $drawer.trigger('drawer:show', [html, $row]);
           });
 
           $('.switches', $sb).on('click', '.delete', function(e) {
@@ -523,6 +639,19 @@
                           $('.no-switches', $sb).show();
                       }
                   });
+          });
+
+          $('.switches', $sb).on('click', '.history', function(e) {
+              e.preventDefault();
+              var $row = $(this).parents('.switch:first');
+              $.getJSON(SWITCHBOARD.history, { key: $row.attr('data-switch-key') }, function(data) {
+                  if (data.success) {
+                      var html = templates.switchHistory({ versions: data.data });
+                      $drawer.trigger('drawer:show', [html, $row]);
+                  } else {
+                      alert("Unable to retrieve the switch's history.")
+                  }
+              });
           });
 
           $('.switches', $sb).on('change', '.status select', function(e) {
@@ -623,9 +752,37 @@
 
           });
 
+          $drawer.on('drawer:show', function(e, html, $parent) {
+              var newTop;
+              if ($parent.parents('.page-header').length) {
+                  var $header = $parent.parents('.page-header');
+                  newTop = $header.offset().top + $header.outerHeight() - 1; // don't include border
+                  $drawer.addClass('header');
+              } else {
+                  newTop = $parent.offset().top;
+                  $drawer.removeClass('header');
+              }
+              $drawer.css('top', newTop + 'px');
+              $('.switch', $sb).addClass('overlayed');
+              $drawer.html(html).show();
+              if ($drawer.children('input')) {
+                  $drawer.children('input:first').focus();
+              }
+          });
+
+          $drawer.on('drawer:hide', function(e) {
+              e.preventDefault();
+              $('.switch', $sb).removeClass('overlayed');
+              $drawer.hide();
+          });
+
           $drawer.on('click', '.cancel', function(e) {
               e.preventDefault();
-              $drawer.hide();
+              $drawer.trigger('drawer:hide');
+          });
+
+          $(document).on('keyup', function(e) {
+              if (e.keyCode === 27) { $drawer.trigger('drawer:hide'); }
           });
 
           $drawer.on('click', '.submit-switch', function(e) {
@@ -653,14 +810,19 @@
                               $('.switches .switch:last', $sb).after(result);
                           }
 
-                          $drawer.hide();
+                          $drawer.trigger('drawer:hide');
                       } else {
                           $('.switches .switch[data-switch-key="' + curkey + '"]', $sb).replaceWith(result);
-                          $drawer.hide();
+                          $drawer.trigger('drawer:hide');
                       }
                       //$(result).click();
                   }
               );
+          });
+
+          $drawer.on('click', '.close-action', function(e) {
+              e.preventDefault();
+              $drawer.trigger('drawer:hide');
           });
 
           $('input[type=search]').keyup(function () {
