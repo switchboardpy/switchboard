@@ -1,34 +1,34 @@
 ﻿<%!
-    '''
-    Template helper functions, stored here so they can be used no matter what
-    web framework is being used.
-    '''
-    def sort_by_key(field, currently):
-        is_negative = currently.find('-') is 0
-        current_field = currently.lstrip('-')
+  '''
+  Template helper functions, stored here so they can be used no matter what
+  web framework is being used.
+  '''
+  def sort_by_key(field, currently):
+    is_negative = currently.find('-') is 0
+    current_field = currently.lstrip('-')
 
-        if current_field == field and is_negative:
-            return field
-        elif current_field == field:
-            return '-' + field
-        else:
-            return field
+    if current_field == field and is_negative:
+      return field
+    elif current_field == field:
+      return '-' + field
+    else:
+      return field
 
-    from datetime import datetime
-    def timesince(dt):
-        delta = datetime.utcnow() - dt
-        days = delta.days + float(delta.seconds) / 86400
-        if days > 1:
-            return '%d days' % round(days)
-        # since days is < 1, a fraction, we multiply to get hours
-        hours = days * 24
-        if hours > 1:
-            return '%d hours' % round(hours)
-        minutes = hours * 60
-        if minutes > 1:
-            return '%d minutes' % round(minutes)
-        seconds = minutes * 60
-        return '%d seconds' % round(seconds)
+  from datetime import datetime
+  def timesince(dt):
+    delta = datetime.utcnow() - dt
+    days = delta.days + float(delta.seconds) / 86400
+    if days > 1:
+      return '%d days' % round(days)
+    # since days is < 1, a fraction, we multiply to get hours
+    hours = days * 24
+    if hours > 1:
+      return '%d hours' % round(hours)
+    minutes = hours * 60
+    if minutes > 1:
+      return '%d minutes' % round(minutes)
+    seconds = minutes * 60
+    return '%d seconds' % round(seconds)
 %>
 <!DOCTYPE html>
 <html>
@@ -69,24 +69,24 @@
       .switchboard .btn,
       .switchboard .btn:link,
       .switchboard .btn:visited {
-          background-color: #f5f5f5;
-          border: 1px solid #bbb;
-          border-bottom-color: #a2a2a2;
-          color: inherit;
-          text-decoration: none;
-          display: inline-block;
-          padding: 4px 12px;
-          font-size: 14px;
-          margin-bottom: 0;
-          text-align: center;
-          vertical-align: middle;
-          cursor: pointer;
-          text-shadow: 0 1px 1px rgba(255,255,255,0.75);
-          border-radius: 4px;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.2),0 1px 2px rgba(0,0,0,.05);
-          background-image: -webkit-linear-gradient(top,#fff,#e6e6e6);
-          background-image: linear-gradient(to bottom,#fff,#e6e6e6);
-          background-repeat: repeat-x;
+        background-color: #f5f5f5;
+        border: 1px solid #bbb;
+        border-bottom-color: #a2a2a2;
+        color: inherit;
+        text-decoration: none;
+        display: inline-block;
+        padding: 4px 12px;
+        font-size: 14px;
+        margin-bottom: 0;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        text-shadow: 0 1px 1px rgba(255,255,255,0.75);
+        border-radius: 4px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.2),0 1px 2px rgba(0,0,0,.05);
+        background-image: -webkit-linear-gradient(top,#fff,#e6e6e6);
+        background-image: linear-gradient(to bottom,#fff,#e6e6e6);
+        background-repeat: repeat-x;
       }
       .switchboard .btn:hover { background-color: #e6e6e6; background-position: 0 -15px; -webkit-transition: background-position .1s linear; transition: background-position .1s linear; }
       .switchboard .btn:active { background-color: #f5f5f5; border: 1px solid #bbb; border-bottom-color: #a2a2a2; color: inherit; text-decoration: none; display: inline-block; padding: 4px 12px; margin-bottom: 0; text-align: center; vertical-align: middle; cursor: pointer; text-shadow: 0 1px 1px rgba(255,255,255,0.75); border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,.2),0 1px 2px rgba(0,0,0,.05); background-image: -webkit-linear-gradient(top,#fff,#e6e6e6); background-image: linear-gradient(to bottom,#fff,#e6e6e6); background-repeat: repeat-x; }
@@ -134,8 +134,8 @@
       .switchboard .toolbar[data-sort="date_created"] .sort .date_created a,
       .switchboard .toolbar[data-sort="date_modified"] .sort .date_modified a,
       .switchboard .toolbar[data-sort=""] .sort .date_modified a {
-          font-weight: bold;
-          color: #333;
+        font-weight: bold;
+        color: #333;
       }
       .switchboard .toolbar[data-sort="-label"] .sort .label a:hover,
       .switchboard .toolbar[data-sort="-date_created"] .sort .date_created a:hover,
@@ -144,18 +144,18 @@
       .switchboard .toolbar[data-sort="date_created"] .sort .date_created a:hover,
       .switchboard .toolbar[data-sort="date_modified"] .sort .date_modified a:hover,
       .switchboard .toolbar[data-sort=""] .sort .date_modified a:hover {
-          color: #fff;
+        color: #fff;
       }
       .switchboard .toolbar[data-sort="-label"] .sort .label a:after,
       .switchboard .toolbar[data-sort="-date_created"] .sort .date_created a:after,
       .switchboard .toolbar[data-sort="-date_modified"] .sort .date_modified a:after {
-          content: " ▴";
+        content: " ▴";
       }
       .switchboard .toolbar[data-sort="label"] .sort .label a:after,
       .switchboard .toolbar[data-sort="date_created"] .sort .date_created a:after,
       .switchboard .toolbar[data-sort="date_modified"] .sort .date_modified a:after,
       .switchboard .toolbar[data-sort=""] .sort .date_modified a:after {
-          content: " ▾";
+        content: " ▾";
       }
       /* table */
       .switchboard .switches { width: 100%; collapse; margin-bottom: 1.65rem; }
@@ -235,8 +235,8 @@
           <div class="messages micro">
             % for m in messages:
             <div class="message ${m['status']}" data-timeout="10000">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                ${m['message']}
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              ${m['message']}
             </div>
             % endfor
           </div>
@@ -489,397 +489,398 @@
     <script type="text/javascript">
       /*global alert, confirm, jQuery, Handlebars, SWITCHBOARD */
       jQuery(function($) {
-          var $sb = $('.switchboard'),
-              $drawer = $('.drawer', $sb);
-          $(document).ajaxStart(function() {
-              $('.spinner', $sb).show();
-          });
-          $(document).ajaxStop(function() {
-              $('.spinner', $sb).hide();
-          });
-          var api = function (url, params, succ) {
-              $.ajax({
-                  url: url,
-                  type: 'POST',
-                  data: params,
-                  dataType: 'json',
-                  success: function (resp) {
-                      if (resp.success) {
-                          succ(resp.data);
-                      } else {
-                          alert(resp.data);
-                      }
-                  },
-                  failure: function () {
-                      alert('There was an internal error. Data probably wasn\'t saved');
-                  }
-              });
-          };
-
-          // Compile templates
-          Handlebars.registerHelper('ifToggled', function(status, options) {
-              if (this.status === status) {
-                  return options.fn(this);
-              }
-          });
-          Handlebars.registerHelper('summarize', function(version) {
-              var added, changed, deleted;
-              if (version['delta']) {
-                  added = version['delta']['added'];
-                  changed = version['delta']['changed'];
-                  deleted = version['delta']['deleted'];
-              }
-              var summary = '';
-              if (added || changed) {
-                  summary = 'Switch edited.';
-                  if (changed['status']) {
-                      var oldStatus = changed['status'][0],
-                          newStatus = changed['status'][1],
-                          statusLabel = [
-                              null, // statuses are not 0-based
-                              'Disabled',
-                              'Selective',
-                              'Global',
-                              'Inherit'
-                          ];
-                      summary = 'Status changed from <span class="changed status-label-' + oldStatus + '"><i class="fa fa-circle"></i> ' + statusLabel[oldStatus] + '</span>' +
-                                ' to <span class="changed status-label-' + newStatus + '"><i class="fa fa-circle"></i> ' + statusLabel[newStatus] + '</span>.';
-                  } else if (changed['value']) {
-                      var oldValue = changed['value'][0],
-                          newValue = changed['value'][1],
-                          oldConditions = Object.keys(oldValue).join(', '),
-                          newConditions = Object.keys(newValue).join(', ');
-                      summary = 'Conditions updated.';
-                      if (oldConditions) {
-                          summary += ' Old conditions: <span class="changed">' + oldConditions + '</span>.';
-                      }
-                      if (newConditions) {
-                          summary += ' New conditions: <span class="changed">' + newConditions + '</span>.';
-                      }
-                  } else {
-                      summary += ' Fields changed: <span class="changed">' + Object.keys(changed).join(', ') + '</span>.';
-                  }
-              } else if (deleted) {
-                  summary = 'Switch deleted.';
-              }
-              return new Handlebars.SafeString(summary);
-          });
-          // TODO: replace with https://github.com/helpers/handlebars-helper-moment
-          Handlebars.registerHelper('timeSince', function(date) {
-              return moment(date).fromNow();
-          });
-          Handlebars.registerHelper('datestampFormat', function(date) {
-              return moment(date).format();
-          });
-          Handlebars.registerHelper('dateFormat', function(date) {
-              return moment(date).format('MMMM Do YYYY, h:mm:ss a');
-          });
-          Handlebars.registerHelper('timeFormat', function(date) {
-              return moment(date).format('h:mm:ss a');
-          });
-          Handlebars.registerHelper('groupByDate', function(versions, options) {
-              function dateHeader(date) {
-                  return '<div class="version-date"><h6><i class="fa fa-calendar"></i> ' + moment(date).format('MMM Do, YYYY') + '</h6>';
-              }
-              function stripTime(version) {
-                  var ms = version.timestamp.$date,
-                      date = new Date(ms);
-                  // return milliseconds since epoch after zeroing out the time
-                  return date.setHours(0, 0, 0, 0)
-              }
-              if (!versions || versions.length === 0) {
-                  return '';
-              }
-              var currentDate = stripTime(versions[0]),
-                  out = dateHeader(currentDate);
-              for (var i = 0, l = versions.length; i < l; i++) {
-                  var version = versions[i],
-                      nextDate = stripTime(version);
-                  if (currentDate !== nextDate) {
-                      currentDate = nextDate;
-                      out += '</div>';
-                      out += dateHeader(currentDate);
-                  }
-                  out = out + options.fn(version);
-              }
-              return out + '</div>';
-          });
-          var templates = {};
-          $('script[type*="template"]').each(function() {
-              templates[this.id] = Handlebars.compile($(this).html());
-          });
-
-          // Events
-
-          $('.add-switch', $sb).on('click', function(e) {
-              e.preventDefault();
-              var html = templates.switchForm({add: true});
-              $drawer.trigger('drawer:show', [html, $(this)]);
-          });
-
-          $('.switches', $sb).on('click', '.edit', function(e) {
-              e.preventDefault();
-              var $row = $(this).parents('.switch:first');
-              var html = templates.switchForm({
-                  add:           false,
-                  curkey:        $row.attr('data-switch-key'),
-                  key:           $row.attr('data-switch-key'),
-                  label:         $row.attr('data-switch-label'),
-                  description:   $row.attr('data-switch-description')
-              });
-              $drawer.trigger('drawer:show', [html, $row]);
-          });
-
-          $('.switches', $sb).on('click', '.delete', function(e) {
-              e.preventDefault();
-              var $row = $(this).parents('.switch:first');
-              var $table = $row.parents('.switches:first');
-
-              if (!confirm('Are you SURE you want to remove this switch?')) {
-                  return;
-              }
-
-              api(SWITCHBOARD.deleteSwitch, { key: $row.attr('data-switch-key') },
-                  function () {
-                      $row.remove();
-                      if (!$table.find('.switch').length) {
-                          $('.no-switches', $sb).show();
-                      }
-                  });
-          });
-
-          $('.switches', $sb).on('click', '.history', function(e) {
-              e.preventDefault();
-              var $row = $(this).parents('.switch:first');
-              $.getJSON(SWITCHBOARD.history, { key: $row.attr('data-switch-key') }, function(data) {
-                  if (data.success) {
-                      var html = templates.switchHistory({ versions: data.data });
-                      $drawer.trigger('drawer:show', [html, $row]);
-                  } else {
-                      alert("Unable to retrieve the switch's history.")
-                  }
-              });
-          });
-
-          $('.switches', $sb).on('change', '.status select', function(e) {
-              e.preventDefault();
-              var $row = $(this).parents('.switch:first');
-              var $el = $(this);
-              var status = parseInt($el.val(), 10);
-
-              if (status === 3) {
-                  if (!confirm('Are you SURE you want to enable this switch globally?')) {
-                      return;
-                  }
-              }
-
-              api(SWITCHBOARD.updateStatus,
-                  {
-                      key:    $row.attr('data-switch-key'),
-                      status: status
-                  },
-
-                  function (swtch) {
-                      if (swtch.status === status) {
-                          $row.attr('data-switch-status', swtch.status);
-                          if ($.isArray(swtch.conditions) && swtch.conditions.length < 1 && swtch.status === 2) {
-                              swtch.status = 3;
-                          }
-                      }
-                  });
-          });
-
-          $('.switches', $sb).on('click', '.add-condition a', function(e) {
-              e.preventDefault();
-              var $form = $(this).parents('.metadata:first').find('.conditions-form:first');
-
-              if ($form.is(':hidden')) {
-                  $form.html(templates.switchConditions({}));
-                  $form.show();
+        var $sb = $('.switchboard'),
+          $drawer = $('.drawer', $sb);
+        $(document).ajaxStart(function() {
+          $('.spinner', $sb).show();
+        });
+        $(document).ajaxStop(function() {
+          $('.spinner', $sb).hide();
+        });
+        var api = function (url, params, succ) {
+          $.ajax({
+            url: url,
+            type: 'POST',
+            data: params,
+            dataType: 'json',
+            success: function (resp) {
+              if (resp.success) {
+                succ(resp.data);
               } else {
-                  $form.hide();
+                alert(resp.data);
               }
+            },
+            failure: function () {
+              alert('There was an internal error. Data probably wasn\'t saved');
+            }
           });
+        };
 
-          $('.switches', $sb).on('change', '.conditions-form select', function() {
-              var field = $(this).val().split(',');
-              $(this).
-                  parents('.switch:first').
-                  find('div.fields').hide();
+        // Compile templates
+        Handlebars.registerHelper('ifToggled', function(status, options) {
+          if (this.status === status) {
+            return options.fn(this);
+          }
+        });
+        Handlebars.registerHelper('summarize', function(version) {
+          var added, changed, deleted;
+          if (version['delta']) {
+            added = version['delta']['added'];
+            changed = version['delta']['changed'];
+            deleted = version['delta']['deleted'];
+          }
+          var summary = '';
+          if (added || changed) {
+            summary = 'Switch edited.';
+            if (changed['status']) {
+              var oldStatus = changed['status'][0],
+                  newStatus = changed['status'][1],
+                  statusLabel = [
+                    null, // statuses are not 0-based
+                    'Disabled',
+                    'Selective',
+                    'Global',
+                    'Inherit'
+                  ];
+              summary = 'Status changed from <span class="changed status-label-' + oldStatus + '"><i class="fa fa-circle"></i> ' + statusLabel[oldStatus] + '</span>' +
+                        ' to <span class="changed status-label-' + newStatus + '"><i class="fa fa-circle"></i> ' + statusLabel[newStatus] + '</span>.';
+            } else if (changed['value']) {
+                var oldValue = changed['value'][0],
+                    newValue = changed['value'][1],
+                    oldConditions = Object.keys(oldValue).join(', '),
+                    newConditions = Object.keys(newValue).join(', ');
+                summary = 'Conditions updated.';
+                if (oldConditions) {
+                  summary += ' Old conditions: <span class="changed">' + oldConditions + '</span>.';
+                }
+                if (newConditions) {
+                  summary += ' New conditions: <span class="changed">' + newConditions + '</span>.';
+                }
+            } else {
+              summary += ' Fields changed: <span class="changed">' + Object.keys(changed).join(', ') + '</span>.';
+            }
+          } else if (deleted) {
+            summary = 'Switch deleted.';
+          }
+          return new Handlebars.SafeString(summary);
+        });
+        // TODO: replace with https://github.com/helpers/handlebars-helper-moment
+        Handlebars.registerHelper('timeSince', function(date) {
+          return moment(date).fromNow();
+        });
+        Handlebars.registerHelper('datestampFormat', function(date) {
+          return moment(date).format();
+        });
+        Handlebars.registerHelper('dateFormat', function(date) {
+          return moment(date).format('MMMM Do YYYY, h:mm:ss a');
+        });
+        Handlebars.registerHelper('timeFormat', function(date) {
+          return moment(date).format('h:mm:ss a');
+        });
+        Handlebars.registerHelper('groupByDate', function(versions, options) {
+          function dateHeader(date) {
+            return '<div class="version-date"><h6><i class="fa fa-calendar"></i> ' + moment(date).format('MMM Do, YYYY') + '</h6>';
+          }
+          function stripTime(version) {
+            var ms = version.timestamp.$date,
+                date = new Date(ms);
+            // return milliseconds since epoch after zeroing out the time
+            return date.setHours(0, 0, 0, 0)
+          }
+          if (!versions || versions.length === 0) {
+            return '';
+          }
+          var currentDate = stripTime(versions[0]),
+              out = dateHeader(currentDate);
+          for (var i = 0, l = versions.length; i < l; i++) {
+            var version = versions[i],
+                nextDate = stripTime(version);
+            if (currentDate !== nextDate) {
+              currentDate = nextDate;
+              out += '</div>';
+              out += dateHeader(currentDate);
+            }
+            out = out + options.fn(version);
+          }
+          return out + '</div>';
+        });
+        var templates = {};
+        $('script[type*="template"]').each(function() {
+          templates[this.id] = Handlebars.compile($(this).html());
+        });
 
-              $(this).
-                  parents('.switch:first').
-                  find('div[data-path="' + field[0] + '.' + field[1] + '"]').show();
+        // Events
+
+        $('.add-switch', $sb).on('click', function(e) {
+          e.preventDefault();
+          var html = templates.switchForm({add: true});
+          $drawer.trigger('drawer:show', [html, $(this)]);
+        });
+
+        $('.switches', $sb).on('click', '.edit', function(e) {
+          e.preventDefault();
+          var $row = $(this).parents('.switch:first');
+          var html = templates.switchForm({
+              add:           false,
+              curkey:        $row.attr('data-switch-key'),
+              key:           $row.attr('data-switch-key'),
+              label:         $row.attr('data-switch-label'),
+              description:   $row.attr('data-switch-description')
           });
+          $drawer.trigger('drawer:show', [html, $row]);
+        });
 
-          $('.switches', $sb).on('submit', '.conditions-form form', function(e) {
-              e.preventDefault();
-              var $form = $(this);
+        $('.switches', $sb).on('click', '.delete', function(e) {
+          e.preventDefault();
+          var $row = $(this).parents('.switch:first');
+          var $table = $row.parents('.switches:first');
 
-              var data = {
-                  key: $form.parents('.switch:first').attr('data-switch-key'),
-                  id: $form.attr('data-switch'),
-                  field: $form.attr('data-field')
-              };
-
-              $.each($form.find('input'), function () {
-                  var val,
-                      $input = $(this);
-
-                  if ($input.attr('type') === 'checkbox') {
-                      val = $input.is(':checked') ? '1' : '0';
-                  } else {
-                      val = $input.val();
-                  }
-                  data[$input.attr('name')] = val;
-              });
-
-              api(SWITCHBOARD.addCondition, data, function (swtch) {
-                  var result = templates.switchData(swtch);
-                  $('.switches .switch[data-switch-key="' + data.key + '"]', $sb).replaceWith(result);
-              });
-          });
-
-          $('.switches', $sb).on('click', '.conditions .delete-condition', function(e) {
-              e.preventDefault();
-
-              var $el = $(this).parents('span:first');
-
-              var data = {
-                  key:   $el.parents('.switch:first').attr('data-switch-key'),
-                  id:    $el.attr('data-switch'),
-                  field: $el.attr('data-field'),
-                  value: $el.attr('data-value')
-              };
-
-              api(SWITCHBOARD.delCondition, data, function (swtch) {
-                  var result = templates.switchData(swtch);
-                  $('.switches .switch[data-switch-key="' + data.key + '"]').replaceWith(result);
-              });
-
-          });
-
-          $drawer.on('drawer:show', function(e, html, $parent) {
-              var newTop;
-              if ($parent.parents('.page-header').length) {
-                  var $header = $parent.parents('.page-header');
-                  newTop = $header.offset().top + $header.outerHeight() - 1; // don't include border
-                  $drawer.addClass('header');
-              } else {
-                  newTop = $parent.offset().top;
-                  $drawer.removeClass('header');
-              }
-              $drawer.css('top', newTop + 'px');
-              $('.switch', $sb).addClass('overlayed');
-              $drawer.html(html).show();
-              if ($drawer.children('input')) {
-                  $drawer.children('input:first').focus();
-              }
-          });
-
-          $drawer.on('drawer:hide', function(e) {
-              e.preventDefault();
-              $('.switch', $sb).removeClass('overlayed');
-              $drawer.hide();
-          });
-
-          $drawer.on('click', '.cancel', function(e) {
-              e.preventDefault();
-              $drawer.trigger('drawer:hide');
-          });
-
-          $(document).on('keyup', function(e) {
-              if (e.keyCode === 27) { $drawer.trigger('drawer:hide'); }
-          });
-
-          $drawer.on('click', '.submit-switch', function(e) {
-              e.preventDefault();
-              var action = $(this).attr('data-action');
-              var curkey = $(this).attr('data-curkey');
-
-              api(action === 'add' ? SWITCHBOARD.addSwitch : SWITCHBOARD.updateSwitch,
-                  {
-                      curkey: curkey,
-                      label: $('input[name=label]', $drawer).val(),
-                      key: $('input[name=key]', $drawer).val(),
-                      description: $('textarea', $drawer).val()
-                  },
-
-                  function (swtch) {
-                      var result = templates.switchData(swtch);
-
-                      if (action === 'add') {
-                          if ($('.switches .switch', $sb).length === 0) {
-                              $('.switches', $sb).html(result);
-                              $('.switches', $sb).removeClass('empty');
-                              $('.no-switches', $sb).hide();
-                          } else {
-                              $('.switches .switch:last', $sb).after(result);
-                          }
-
-                          $drawer.trigger('drawer:hide');
-                      } else {
-                          $('.switches .switch[data-switch-key="' + curkey + '"]', $sb).replaceWith(result);
-                          $drawer.trigger('drawer:hide');
-                      }
-                      //$(result).click();
-                  }
-              );
-          });
-
-          $drawer.on('click', '.close-action', function(e) {
-              e.preventDefault();
-              $drawer.trigger('drawer:hide');
-          });
-
-          $('input[type=search]').keyup(function () {
-              var query = $(this).val();
-              $('.switches .switch', $sb).removeClass('hidden');
-              if (!query) {
-                  return;
-              }
-              $('.switches .switch', $sb).each(function (_, el) {
-                  var $el = $(el);
-                  var score = 0;
-                  score += $el.attr('data-switch-key').score(query);
-                  score += $el.attr('data-switch-label').score(query);
-                  if ($el.attr('data-switch-description')) {
-                      score += $el.attr('data-switch-description').score(query);
-                  }
-                  if (score === 0) {
-                      $el.addClass('hidden');
-                  }
-              });
-          });
-
-          function closer($message) {
-              function slideComplete() {
-                  $(this).removeClass('active');
-              }
-              function fadeComplete() {
-                  $(this).slideUp(100, slideComplete);
-              }
-              $message.animate({ opacity: 0 }, {
-                  duration: 250,
-                  queue: false,
-                  complete: fadeComplete
-              });
+          if (!confirm('Are you SURE you want to remove this switch?')) {
+            return;
           }
 
-          $('.message').each(function() {
-              var $m = $(this),
-                  timeout = parseInt($m.attr('data-timeout'), 10);
-              $m.addClass('active');
-              $m.fadeIn(500);
-              $('.close', $m).on('click', function() {
-                  closer($m);
-              });
-              if (timeout) {
-                  window.setTimeout(function() {
-                      closer($m);
-                  }, timeout);
+          api(SWITCHBOARD.deleteSwitch, { key: $row.attr('data-switch-key') },
+            function () {
+              $row.remove();
+              if (!$table.find('.switch').length) {
+                $('.no-switches', $sb).show();
               }
+            }
+          );
+        });
+
+        $('.switches', $sb).on('click', '.history', function(e) {
+          e.preventDefault();
+          var $row = $(this).parents('.switch:first');
+          $.getJSON(SWITCHBOARD.history, { key: $row.attr('data-switch-key') }, function(data) {
+            if (data.success) {
+              var html = templates.switchHistory({ versions: data.data });
+              $drawer.trigger('drawer:show', [html, $row]);
+            } else {
+              alert("Unable to retrieve the switch's history.")
+            }
           });
+        });
+
+        $('.switches', $sb).on('change', '.status select', function(e) {
+          e.preventDefault();
+          var $row = $(this).parents('.switch:first');
+          var $el = $(this);
+          var status = parseInt($el.val(), 10);
+
+          if (status === 3) {
+            if (!confirm('Are you SURE you want to enable this switch globally?')) {
+              return;
+            }
+          }
+
+          api(SWITCHBOARD.updateStatus,
+            {
+              key:    $row.attr('data-switch-key'),
+              status: status
+            },
+
+            function (swtch) {
+              if (swtch.status === status) {
+                $row.attr('data-switch-status', swtch.status);
+                if ($.isArray(swtch.conditions) && swtch.conditions.length < 1 && swtch.status === 2) {
+                  swtch.status = 3;
+                }
+              }
+            }
+          );
+        });
+
+        $('.switches', $sb).on('click', '.add-condition a', function(e) {
+          e.preventDefault();
+          var $form = $(this).parents('.metadata:first').find('.conditions-form:first');
+
+          if ($form.is(':hidden')) {
+            $form.html(templates.switchConditions({}));
+            $form.show();
+          } else {
+            $form.hide();
+          }
+        });
+
+        $('.switches', $sb).on('change', '.conditions-form select', function() {
+          var field = $(this).val().split(',');
+          $(this).
+            parents('.switch:first').
+            find('div.fields').hide();
+
+          $(this).
+            parents('.switch:first').
+            find('div[data-path="' + field[0] + '.' + field[1] + '"]').show();
+        });
+
+        $('.switches', $sb).on('submit', '.conditions-form form', function(e) {
+          e.preventDefault();
+          var $form = $(this);
+
+          var data = {
+            key: $form.parents('.switch:first').attr('data-switch-key'),
+            id: $form.attr('data-switch'),
+            field: $form.attr('data-field')
+          };
+
+          $.each($form.find('input'), function () {
+            var val,
+                $input = $(this);
+
+            if ($input.attr('type') === 'checkbox') {
+              val = $input.is(':checked') ? '1' : '0';
+            } else {
+              val = $input.val();
+            }
+            data[$input.attr('name')] = val;
+          });
+
+          api(SWITCHBOARD.addCondition, data, function (swtch) {
+            var result = templates.switchData(swtch);
+            $('.switches .switch[data-switch-key="' + data.key + '"]', $sb).replaceWith(result);
+          });
+        });
+
+        $('.switches', $sb).on('click', '.conditions .delete-condition', function(e) {
+          e.preventDefault();
+
+          var $el = $(this).parents('span:first');
+
+          var data = {
+            key:   $el.parents('.switch:first').attr('data-switch-key'),
+            id:    $el.attr('data-switch'),
+            field: $el.attr('data-field'),
+            value: $el.attr('data-value')
+          };
+
+          api(SWITCHBOARD.delCondition, data, function (swtch) {
+            var result = templates.switchData(swtch);
+            $('.switches .switch[data-switch-key="' + data.key + '"]').replaceWith(result);
+          });
+        });
+
+        $drawer.on('drawer:show', function(e, html, $parent) {
+          var newTop;
+          if ($parent.parents('.page-header').length) {
+            var $header = $parent.parents('.page-header');
+            newTop = $header.offset().top + $header.outerHeight() - 1; // don't include border
+            $drawer.addClass('header');
+          } else {
+            newTop = $parent.offset().top;
+            $drawer.removeClass('header');
+          }
+          $drawer.css('top', newTop + 'px');
+          $('.switch', $sb).addClass('overlayed');
+          $drawer.html(html).show();
+          if ($drawer.children('input')) {
+            $drawer.children('input:first').focus();
+          }
+        });
+
+        $drawer.on('drawer:hide', function(e) {
+          e.preventDefault();
+          $('.switch', $sb).removeClass('overlayed');
+          $drawer.hide();
+        });
+
+        $drawer.on('click', '.cancel', function(e) {
+          e.preventDefault();
+          $drawer.trigger('drawer:hide');
+        });
+
+        $(document).on('keyup', function(e) {
+          if (e.keyCode === 27) { $drawer.trigger('drawer:hide'); }
+        });
+
+        $drawer.on('click', '.submit-switch', function(e) {
+          e.preventDefault();
+          var action = $(this).attr('data-action');
+          var curkey = $(this).attr('data-curkey');
+
+          api(action === 'add' ? SWITCHBOARD.addSwitch : SWITCHBOARD.updateSwitch,
+            {
+              curkey: curkey,
+              label: $('input[name=label]', $drawer).val(),
+              key: $('input[name=key]', $drawer).val(),
+              description: $('textarea', $drawer).val()
+            },
+
+            function (swtch) {
+              var result = templates.switchData(swtch);
+
+              if (action === 'add') {
+                if ($('.switches .switch', $sb).length === 0) {
+                  $('.switches', $sb).html(result);
+                  $('.switches', $sb).removeClass('empty');
+                  $('.no-switches', $sb).hide();
+                } else {
+                  $('.switches .switch:last', $sb).after(result);
+                }
+
+                $drawer.trigger('drawer:hide');
+              } else {
+                $('.switches .switch[data-switch-key="' + curkey + '"]', $sb).replaceWith(result);
+                $drawer.trigger('drawer:hide');
+              }
+              //$(result).click();
+            }
+          );
+        });
+
+        $drawer.on('click', '.close-action', function(e) {
+          e.preventDefault();
+          $drawer.trigger('drawer:hide');
+        });
+
+        $('input[type=search]').keyup(function () {
+          var query = $(this).val();
+          $('.switches .switch', $sb).removeClass('hidden');
+          if (!query) {
+            return;
+          }
+          $('.switches .switch', $sb).each(function (_, el) {
+            var $el = $(el);
+            var score = 0;
+            score += $el.attr('data-switch-key').score(query);
+            score += $el.attr('data-switch-label').score(query);
+            if ($el.attr('data-switch-description')) {
+              score += $el.attr('data-switch-description').score(query);
+            }
+            if (score === 0) {
+              $el.addClass('hidden');
+            }
+          });
+        });
+
+        function closer($message) {
+          function slideComplete() {
+            $(this).removeClass('active');
+          }
+          function fadeComplete() {
+            $(this).slideUp(100, slideComplete);
+          }
+          $message.animate({ opacity: 0 }, {
+            duration: 250,
+            queue: false,
+            complete: fadeComplete
+          });
+        }
+
+        $('.message').each(function() {
+          var $m = $(this),
+              timeout = parseInt($m.attr('data-timeout'), 10);
+          $m.addClass('active');
+          $m.fadeIn(500);
+          $('.close', $m).on('click', function() {
+            closer($m);
+          });
+          if (timeout) {
+            window.setTimeout(function() {
+              closer($m);
+            }, timeout);
+          }
+        });
       });
     </script>
   </body>
