@@ -9,6 +9,7 @@ switchboard.admin.controllers
 import logging
 from decorator import decorator
 from datetime import datetime
+import json
 from operator import attrgetter
 
 from webob.exc import HTTPNotFound
@@ -59,7 +60,14 @@ def json_api(func, *args, **kwargs):
             import traceback
             traceback.print_exc()
         raise
-    return response
+    # Sanitize any non-JSON-safe fields like datetime or ObjectId.
+    def handler(obj):
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        else:
+            return str(obj)
+    santized_response = json.loads(json.dumps(response, default=handler))
+    return santized_response
 
 
 class CoreAdminController(object):

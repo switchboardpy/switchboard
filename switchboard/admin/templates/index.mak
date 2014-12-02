@@ -16,6 +16,8 @@
 
   from datetime import datetime
   def timesince(dt):
+    if isinstance(dt, str):
+      dt = datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
     delta = datetime.utcnow() - dt
     days = delta.days + float(delta.seconds) / 86400
     if days > 1:
@@ -337,7 +339,7 @@
           {{#groupByDate versions}}
           <div class="version">
             <div class="version-summary">{{summarize this}}</div>
-            <div class="version-meta">{{#if username}}By {{username}}. {{/if}}At <time datetime="{{datestampFormat timestamp.$date}}">{{timeFormat timestamp.$date}}</time>.</div>
+            <div class="version-meta">{{#if username}}By {{username}}. {{/if}}At <time datetime="{{datestampFormat timestamp}}">{{timeFormat timestamp}}</time>.</div>
           </div>
           {{/groupByDate}}
           {{else}}
@@ -582,10 +584,7 @@
             return '<div class="version-date"><h6><i class="fa fa-calendar"></i> ' + moment(date).format('MMM Do, YYYY') + '</h6>';
           }
           function stripTime(version) {
-            var ms = version.timestamp.$date,
-                date = new Date(ms);
-            // return milliseconds since epoch after zeroing out the time
-            return date.setHours(0, 0, 0, 0)
+            return new Date(version.timestamp).setHours(0, 0, 0, 0);
           }
           if (!versions || versions.length === 0) {
             return '';
