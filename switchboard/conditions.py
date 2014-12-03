@@ -12,7 +12,6 @@ switchboard.conditions
 import datetime
 import itertools
 
-from webob import Request
 from formencode import Invalid
 
 from .models import EXCLUDE
@@ -328,4 +327,10 @@ class RequestConditionSet(ConditionSet):
         return 'request'
 
     def can_execute(self, instance):
-        return isinstance(instance, Request)
+        # There is no Request interface shared across libraries (Webob,
+        # Werkzeug) so instead we check for enough attributes to be
+        # reasonably certain this is a Request-ish object.
+        return (hasattr(instance, 'path') and
+                hasattr(instance, 'environ') and
+                hasattr(instance, 'headers') and
+                hasattr(instance, 'method'))
