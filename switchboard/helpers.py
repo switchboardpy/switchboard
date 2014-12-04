@@ -8,6 +8,7 @@ switchboard.helpers
 
 import logging
 from collections import defaultdict
+from copy import deepcopy
 
 from webob import Request
 
@@ -49,7 +50,9 @@ class MockCollection(object):
     def find(self, spec=None):
         results = []
         if not spec:
-            return self._data
+            # Return a copy of the list so that updating the returned list does
+            # not automatically update the datastore.
+            return deepcopy(self._data)
         for d in self._data:
             if self._matches(spec, d):
                 results.append(d)

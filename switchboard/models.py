@@ -40,7 +40,9 @@ class MongoModel(object):
         self.__dict__.update(kwargs)
 
     def to_bson(self):
-        return self.__dict__
+        # Return a copy so that any subsequent operations don't end up changing
+        # this object.
+        return self.__dict__.copy()
 
     def save(self):
         if hasattr(self, '_id'):
@@ -128,7 +130,8 @@ class VersioningMongoModel(MongoModel):
             curr = curr.to_bson() if curr else None
         else:
             curr = None
-        prev = self.previous_version().to_bson()
+        prev = self.previous_version()
+        prev = prev.to_bson() if prev else None
         # Both models are present so something's changed between them
         if prev and curr:
             current_fields = curr.keys()
@@ -154,14 +157,18 @@ class VersioningMongoModel(MongoModel):
                 deleted={},
                 changed={},
             )
-        else:       # Neither model exists
-            delta = None
+        else:       # Neither model exists, no-op
+            delta = dict(
+                added={},
+                deleted={},
+                changed={},
+            )
         return delta
 
     def save_version(self, **kwargs):
         delta = self._diff()
         # if nothing changed, don't save anything
-        if delta['added'] or delta['deleted'] or delta['changed']:
+        if delta and (delta['added'] or delta['deleted'] or delta['changed']):
             doc = dict(
                 switch_id=self._id,
                 timestamp=datetime.utcnow(),
@@ -189,7 +196,10 @@ class VersioningMongoModel(MongoModel):
         previous = dict()
         # build up the previous state based on all past deltas
         if versions:
-            versions = versions.sort('timestamp')
+            # Before sorting, ensure we're working with a list and not a cursor
+            # or other iterable.
+            versions = list(versions)
+            versions.sort(key=lambda x: x['timestamp'])
             for v in versions:
                 delta, added, deleted, changed = self._unpack_delta(v)
                 previous.update(added)
@@ -199,7 +209,8 @@ class VersioningMongoModel(MongoModel):
                 for k, v in changed.iteritems():
                     old, new = v
                     previous[k] = new
-        return self.__class__(**previous)
+        previous = self.__class__(**previous) if previous else None
+        return previous
 
 
 class Switch(VersioningMongoModel):

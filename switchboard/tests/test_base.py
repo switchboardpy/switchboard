@@ -18,11 +18,12 @@ from mock import Mock, patch
 from blinker import Signal
 
 from ..base import MongoModelDict, CachedDict
-from ..models import MongoModel, post_save, post_delete
+from ..models import VersioningMongoModel
 from ..signals import request_finished
+from ..manager import operator
 
 
-class MockModel(MongoModel):
+class MockModel(VersioningMongoModel):
 
     def __init__(self, *args, **kwargs):
         self._attrs = []
@@ -149,8 +150,8 @@ class TestMongoModelDict(object):
     def test_signals_are_connected(self):
         MongoModelDict(MockModel, key='key', value='value',
                        auto_create=True)
-        assert_true(post_save.has_receivers_for(MockModel))
-        assert_true(post_delete.has_receivers_for(MockModel))
+        assert_true(VersioningMongoModel.post_save.has_receivers_for(MockModel))
+        assert_true(VersioningMongoModel.post_delete.has_receivers_for(MockModel))
         assert_true(request_finished.has_receivers_for(Signal.ANY))
 
 

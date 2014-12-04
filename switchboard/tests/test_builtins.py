@@ -65,7 +65,7 @@ class TestQueryStringConditionSet(object):
         assert_false(self.operator.is_active('test', req))
         switch.add_condition(
             condition_set='switchboard.builtins.QueryStringConditionSet',
-            field_name='substring',
+            field_name='regex',
             condition='alpha',
         )
         return switch
