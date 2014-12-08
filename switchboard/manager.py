@@ -8,7 +8,6 @@ switchboard.manager
 
 import logging
 from decorator import decorator
-from datetime import datetime
 
 from pymongo import Connection
 
@@ -22,7 +21,6 @@ from .models import (
 )
 from .proxy import SwitchProxy
 from .settings import settings, Settings
-from .helpers import get_cache
 
 log = logging.getLogger(__name__)
 
@@ -57,10 +55,6 @@ def configure(config={}, nested=False):
         Switch.c = collection
     except:
         log.exception('Unable to connect to the datastore')
-    # Setup the cache
-    cache_hosts = getattr(settings, 'SWITCHBOARD_CACHE_HOSTS', None)
-    cache_timeout = getattr(settings, 'SWITCHBOARD_CACHE_TIMEOUT', None)
-    operator.cache = get_cache(cache_hosts, cache_timeout)
     # Register the builtins
     __import__('switchboard.builtins')
 
@@ -92,7 +86,6 @@ class SwitchManager(MongoModelDict):
             new_args.append(a)
         kwargs['key'] = 'key'
         kwargs['value'] = 'value'
-        kwargs['cache'] = get_cache()
         MongoModel.post_save.connect(self.version_switch)
         MongoModel.post_delete.connect(self.version_switch)
         super(SwitchManager, self).__init__(*new_args, **kwargs)

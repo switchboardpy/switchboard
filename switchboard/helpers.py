@@ -104,32 +104,3 @@ class MockCollection(object):
 
     def count(self):
         return len(self._data)
-
-
-class MockCache(dict):
-    """
-    Easy in-memory caching that follows the basic memcached/pylibmc API.
-    """
-    def set(self, key, value):
-        self[key] = value
-
-
-def get_cache(hosts=None, timeout=None):
-    if hosts:
-        if not isinstance(hosts, list):
-            hosts = [hosts]
-        import pylibmc
-        try:
-            if timeout:
-                cache = pylibmc.Client(hosts,
-                                       behaviors=dict(connect_timeout=timeout))
-            else:
-                cache = pylibmc.Client(hosts)
-            # test for a good connection
-            cache.get_stats()
-        except:
-            log.exception('Unable to connect to cache')
-            cache = MockCache()
-        return cache
-    else:
-        return MockCache()

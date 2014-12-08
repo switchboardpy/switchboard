@@ -11,7 +11,6 @@ import logging
 
 from .models import MongoModel
 from .signals import request_finished
-from .helpers import get_cache
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ class CachedDict(object):
         self._cache = None
         self._last_updated = None
         self.timeout = timeout
-        self.cache = cache or get_cache()
+        self.cache = cache
         self.cache_key = cls_name
         self.last_updated_cache_key = '%s.last_updated' % (cls_name,)
 
@@ -39,12 +38,6 @@ class CachedDict(object):
             if value is NoValue:
                 raise
             return value
-
-    def __setitem__(self, key, value):  # pragma: nocover
-        raise NotImplementedError
-
-    def __delitem__(self, key):  # pragma: nocover
-        raise NotImplementedError
 
     def __len__(self):  # pragma: nocover
         if self._cache is None:
@@ -124,6 +117,10 @@ class CachedDict(object):
 
         A return value of ``None`` signifies that no data was available.
         """
+        # First deal with situations that don't have caching enabled.
+        if not self.cache:
+            return True
+        # Now deal with all "cache is present" situations.
         try:
             cache_last_updated = self.cache.get(self.last_updated_cache_key)
         except:  # pragma: nocover
@@ -165,17 +162,19 @@ class CachedDict(object):
         """
         if reset:
             self._cache = None
+        elif not self.cache:
+            self._cache = None
         elif self.is_local_expired():
             now = int(time.time())
-            # Avoid hitting memcache if we dont have a local cache
+            # Avoid hitting memcache if we don't have a local cache.
             if self._cache is None:
                 global_changed = True
             else:
                 global_changed = self.has_global_changed()
 
-            # If the cache is expired globally, or local cache isn't present
+            # If the cache is expired globally, or local cache isn't present.
             if global_changed or self._cache is None:
-                # The value may or may not exist in the cache
+                # The value may or may not exist in the cache.
                 try:
                     self._cache = self.cache.get(self.cache_key)
                     assert isinstance(self._cache, dict)
@@ -185,7 +184,7 @@ class CachedDict(object):
 
                 # If for some reason last_updated_cache_key was None (but the
                 # cache key wasn't) we should force the key to exist to prevent
-                # continuous calls
+                # continuous calls.
                 try:
                     last_updated = self.cache.get(self.last_updated_cache_key)
                 except:  # pragma: nocover
@@ -212,11 +211,12 @@ class CachedDict(object):
         # We only set last_updated_cache_key when we know the cache is current
         # because setting this will force all clients to invalidate their
         # cached data if it's newer
-        try:
-            self.cache.set(self.cache_key, self._cache)
-            self.cache.set(self.last_updated_cache_key, self._last_updated)
-        except:  # pragma: nocover
-            log.exception('Unable to refresh global cache from database')
+        if self.cache:
+            try:
+                self.cache.set(self.cache_key, self._cache)
+                self.cache.set(self.last_updated_cache_key, self._last_updated)
+            except:  # pragma: nocover
+                log.exception('Unable to refresh global cache from database')
 
     def _get_cache_data(self):
         raise NotImplementedError  # pragma: nocover
