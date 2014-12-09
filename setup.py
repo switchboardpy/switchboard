@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.1.2'
+version = '1.2.0'
 
 setup(name='switchboard',
       version=version,
@@ -24,7 +24,6 @@ setup(name='switchboard',
           'blinker >= 1.2',
           'WebOb >= 0.9',
           'Mako >= 0.9',
-          'pylibmc >= 1.2',
           'decorator',
       ],
       zip_safe=False,

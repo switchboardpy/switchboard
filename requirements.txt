@@ -1,0 +1,9 @@
+FormEncode==1.2
+pymongo==2.3
+blinker==1.2
+WebOb==0.9
+Mako==0.9.0
+decorator==3.4.0
+nose==1.3.4
+mock==1.0.1
+bobo==2.3.0

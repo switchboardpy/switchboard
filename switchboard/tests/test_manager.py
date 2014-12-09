@@ -16,7 +16,7 @@ from mock import patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
-from .. import configure, operator
+from .. import configure
 from ..builtins import (
     IPAddressConditionSet,
     HostConditionSet,
@@ -28,7 +28,7 @@ from ..models import (
     SELECTIVE, DISABLED, GLOBAL, INHERIT,
 )
 from ..manager import SwitchManager
-from ..helpers import MockCache, MockCollection
+from ..helpers import MockCollection
 from ..settings import settings
 
 
@@ -522,23 +522,25 @@ class TestAPI(object):
     def test_inheritance(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
 
-        switch = Switch.create(
-            key='test',
-            status=SELECTIVE,
+        parent_switch = Switch.create(
+            key='test'
         )
-        switch = self.operator['test']
+        parent_switch = self.operator['test']
 
-        switch.add_condition(
+        parent_switch.add_condition(
             condition_set=condition_set,
             field_name='percent',
             condition='0-50',
         )
 
-        switch = Switch.create(
+        Switch.create(
             key='test:child',
             status=INHERIT,
         )
-        switch = self.operator['test']
+
+        # Test parent with selective status.
+        parent_switch.status = SELECTIVE
+        parent_switch.save()
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '1.1.1.1'
@@ -547,8 +549,9 @@ class TestAPI(object):
         req.environ['REMOTE_ADDR'] = '20.20.20.20'
         assert_false(self.operator.is_active('test:child', req))
 
-        switch = self.operator['test']
-        switch.status = DISABLED
+        # Test parent with disabled status.
+        parent_switch.status = DISABLED
+        parent_switch.save()
 
         req.environ['REMOTE_ADDR'] = '1.1.1.1'
         assert_false(self.operator.is_active('test:child', req))
@@ -556,8 +559,9 @@ class TestAPI(object):
         req.environ['REMOTE_ADDR'] = '20.20.20.20'
         assert_false(self.operator.is_active('test:child', req))
 
-        switch = self.operator['test']
-        switch.status = GLOBAL
+        # Test parent with global status.
+        parent_switch.status = GLOBAL
+        parent_switch.save()
 
         req.environ['REMOTE_ADDR'] = '1.1.1.1'
         assert_true(self.operator.is_active('test:child', req))
@@ -725,44 +729,29 @@ class TestConfigure(object):
 
     def teardown(self):
         Switch.c = MockCollection()
-        operator.cache = MockCache()
 
     def assert_settings(self):
         for k, v in self.config.iteritems():
             assert_equals(getattr(settings, 'SWITCHBOARD_%s' % k.upper()), v)
 
     @patch('switchboard.manager.Connection')
-    @patch('switchboard.manager.get_cache')
-    def test_unnested(self, get_cache, Connection):
+    def test_unnested(self, Connection):
         configure(self.config)
         self.assert_settings()
-        assert_false(isinstance(operator.cache, MockCache))
         assert_false(isinstance(Switch.c, MockCollection))
 
     @patch('switchboard.manager.Connection')
-    @patch('switchboard.manager.get_cache')
-    def test_nested(self, get_cache, Connection):
+    def test_nested(self, Connection):
         cfg = {}
         for k, v in self.config.iteritems():
             cfg['switchboard.%s' % k] = v
         cfg['foo.bar'] = 'baz'
         configure(cfg, nested=True)
         self.assert_settings()
-        assert_false(isinstance(operator.cache, MockCache))
         assert_false(isinstance(Switch.c, MockCollection))
 
     @patch('switchboard.manager.Connection')
-    @patch('switchboard.manager.get_cache')
-    def test_database_failure(self, get_cache, Connection):
+    def test_database_failure(self, Connection):
         Connection.side_effect = Exception('Boom!')
         configure(self.config)
-        assert_false(isinstance(operator.cache, MockCache))
         assert_true(isinstance(Switch.c, MockCollection))
-
-    @patch('switchboard.manager.Connection')
-    @patch('pylibmc.Client')
-    def test_cache_failure(self, Client, Connection):
-        Client.side_effect = Exception('Boom!')
-        configure(self.config)
-        assert_true(isinstance(operator.cache, MockCache))
-        assert_false(isinstance(Switch.c, MockCollection))

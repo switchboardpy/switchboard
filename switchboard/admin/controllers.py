@@ -18,7 +18,7 @@ from .. import operator, signals
 from ..settings import settings
 from ..models import Switch
 from ..conditions import Invalid
-from ..helpers import MockCache, MockCollection
+from ..helpers import MockCollection
 
 
 log = logging.getLogger(__name__)
@@ -60,6 +60,7 @@ def json_api(func, *args, **kwargs):
             import traceback
             traceback.print_exc()
         raise
+
     # Sanitize any non-JSON-safe fields like datetime or ObjectId.
     def handler(obj):
         if hasattr(obj, 'isoformat'):
@@ -82,11 +83,6 @@ class CoreAdminController(object):
         switches.sort(key=attrgetter(sort_by), reverse=reverse)
 
         messages = []
-        if isinstance(operator.cache, MockCache):
-            m = dict(status='warning',
-                     message='The global cache is in test mode, possibly due \
-                             to an error with the real cache.')
-            messages.append(m)
         if isinstance(Switch.c, MockCollection):
             m = dict(status='warning',
                      message='The datastore is in test mode, possibly due \
