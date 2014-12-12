@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=switchboard
+export PYBUILD_DISABLE_python2=test
+
+%:
+	dh $@ --with python2 --buildsystem=pybuild
