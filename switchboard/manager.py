@@ -46,9 +46,11 @@ def configure(config={}, nested=False):
     mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
     # The config is in ms to match memcached, but pymongo wants seconds
     mongo_timeout = mongo_timeout // 1000 if mongo_timeout else mongo_timeout
+    # Ensure we have an integer for port and not a string
+    mongo_port = int(settings.SWITCHBOARD_MONGO_PORT)
     try:
         conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
-                          settings.SWITCHBOARD_MONGO_PORT,
+                          mongo_port,
                           network_timeout=mongo_timeout)
         db = conn[settings.SWITCHBOARD_MONGO_DB]
         collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
