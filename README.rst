@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/switchboardpy/switchboard.svg?branch=master
+    :target: https://travis-ci.org/switchboardpy/switchboard
+
 Switchboard is a port of Gargoyle, a feature flipper for Django apps, to
 the Pyramid or Pylons stack (including TurboGears). Originally used to
 selectively roll out changes to the SourceForge site, the library lets
