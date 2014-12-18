@@ -1,4 +1,3 @@
-FormEncode==1.2
 pymongo==2.3
 blinker==1.2
 WebOb==0.9

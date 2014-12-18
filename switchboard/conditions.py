@@ -12,9 +12,11 @@ switchboard.conditions
 import datetime
 import itertools
 
-from formencode import Invalid
-
 from .models import EXCLUDE
+
+
+class Invalid(Exception):
+    pass
 
 
 def titlize(s):
