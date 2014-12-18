@@ -26,9 +26,9 @@ setup(name='switchboard',
       ],
       zip_safe=False,
       tests_require=[
-          'nose >= 0.11',
-          'mock >= 1.0',
-          'bobo >= 1.0',
+          'nose',
+          'mock',
+          'bobo',
       ],
       test_suite='nose.collector',
       )
