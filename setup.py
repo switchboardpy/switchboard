@@ -23,7 +23,6 @@ setup(name='switchboard',
           'blinker >= 1.2',
           'WebOb >= 0.9',
           'Mako >= 0.9',
-          'decorator',
       ],
       zip_safe=False,
       tests_require=[

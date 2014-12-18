@@ -64,33 +64,6 @@ class TestAPI(object):
         assert_equals(len(list(self.operator.get_condition_sets())), 3,
                       self.operator)
 
-    @patch('switchboard.signals.switch_checked.send')
-    def test_switch_checked_signal(self, send):
-        condition_set = 'switchboard.builtins.IPAddressConditionSet'
-        key = 'test'
-
-        switch = Switch.create(
-            key=key,
-            status=SELECTIVE,
-        )
-        switch = self.operator[key]
-        req = Request.blank('/')
-
-        result = self.operator.is_active(key, req)
-        assert_false(result)
-        send.assert_called_with(key, active=result)
-
-        switch.add_condition(
-            condition_set=condition_set,
-            field_name='ip_address',
-            condition='192.168.1.1',
-        )
-        req.environ['REMOTE_ADDR'] = '192.168.1.1'
-
-        result = self.operator.is_active(key, req)
-        assert_true(result)
-        send.assert_called_with(key, active=result)
-
     @patch('switchboard.base.MongoModelDict.get_default')
     def test_error(self, get_default):
         # force the is_active call to fail right away
