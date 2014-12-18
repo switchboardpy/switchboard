@@ -1,0 +1,11 @@
+Source: switchboard
+Maintainer: Jay R. Wren <jrwren@xmtp.net>
+Section: python
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 7), python-formencode, python-pymongo, python-blinker, python-webob, python-mako, python-decorator, dh-python
+Standards-Version: 3.9.1
+
+Package: python-switchboard
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Feature flipper for Pyramid, Pylons, or TurboGears apps.
