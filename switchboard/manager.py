@@ -7,7 +7,6 @@ switchboard.manager
 """
 
 import logging
-from decorator import decorator
 
 from pymongo import Connection
 
@@ -61,14 +60,6 @@ def configure(config={}, nested=False):
     __import__('switchboard.builtins')
 
 
-@decorator
-def switch_checked(func, *args, **kwargs):
-    active = func(*args, **kwargs)
-    key = args[1]
-    signals.switch_checked.send(key, active=active)
-    return active
-
-
 class SwitchManager(MongoModelDict):
     DISABLED = DISABLED
     SELECTIVE = SELECTIVE
@@ -105,7 +96,6 @@ class SwitchManager(MongoModelDict):
         """
         return SwitchProxy(self, super(SwitchManager, self).__getitem__(key))
 
-    @switch_checked
     def is_active(self, key, *instances, **kwargs):
         """
         Returns ``True`` if any of ``instances`` match an active switch.
@@ -133,7 +123,6 @@ class SwitchManager(MongoModelDict):
                 switch = self[key]
             except KeyError:
                 # switch is not defined, defer to parent
-                signals.switch_checked.send(None, active=default)
                 return default
 
             if switch.status == GLOBAL:

@@ -1,5 +1,7 @@
 language: python
 
+sudo: false
+
 install: make install
 
 script: make test

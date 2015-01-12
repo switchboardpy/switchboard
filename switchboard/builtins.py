@@ -7,8 +7,6 @@ switchboard.builtins
 """
 import socket
 
-from formencode import validators
-
 from . import operator
 from .conditions import (
     RequestConditionSet,
@@ -17,13 +15,21 @@ from .conditions import (
     Boolean,
     Regex,
     ConditionSet,
+    Invalid,
 )
 from .settings import settings
 
 
 class IPAddress(String):
     def clean(self, value):
-        validators.IPAddress().to_python(value)
+        # Attempt to validate if the proper library is present.
+        try:
+            import ipaddress
+            ipaddress.ip_address(value)
+        except ImportError:
+            pass
+        except ValueError:
+            raise Invalid
         return value
 
 

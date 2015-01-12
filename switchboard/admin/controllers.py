@@ -7,7 +7,6 @@ switchboard.admin.controllers
 """
 
 import logging
-from decorator import decorator
 from datetime import datetime
 import json
 from operator import attrgetter
@@ -32,43 +31,44 @@ class SwitchboardException(Exception):
         return self.message
 
 
-@decorator
-def json_api(func, *args, **kwargs):
-    "Decorator to make JSON views simpler"
-    try:
-        response = {
-            "success": True,
-            "data": func(*args, **kwargs)
-        }
-    except SwitchboardException, exc:
-        response = {
-            "success": False,
-            "data": exc.message
-        }
-    except ValueError:
-        response = {
-            "success": False,
-            "data": "Switch cannot be found"
-        }
-    except Invalid, e:
-        response = {
-            "success": False,
-            "data": u','.join(map(unicode, e.messages)),
-        }
-    except Exception:
-        if hasattr(settings, 'DEBUG') and settings.DEBUG:
-            import traceback
-            traceback.print_exc()
-        raise
+def json_api(func):
+    def wrapper(*args, **kwargs):
+        "Decorator to make JSON views simpler"
+        try:
+            response = {
+                "success": True,
+                "data": func(*args, **kwargs)
+            }
+        except SwitchboardException, e:
+            response = {
+                "success": False,
+                "data": e.message
+            }
+        except ValueError:
+            response = {
+                "success": False,
+                "data": "Switch cannot be found"
+            }
+        except Invalid, e:
+            response = {
+                "success": False,
+                "data": u','.join(map(unicode, e.messages)),
+            }
+        except Exception:
+            if hasattr(settings, 'DEBUG') and settings.DEBUG:
+                import traceback
+                traceback.print_exc()
+            raise
 
-    # Sanitize any non-JSON-safe fields like datetime or ObjectId.
-    def handler(obj):
-        if hasattr(obj, 'isoformat'):
-            return obj.isoformat()
-        else:
-            return str(obj)
-    santized_response = json.loads(json.dumps(response, default=handler))
-    return santized_response
+        # Sanitize any non-JSON-safe fields like datetime or ObjectId.
+        def handler(obj):
+            if hasattr(obj, 'isoformat'):
+                return obj.isoformat()
+            else:
+                return str(obj)
+        santized_response = json.loads(json.dumps(response, default=handler))
+        return santized_response
+    return wrapper
 
 
 class CoreAdminController(object):
