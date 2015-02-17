@@ -4,7 +4,7 @@
 Installation
 =============
 
-Install Switchboard and its the dependencies using ``pip``::
+Install Switchboard and its dependencies using ``pip``::
 
     pip install switchboard
 
