@@ -4,3 +4,4 @@
 *.swp
 dist
 .tox
+docs/_build
