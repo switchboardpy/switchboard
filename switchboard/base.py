@@ -32,12 +32,17 @@ class CachedDict(object):
     def __getitem__(self, key):
         self._populate()
         try:
-            return self._cache[key]
+            value = self._cache[key]
         except KeyError:
             value = self.get_default(key)
             if value is NoValue:
                 raise
-            return value
+        except (TypeError, AttributeError):
+            log.exception('Unable to access the local cache')
+            value = self.get_default(key)
+            if value is NoValue:
+                raise KeyError(key)
+        return value
 
     def __len__(self):  # pragma: nocover
         if self._cache is None:
