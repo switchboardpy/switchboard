@@ -333,3 +333,11 @@ class TestCachedDict(object):
         last_updated = self.mydict.last_updated_cache_key
         self.cache.get.assert_called_once_with(last_updated)
         assert_equals(result, True)
+
+    @patch('switchboard.base.CachedDict._populate')
+    @patch('switchboard.base.CachedDict.get_default')
+    def test_returns_default_if_no_local_cache(self, get_default, populate):
+        get_default.return_value = 'bar'
+        value = self.mydict['foo']
+        assert_true(get_default.called)
+        assert_equals(value, 'bar')
