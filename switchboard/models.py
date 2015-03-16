@@ -77,7 +77,12 @@ class MongoModel(object):
             created = True
             result = kwargs
             result.update(defaults)
-            instance = cls.create(**result)
+            # Do an upsert here instead of a straight create to avoid a race
+            # condition with another instance creating the same record at
+            # nearly the same time.
+            cls.update(result, result, upsert=True)
+            result = cls.c.find_one(kwargs)
+            instance = cls(**result)
         else:
             created = False
             instance = cls(**result)
@@ -88,10 +93,10 @@ class MongoModel(object):
         return [cls(**s) for s in cls.c.find(kwargs)]
 
     @classmethod
-    def update(cls, spec, document):
+    def update(cls, spec, document, upsert=False):
         previous = cls.get(**spec)
         cls.pre_save.send(previous)
-        result = cls.c.update(spec, document)
+        result = cls.c.update(spec, document, upsert=upsert)
         current = cls.get(**spec)
         cls.post_save.send(current)
         return result

@@ -9,10 +9,27 @@ switchboard.tests.test_models
 from datetime import datetime
 
 from nose.tools import assert_equals, assert_true, assert_false
-from mock import Mock
+from mock import Mock, patch
 
 from ..manager import SwitchManager
-from ..models import VersioningMongoModel, Switch
+from ..models import MongoModel, VersioningMongoModel, Switch
+
+
+class TestMongoModel(object):
+    def setup(self):
+        self.m = MongoModel()
+
+    def teardown(self):
+        MongoModel.c.drop()
+
+    @patch('switchboard.models.MongoModel.update')
+    def test_get_or_create_get(self, update):
+        self.m.create(key=0, foo='bar')
+        defaults = dict(foo='bar')
+        instance, created = self.m.get_or_create(defaults=defaults, key=0)
+        assert_false(created)
+        assert_false(update.called)
+        assert_equals(instance.foo, 'bar')
 
 
 class TestVersioningMongoModel(object):

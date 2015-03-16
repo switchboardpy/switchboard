@@ -231,8 +231,9 @@ class SwitchManager(MongoModelDict):
         pass
 
     def version_switch(self, switch):
-        user = self.get_user()
-        switch.save_version(username=user.username if user else '')
+        if hasattr(switch, 'save_version'):
+            user = self.get_user()
+            switch.save_version(username=user.username if user else '')
 
 
 auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)
