@@ -39,7 +39,7 @@ class MockCollection(object):
 
     def _matches(self, spec, document):
         for k, v in spec.iteritems():
-            if not document.get(k) or document[k] != v:
+            if k not in document or document[k] != v:
                 return False
         return True
 
@@ -62,15 +62,19 @@ class MockCollection(object):
         for k, v in new.iteritems():
             old[k] = v
 
-    def update(self, spec, update):
+    def update(self, spec, update, upsert=False):
         current = self.find_one(spec)
         if not current:
-            return {
-                'err': None,
-                'n': 1,
-                'ok': 1.0,
-                'updatedExisting': True
-            }
+            if upsert:
+                spec.update(update)
+                return self.save(spec)
+            else:
+                return {
+                    'err': None,
+                    'n': 1,
+                    'ok': 1.0,
+                    'updatedExisting': True
+                }
         for k, v in update.iteritems():
             if k == '$set':
                 self._update_partial(current, v)

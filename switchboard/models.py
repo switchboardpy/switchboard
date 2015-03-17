@@ -72,12 +72,24 @@ class MongoModel(object):
 
     @classmethod
     def get_or_create(cls, defaults={}, **kwargs):
+        '''
+        A port of functionality from the Django ORM. Defaults can be passed in
+        if creating a new document is necessary. Keyword args are used to
+        lookup the document. Returns a tuple of (object, created), where object
+        is the retrieved or created object and created is a boolean specifying
+        whether a new object was created.
+        '''
         result = cls.c.find_one(kwargs)
         if not result:
             created = True
             result = kwargs
             result.update(defaults)
-            instance = cls.create(**result)
+            # Do an upsert here instead of a straight create to avoid a race
+            # condition with another instance creating the same record at
+            # nearly the same time.
+            cls.update(result, result, upsert=True)
+            result = cls.c.find_one(kwargs)
+            instance = cls(**result)
         else:
             created = False
             instance = cls(**result)
@@ -88,10 +100,16 @@ class MongoModel(object):
         return [cls(**s) for s in cls.c.find(kwargs)]
 
     @classmethod
-    def update(cls, spec, document):
+    def update(cls, spec, document, upsert=False):
+        '''
+        Mimics a subset of PyMongo's Collection.update functionality. The spec
+        is used to search for the document to update, document contains the
+        values to be updated, and upsert specifies whether to do an insert if
+        the original document is not found.
+        '''
         previous = cls.get(**spec)
         cls.pre_save.send(previous)
-        result = cls.c.update(spec, document)
+        result = cls.c.update(spec, document, upsert=upsert)
         current = cls.get(**spec)
         cls.post_save.send(current)
         return result
