@@ -31,6 +31,16 @@ class TestMongoModel(object):
         assert_false(update.called)
         assert_equals(instance.foo, 'bar')
 
+    @patch('switchboard.models.MongoModel.update')
+    @patch('switchboard.helpers.MockCollection.find_one')
+    def test_get_or_create_create(self, find_one, update):
+        find_one.side_effect = [None, dict(foo='bar', key=0)]
+        defaults = dict(foo='bar')
+        instance, created = self.m.get_or_create(defaults=defaults, key=0)
+        assert_true(created)
+        assert_true(update.called)
+        assert_equals(instance.foo, 'bar')
+
 
 class TestVersioningMongoModel(object):
     def setup(self):
