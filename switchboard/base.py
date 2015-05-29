@@ -8,6 +8,7 @@ switchboard.base
 
 import time
 import logging
+import threading
 
 from .models import MongoModel
 from .signals import request_finished
@@ -18,7 +19,7 @@ log = logging.getLogger(__name__)
 NoValue = object()
 
 
-class CachedDict(object):
+class CachedDict(threading.local):
     def __init__(self, cache=None, timeout=30):
         cls_name = type(self).__name__
 
