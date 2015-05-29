@@ -7,6 +7,7 @@ switchboard.tests.test_base
 """
 
 import time
+import threading
 
 from nose.tools import (
     assert_equals,
@@ -20,7 +21,6 @@ from blinker import Signal
 from ..base import MongoModelDict, CachedDict
 from ..models import VersioningMongoModel
 from ..signals import request_finished
-from ..manager import operator
 
 
 class MockModel(VersioningMongoModel):
@@ -150,8 +150,10 @@ class TestMongoModelDict(object):
     def test_signals_are_connected(self):
         MongoModelDict(MockModel, key='key', value='value',
                        auto_create=True)
-        assert_true(VersioningMongoModel.post_save.has_receivers_for(MockModel))
-        assert_true(VersioningMongoModel.post_delete.has_receivers_for(MockModel))
+        post_save = VersioningMongoModel.post_save
+        post_delete = VersioningMongoModel.post_delete
+        assert_true(post_save.has_receivers_for(MockModel))
+        assert_true(post_delete.has_receivers_for(MockModel))
         assert_true(request_finished.has_receivers_for(Signal.ANY))
 
 
@@ -341,3 +343,46 @@ class TestCachedDict(object):
         value = self.mydict['foo']
         assert_true(get_default.called)
         assert_equals(value, 'bar')
+
+
+class TestConcurrency(object):
+
+    def setup(self):
+        self.mydict = CachedDict()
+        self.exc = None
+
+    @patch('switchboard.base.CachedDict.get_cache_data')
+    def test_cache_reset_race(self, get_cache_data):
+        '''
+        Test race conditions when populating a cache.
+
+        Setup a situation where the cache is cleared immediately after being
+        populated, to simulate the race condition of one thread resetting it
+        just after another has populated it.
+        '''
+        get_cache_data.return_value = dict(key='test')
+        t2 = threading.Thread(target=self.mydict.clear_cache)
+
+        def verify_dict_access():
+            self.mydict._populate()
+            # Fire up the second thread and wait for it to clear the cache.
+            t2.start()
+            t2.join()
+            # Verify that the first thread's cache is still populated.
+            # Note: we don't call self.mydict['key'] because we don't want to
+            # re-trigger cache population.
+            # Note: Any errors (assertion or otherwise) must be surfaced up to
+            # the parent thread in order for nose to see that something went
+            # wrong.
+            try:
+                assert_true(self.mydict._cache,
+                            'The cache was reset between threads')
+                assert_equals(self.mydict._cache['key'], 'test')
+            except Exception as e:
+                self.exc = e
+
+        t1 = threading.Thread(target=verify_dict_access)
+        t1.start()
+        t1.join()
+        if self.exc:
+            raise self.exc
