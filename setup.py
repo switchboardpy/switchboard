@@ -28,7 +28,7 @@ setup(name='switchboard',
       tests_require=[
           'nose',
           'mock',
-          'bobo',
+          'bottle',
       ],
       test_suite='nose.collector',
       )

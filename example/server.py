@@ -1,15 +1,81 @@
 import pkg_resources
 
-import bobo
+from bottle import request, run, Bottle
 from mako.template import Template
 
 from switchboard import operator, configure
 from switchboard.admin.controllers import CoreAdminController
 
 configure()
+operator.get_request = lambda: request
+sb = Bottle()
+sb.c = CoreAdminController()
 
 
-@bobo.query('/')
+# TODO: Redirect without trailing slash
+@sb.get('/')
+def sb_index():
+    by = request.query.by or '-date_modified'
+    path = pkg_resources.resource_filename('switchboard.admin.templates',
+                                           'index.mak')
+    with open(path, 'r') as f:
+        tmpl = f.read()
+    data = sb.c.index(by)
+    html = Template(tmpl).render(**data)
+    return html
+
+
+@sb.post('/add')
+def sb_add():
+    key = request.forms['key']
+    label = request.forms.get('label', '')
+    description = request.forms.get('description')
+    return sb.c.add(key, label, description)
+
+
+@sb.post('/update')
+def sb_update():
+    curkey = request.forms['curkey']
+    key = request.forms['key']
+    label = request.forms.get('label', '')
+    description = request.forms.get('description')
+    return sb.c.update(curkey, key, label, description)
+
+
+@sb.post('/status')
+def sb_status():
+    key = request.forms['key']
+    status = request.forms['status']
+    return sb.c.status(key, status)
+
+
+@sb.post('/delete')
+def sb_delete():
+    return sb.c.delete(request.forms['key'])
+
+
+@sb.post('/add_condition')
+def sb_add_condition():
+    return sb.c.add_condition(**request.POST)
+
+
+@sb.post('/remove_condition')
+def sb_remove_condition():
+    return sb.c.remove_condition(**request.POST)
+
+
+@sb.get('/history')
+def sb_history():
+    return sb.c.history(request.query.key)
+
+
+app = Bottle()
+# NOTE: When switchboard becomes a wrappable WSGI app, the Bottle above can go
+# away and we can just mount it directly.
+app.mount('/_switchboard', sb)
+
+
+@app.get('/')
 def index():
     if operator.is_active('example'):
         return 'The example switch is active.'
@@ -17,54 +83,4 @@ def index():
         return 'The example switch is NOT active.'
 
 
-@bobo.subroute
-def admin(request):
-    return AdminController()
-
-
-@bobo.scan_class
-class AdminController:
-    def __init__(self):
-        self.c = CoreAdminController()
-
-    @bobo.resource('')
-    def base(self, bobo_request):
-        return bobo.redirect(bobo_request.url + '/')
-
-    @bobo.query('/')
-    def index(self, by='-date_modified'):
-        path = pkg_resources.resource_filename('switchboard.admin.templates',
-                                               'index.mak')
-        with open(path, 'r') as f:
-            tmpl = f.read()
-        data = self.c.index(by)
-        html = Template(tmpl).render(**data)
-        return html
-
-    @bobo.post('/add', content_type='application/json')
-    def add(self, key, label='', description=None, **kwargs):
-        return self.c.add(key, label, description, **kwargs)
-
-    @bobo.post('/update', content_type='application/json')
-    def update(self, curkey, key, label='', description=None):
-        return self.c.update(curkey, key, label, description)
-
-    @bobo.post('/status', content_type='application/json')
-    def status(self, key, status):
-        return self.c.status(key, status)
-
-    @bobo.post('/delete', content_type='application/json')
-    def delete(self, key):
-        return self.c.delete(key)
-
-    @bobo.post('/add_condition', content_type='application/json')
-    def add_condition(self, bobo_request):
-        return self.c.add_condition(**bobo_request.POST)
-
-    @bobo.post('/remove_condition', content_type='application/json')
-    def remove_condition(self, bobo_request):
-        return self.c.remove_condition(**bobo_request.POST)
-
-    @bobo.query('/history', content_type='application/json')
-    def history(self, key):
-        return self.c.history(key)
+run(app, host='localhost', port=8080, debug=True)
