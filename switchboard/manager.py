@@ -10,7 +10,6 @@ import logging
 
 from pymongo import Connection
 
-from . import signals
 from .base import MongoModelDict
 from .models import (
     MongoModel,
@@ -22,6 +21,11 @@ from .proxy import SwitchProxy
 from .settings import settings, Settings
 
 log = logging.getLogger(__name__)
+# These are (mostly) read-only module variables since we want it shared among
+# any and all threads. The only exception to read-only is when they are
+# populated on Switchboard startup (i.e., operator.register()).
+registry = {}
+context = {}
 
 
 def nested_config(config):
@@ -33,7 +37,7 @@ def nested_config(config):
     return cfg
 
 
-def configure(config={}, nested=False):
+def configure(config={}, nested=False, request=None, user=None):
     """
     Useful for when you need to control Switchboard's setup
     """
@@ -56,6 +60,11 @@ def configure(config={}, nested=False):
         Switch.c = collection
     except:
         log.exception('Unable to connect to the datastore')
+    # Register the special context objects
+    if request:
+        context['request'] = request
+    if user:
+        context['user'] = user
     # Register the builtins
     __import__('switchboard.builtins')
 
@@ -70,8 +79,6 @@ class SwitchManager(MongoModelDict):
     EXCLUDE = EXCLUDE
 
     def __init__(self, *args, **kwargs):
-        # We'll store available conditions in the registry
-        self._registry = {}
         # Inject args and kwargs that are known quantities; the SwitchManager
         # will always deal with the Switch model and so on.
         new_args = [Switch]
@@ -86,7 +93,7 @@ class SwitchManager(MongoModelDict):
     def __unicode__(self):
         return "<%s: %s (%s)>" % (self.__class__.__name__,
                                   getattr(self, 'model', ''),
-                                  self._registry.values())
+                                  registry.values())
 
     def __getitem__(self, key):
         """
@@ -138,17 +145,12 @@ class SwitchManager(MongoModelDict):
                 return default
 
             instances = list(instances) if instances else []
-            request = self.get_request()
-            if request:
-                instances.append(request)
-            user = self.get_user()
-            if user:
-                instances.append(user)
+            instances.extend(context.values())
 
             # check each switch to see if it can execute
             return_value = False
 
-            for condition_set in self._registry.itervalues():
+            for condition_set in registry.itervalues():
                 result = condition_set.has_active_condition(conditions,
                                                             instances)
                 if result is False:
@@ -172,7 +174,7 @@ class SwitchManager(MongoModelDict):
 
         if callable(condition_set):
             condition_set = condition_set()
-        self._registry[condition_set.get_id()] = condition_set
+        registry[condition_set.get_id()] = condition_set
 
     def unregister(self, condition_set):
         """
@@ -182,21 +184,21 @@ class SwitchManager(MongoModelDict):
         """
         if callable(condition_set):
             condition_set = condition_set()
-        self._registry.pop(condition_set.get_id(), None)
+        registry.pop(condition_set.get_id(), None)
 
     def get_condition_set_by_id(self, switch_id):
         """
         Given the identifier of a condition set (described in
         ConditionSet.get_id()), returns the registered instance.
         """
-        return self._registry[switch_id]
+        return registry[switch_id]
 
     def get_condition_sets(self):
         """
         Returns a generator yielding all currently registered
         ConditionSet instances.
         """
-        return self._registry.itervalues()
+        return registry.itervalues()
 
     def get_all_conditions(self):
         """
@@ -216,23 +218,9 @@ class SwitchManager(MongoModelDict):
 
         return MockRequest(user, ip_address)
 
-    def get_request(self):
-        """
-        A callback to get the request object should be setup during
-        switchboard setup.
-        """
-        pass
-
-    def get_user(self):
-        """
-        A callback to get the request object should be setup during
-        switchboard setup.
-        """
-        pass
-
     def version_switch(self, switch):
         if hasattr(switch, 'save_version'):
-            user = self.get_user()
+            user = context.get('user')
             switch.save_version(username=user.username if user else '')
 
 

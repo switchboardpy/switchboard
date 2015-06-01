@@ -27,7 +27,7 @@ from ..models import (
     Switch,
     SELECTIVE, DISABLED, GLOBAL, INHERIT,
 )
-from ..manager import SwitchManager
+from ..manager import context, registry, SwitchManager
 from ..helpers import MockCollection
 from ..settings import settings
 
@@ -55,12 +55,9 @@ class TestAPI(object):
         Switch.c.drop()
 
     def test_builtin_registration(self):
-        assert_true('switchboard.builtins.QueryStringConditionSet'
-                    in self.operator._registry)
-        assert_true('switchboard.builtins.IPAddressConditionSet'
-                    in self.operator._registry)
-        assert_true('switchboard.builtins.HostConditionSet'
-                    in self.operator._registry)
+        assert_true('switchboard.builtins.QueryStringConditionSet' in registry)
+        assert_true('switchboard.builtins.IPAddressConditionSet' in registry)
+        assert_true('switchboard.builtins.HostConditionSet' in registry)
         assert_equals(len(list(self.operator.get_condition_sets())), 3,
                       self.operator)
 
@@ -132,8 +129,7 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        original_func = self.operator.get_request
-        self.operator.get_request = lambda: req
+        context['request'] = req
 
         @switch_is_active('test', operator=self.operator)
         def test():
@@ -200,7 +196,6 @@ class TestAPI(object):
         )
 
         assert_raises(HTTPNotFound, test)
-        self.operator.get_request = original_func
 
     def test_decorator_with_redirect(self):
         Switch.create(
@@ -209,15 +204,13 @@ class TestAPI(object):
         )
 
         req = Request.blank('/')
-        original_func = self.operator.get_request
-        self.operator.get_request = lambda: req
+        context['request'] = lambda: req
 
         @switch_is_active('test', redirect_to='/foo')
         def test():
             return True
 
         assert_raises(HTTPFound, test)
-        self.operator.get_request = original_func
 
     def test_global(self):
         switch = Switch.create(

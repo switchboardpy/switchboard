@@ -1,18 +1,16 @@
 import pkg_resources
 
-from bottle import request, run, Bottle
+from bottle import Bottle, redirect, request, run
 from mako.template import Template
 
 from switchboard import operator, configure
 from switchboard.admin.controllers import CoreAdminController
 
-configure()
-operator.get_request = lambda: request
+configure(request=request)
 sb = Bottle()
 sb.c = CoreAdminController()
 
 
-# TODO: Redirect without trailing slash
 @sb.get('/')
 def sb_index():
     by = request.query.by or '-date_modified'
@@ -72,7 +70,7 @@ def sb_history():
 app = Bottle()
 # NOTE: When switchboard becomes a wrappable WSGI app, the Bottle above can go
 # away and we can just mount it directly.
-app.mount('/_switchboard', sb)
+app.mount('/_switchboard/', sb)
 
 
 @app.get('/')
@@ -83,4 +81,9 @@ def index():
         return 'The example switch is NOT active.'
 
 
-run(app, host='localhost', port=8080, debug=True)
+@app.get('/_switchboard')
+def trailing_slash():
+    redirect('/_switchboard/')
+
+
+run(app, host='localhost', port=8080, debug=True, server='paste')

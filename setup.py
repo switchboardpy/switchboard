@@ -29,6 +29,7 @@ setup(name='switchboard',
           'nose',
           'mock',
           'bottle',
+          'paste',
       ],
       test_suite='nose.collector',
       )
