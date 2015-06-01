@@ -12,7 +12,7 @@ from nose.tools import (
     assert_false,
     assert_raises
 )
-from mock import patch
+from mock import patch, Mock
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -721,3 +721,11 @@ class TestConfigure(object):
         Connection.side_effect = Exception('Boom!')
         configure(self.config)
         assert_true(isinstance(Switch.c, MockCollection))
+
+    @patch('switchboard.manager.Connection')
+    def test_context_objects(self, Connection):
+        user = Mock(name='user')
+        request = Mock(name='request')
+        configure(self.config, user=user, request=request)
+        assert_equals(user, context['user'])
+        assert_equals(request, context['request'])
