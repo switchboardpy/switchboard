@@ -125,8 +125,8 @@ Views
 
 Depending on the framework, a view or controller will need to be created to
 handle the routes above. Switchboard includes an example_ of integrating with
-`Bobo <http://bobo.digicool.com/en/latest/>`_, a lightweight framework that
-uses WebOb_. This class will need to do the following:
+`Bottle <http://bottlepy.org/>`_, a lightweight framework that uses WebOb_.
+This class will need to do the following:
 
 * Provide handlers for all of the `Routing`_.
 * Define the output (HTML or JSON) for each handler.
