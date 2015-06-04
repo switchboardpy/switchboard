@@ -345,7 +345,7 @@ class TestCachedDict(object):
         assert_equals(value, 'bar')
 
 
-class TestConcurrency(object):
+class TestCacheConcurrency(object):
 
     def setup(self):
         self.mydict = CachedDict()

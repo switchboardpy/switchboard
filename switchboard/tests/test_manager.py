@@ -5,6 +5,7 @@ switchboard.tests.test_manager
 :copyright: (c) 2012 SourceForge.
 :license: Apache License 2.0, see LICENSE for more details.
 """
+import threading
 
 from nose.tools import (
     assert_equals,
@@ -12,7 +13,7 @@ from nose.tools import (
     assert_false,
     assert_raises
 )
-from mock import patch, Mock
+from mock import patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -27,7 +28,7 @@ from ..models import (
     Switch,
     SELECTIVE, DISABLED, GLOBAL, INHERIT,
 )
-from ..manager import context, registry, SwitchManager
+from ..manager import registry, SwitchManager
 from ..helpers import MockCollection
 from ..settings import settings
 
@@ -129,7 +130,7 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        context['request'] = req
+        self.operator.context['request'] = req
 
         @switch_is_active('test', operator=self.operator)
         def test():
@@ -204,7 +205,7 @@ class TestAPI(object):
         )
 
         req = Request.blank('/')
-        context['request'] = lambda: req
+        self.operator.context['request'] = lambda: req
 
         @switch_is_active('test', redirect_to='/foo')
         def test():
@@ -722,10 +723,33 @@ class TestConfigure(object):
         configure(self.config)
         assert_true(isinstance(Switch.c, MockCollection))
 
-    @patch('switchboard.manager.Connection')
-    def test_context_objects(self, Connection):
-        user = Mock(name='user')
-        request = Mock(name='request')
-        configure(self.config, user=user, request=request)
-        assert_equals(user, context['user'])
-        assert_equals(request, context['request'])
+
+class TestManagerConcurrency(object):
+
+    def setup(self):
+        self.operator = SwitchManager(auto_create=True)
+        self.exc = None
+
+    def test_context_thread_safety(self):
+        '''
+        Verify that switch contexts are not shared across threads (i.e.,
+        between requests).
+        '''
+        def set_context():
+            self.operator.context['foo'] = 'bar'
+
+        def verify_context():
+            try:
+                assert_equals(self.operator.context.get('foo'), None)
+            except Exception as e:
+                self.exc = e
+
+        t1 = threading.Thread(target=set_context)
+        t1.start()
+        t1.join()
+        t2 = threading.Thread(target=verify_context)
+        t2.start()
+        t2.join()
+
+        if self.exc:
+            raise self.exc
