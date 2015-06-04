@@ -8,8 +8,8 @@ Install Switchboard and its dependencies using ``pip``::
 
     pip install switchboard
 
-Next, bootstrap Switchboard within the application. The best approach
-depends on which application framework is being used.
+Next, embed Switchboard and its admin UI within the application. The best
+approach depends on which application framework is being used.
 
 Pyramid
 -------
@@ -94,103 +94,54 @@ And one that does not need ``nested=True``::
 The Admin UI
 ^^^^^^^^^^^^
 
-Once Switchboard is configured, setup a view that exposes Switchboard's admin
-UI.
+The admin UI is a standalone WSGI application; as such it can be embedded as a
+subapplication within a larger application. See specific documentation for
+`Bottle subapplications`_, `Django embedding`_, or `dispatch middleware`_ for
+any WSGI application.
 
-**Really Important Security Note**: Please configure this view so that only
+**Really Important Security Note**: Please configure this subapp so that only
 admins can access it. Switchboard is a powerful tool and should be adequately
 secured.
 
-Switchboard uses Mako to render its templates, so the framework may need to be
-configured to load the Mako_ engine.
+Middleware
+^^^^^^^^^^
 
-Routing
-^^^^^^^
+The last thing to setup is to handle pre- and post-request tasks. Pre-request
+tasks can include adding objects to the context (eliminating the need to add
+them explicitly when querying ``is_active``). Post-request tasks include
+cleaning up caching data once a request is finished. Switchboard includes
+middleware to handle these tasks. Using it out of the box::
 
-Choose a URL within the application to use as Switchboard's root route; this
-will be referred to as ``SWITCHBOARD_ROOT``. Additonal routes underneath
-``SWITCHBOARD_ROOT`` will also need to be setup:
+    from switchboard.middlware import SwitchboardMiddlware
+    app = SwitchboardMiddleware(app)
 
-* ``SWITCHBOARD_ROOT/``
-* ``SWITCHBOARD_ROOT/add``
-* ``SWITCHBOARD_ROOT/update``
-* ``SWITCHBOARD_ROOT/status``
-* ``SWITCHBOARD_ROOT/delete``
-* ``SWITCHBOARD_ROOT/add_condition``
-* ``SWITCHBOARD_ROOT/remove_condition``
-* ``SWITCHBOARD_ROOT/history``
+It can also be extended for further customization, specifically by implementing
+the ``pre_request`` method. For example, to add a user object to the context::
 
-Views
-^^^^^
+    from switchboard.middlware import SwitchboardMiddlware
+    from my_app import user
 
-Depending on the framework, a view or controller will need to be created to
-handle the routes above. Switchboard includes an example_ of integrating with
-`Bottle <http://bottlepy.org/>`_, a lightweight framework that uses WebOb_.
-This class will need to do the following:
 
-* Provide handlers for all of the `Routing`_.
-* Define the output (HTML or JSON) for each handler.
-* Wrap Switchboard's ``switchboard.admin.controllers.CoreAdminController``.
+    class MyMiddleware(SwitchboardMiddlware):
 
-Implement methods within the view class to handle each of the routes below.
-They should delegate to the corresponding function in ``CoreAdminController``
-and render the specified output.
+        def pre_request(self):
+            operator.context['user'] = user
 
-+---------------------------------------+--------+-------------------------------------------+
-| Route                                 | Output | Template                                  |
-+=======================================+========+===========================================+
-| ``SWITCHBOARD_ROOT/``                 | HTML   | ``switchboard.admin.templates.index.mak`` |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/add``              | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/update``           | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/status``           | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/delete``           | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/add_condition``    | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/remove_condition`` | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/history``          | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
 
-For more details, please look through the example_ code. Once the views are
-defined switches may be used in the code.
+An Example
+==========
 
-Post-Request Cleanup
-^^^^^^^^^^^^^^^^^^^^
+Switchboard includes an example_ application, which is handy both for doing
+Switchboard development and for playing around with switches and the admin UI
+in a very simple environment. It also provides a look at a working example of
+the setup instructions above.
 
-The last thing to setup is to trigger an event when the request is finished.
-Switchboard needs to cleanup some caching data. If this event is not triggered
-changes to the switches will not propogate out without server restarts.
-Depending on the framework's architecture invoking something at the end of a
-request may mean creating some sort of WSGI middleware or implementing an
-event handler. For example, as WSGI middleware::
+To run the example application: ``make example``
 
-    from webob import Request
-    from switchboard.signals import request_finished
-
-    class SwitchboardMiddleware(object):
-
-        def __init__(self, app):
-            self.app = app
-
-        def __call__(self, environ, start_response):
-            req = resp = None
-            try:
-                req = Request(environ)
-                resp = req.get_response(self.app)
-                return resp(environ, start_response)
-            finally:
-                self._end_request(req)
-
-        def _end_request(self, req):
-            if req:
-                # Notify Switchboard that the request is finished
-                request_finished.send(req)
-
+At this point a very simple application is now running at
+``http://localhost:8080`` and the admin UI is accessible at
+``http://localhost:8080/_switchboard/``. The application has one switch
+(``example``) and outputs text that tells you whether the switch is active.
 
 Using Switches
 ==============
@@ -482,6 +433,9 @@ Two potential spots of confusion:
 
 .. _test: http://jinja.pocoo.org/docs/dev/templates/#tests
 .. _example: https://github.com/switchboardpy/switchboard/blob/master/example/server.py
+.. _`Bottle subapplications`: http://bottlepy.org/docs/stable/tutorial.html#plugins-and-sub-applications
+.. _`Django embedding`: https://pythonhosted.org/twod.wsgi/embedded-apps.html
+.. _`dispatch middleware`: http://werkzeug.pocoo.org/docs/latest/middlewares/#werkzeug.wsgi.DispatcherMiddleware
 .. _flow: https://en.wikipedia.org/wiki/Flow_(psychology)
 .. _WebOb: http://www.webob.org/
 .. _Mako: http://makotemplates.org/
