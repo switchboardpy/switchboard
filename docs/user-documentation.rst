@@ -127,7 +127,6 @@ the ``pre_request`` method. For example, to add a user object to the context::
         def pre_request(self):
             operator.context['user'] = user
 
-
 An Example
 ==========
 
@@ -136,7 +135,11 @@ Switchboard development and for playing around with switches and the admin UI
 in a very simple environment. It also provides a look at a working example of
 the setup instructions above.
 
-To run the example application: ``make example``
+Before running the example application, setup and activate a
+`virtual environment`_.
+
+To run the example application for the first time: ``make install example``.
+On subsequent runs ``make example`` will suffice.
 
 At this point a very simple application is now running at
 ``http://localhost:8080`` and the admin UI is accessible at
@@ -199,6 +202,22 @@ If autocreate is on (and it is by default), the ``foo`` switch will be
 automatically created and set to disabled the first time it is referenced.
 Activating the switch and controlling exactly when the switch is active,
 are covered in `Managing switches`_.
+
+In Views
+--------
+
+Switchboard has a convenience decorator for when you want to enable/disable an
+entire view based on a switch::
+
+    from switchboard.decorators import switch_is_active
+
+    @switch_is_active('admin_user', redirect_to='/login')
+    def admin_view():
+        # Admin stuff happens here.
+        return
+
+If the ``redirect_to`` argument is not set and the switch is not active, the
+client will get a 404 error.
 
 In Templates
 ------------
@@ -342,6 +361,19 @@ Any objects passed into the ``is_active`` method after the switch's key will be
 added to the context. Normally when dealing with context objects, a custom
 condition will be required to actually evaluate the switch against that object.
 
+Testing switches
+================
+
+Switchboard provides a decorator that makes it easy to turn a switch on or off
+for a particular unit test::
+
+    from switchboard import operator
+    from switchboard.testutils import switches
+
+    @switches(my_switch=True)
+    def test_my_switch:
+        assert operator.is_active('my_switch')
+
 Managing switches
 =================
 
@@ -432,10 +464,11 @@ Two potential spots of confusion:
 
 
 .. _test: http://jinja.pocoo.org/docs/dev/templates/#tests
-.. _example: https://github.com/switchboardpy/switchboard/blob/master/example/server.py
 .. _`Bottle subapplications`: http://bottlepy.org/docs/stable/tutorial.html#plugins-and-sub-applications
 .. _`Django embedding`: https://pythonhosted.org/twod.wsgi/embedded-apps.html
 .. _`dispatch middleware`: http://werkzeug.pocoo.org/docs/latest/middlewares/#werkzeug.wsgi.DispatcherMiddleware
+.. _example: https://github.com/switchboardpy/switchboard/blob/master/example/server.py
+.. _`virtual environment`: http://docs.python-guide.org/en/latest/dev/virtualenvs/
 .. _flow: https://en.wikipedia.org/wiki/Flow_(psychology)
 .. _WebOb: http://www.webob.org/
 .. _Mako: http://makotemplates.org/
