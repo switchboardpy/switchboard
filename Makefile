@@ -15,4 +15,4 @@ release:
 example:
 	python example/server.py
 
-.PHONY: install test release
+.PHONY: install test release example

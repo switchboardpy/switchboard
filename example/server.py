@@ -26,4 +26,5 @@ def trailing_slash():
 app = SwitchboardMiddleware(app)
 
 
-run(app, host='localhost', port=8080, debug=True, server='paste')
+run(app, host='localhost', port=8080, debug=True, server='paste',
+    reloader=True)

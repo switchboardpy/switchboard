@@ -9,10 +9,8 @@ switchboard.admin
 from datetime import datetime
 import logging
 from operator import attrgetter
-import pkg_resources
 
-from bottle import Bottle, request
-from mako.template import Template
+from bottle import Bottle, request, mako_view as view
 from webob.exc import HTTPNotFound
 
 from .. import operator, signals
@@ -28,9 +26,13 @@ log = logging.getLogger(__name__)
 
 
 app = Bottle()
+# Template poke-jiggery; will hopefully give way to config options soon.
+import bottle
+bottle.TEMPLATE_PATH.append('./switchboard/admin/')
 
 
 @app.get('/')
+@view('index')
 def index():
     by = request.query.by or '-date_modified'
     if by not in valid_sort_orders():
@@ -49,20 +51,12 @@ def index():
                          to an error with the real datastore.')
         messages.append(m)
 
-    data = dict(
+    return dict(
         switches=[s.to_dict(operator) for s in switches],
         all_conditions=list(operator.get_all_conditions()),
         sorted_by=by,
         messages=messages,
     )
-
-    # Read in template and render.
-    path = pkg_resources.resource_filename('switchboard.admin.templates',
-                                           'index.mak')
-    with open(path, 'r') as f:
-        tmpl = f.read()
-    html = Template(tmpl).render(**data)
-    return html
 
 
 @app.post('/add')
