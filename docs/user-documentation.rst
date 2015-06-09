@@ -1,8 +1,31 @@
 .. _user-documentation:
 
 
+Upgrading
+=========
+
+Upgrading from Switchboard 1.2.x or earlier will require a few changes.
+Switchboard is now an embeddable WSGI app, which should make integrating it
+into apps easier for new users, but existing users will need to change
+(simplify) their approach. An overview of what's changed:
+
+* The `get_user` and `get_request` functions have been removed. Inject objects
+  into the context by extending Switchboard's middleware. Note that using
+  `switchboard.middleware.SwitchboardMiddleware` injects the request into
+  the context automatically.
+* The `switchboard.admin.controllers` module has been removed; any code
+  wrapping the `CoreAdminController` class can be removed.
+* Any code implementing routing for Switchboard can be removed.
+* Post-request cleanup is now handled by
+  `switchboard.middleware.SwitchboardMiddleware`; any custom middleware can
+  either be simplified or removed entirely.
+
+Please see `Other Frameworks`_ for details on the new approach for integrating
+Switchboard into another application.
+
+
 Installation
-=============
+============
 
 Install Switchboard and its dependencies using ``pip``::
 
@@ -99,9 +122,10 @@ subapplication within a larger application. See specific documentation for
 `Bottle subapplications`_, `Django embedding`_, or `dispatch middleware`_ for
 any WSGI application.
 
-**Really Important Security Note**: Please configure this subapp so that only
-admins can access it. Switchboard is a powerful tool and should be adequately
-secured.
+.. warning:: Secure Switchboard
+
+    Please configure this subapp so that only admins can access it. Switchboard
+    is a powerful tool and should be adequately secured.
 
 Middleware
 ^^^^^^^^^^
@@ -112,16 +136,16 @@ them explicitly when querying ``is_active``). Post-request tasks include
 cleaning up caching data once a request is finished. Switchboard includes
 middleware to handle these tasks. Using it out of the box::
 
-    from switchboard.middlware import SwitchboardMiddlware
+    from switchboard.middleware import SwitchboardMiddleware
     app = SwitchboardMiddleware(app)
 
 It can also be extended for further customization, specifically by implementing
 the ``pre_request`` method. For example, to add a user object to the context::
 
-    from switchboard.middlware import SwitchboardMiddlware
+    from switchboard.middleware import SwitchboardMiddleware
 
 
-    class MyMiddleware(SwitchboardMiddlware):
+    class MyMiddleware(SwitchboardMiddleware):
 
         def pre_request(self, req):
             user = req['user']
@@ -129,6 +153,7 @@ the ``pre_request`` method. For example, to add a user object to the context::
 
         def post_request(self, req, resp):
             pass  # Included just to show what's available.
+
 
 An Example
 ==========
