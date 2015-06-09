@@ -119,13 +119,16 @@ It can also be extended for further customization, specifically by implementing
 the ``pre_request`` method. For example, to add a user object to the context::
 
     from switchboard.middlware import SwitchboardMiddlware
-    from my_app import user
 
 
     class MyMiddleware(SwitchboardMiddlware):
 
-        def pre_request(self):
+        def pre_request(self, req):
+            user = req['user']
             operator.context['user'] = user
+
+        def post_request(self, req, resp):
+            pass  # Included just to show what's available.
 
 An Example
 ==========

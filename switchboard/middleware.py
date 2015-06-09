@@ -22,11 +22,28 @@ class SwitchboardMiddleware(object):
             req = Request(environ)
             operator.context['request'] = req
             resp = req.get_response(self.app)
+            self.pre_request(req)
             return resp(environ, start_response)
         finally:
-            self._end_request(req)
+            self.post_request(req, resp)
+            self.request_finished(req)
 
-    def _end_request(self, req):
+    def pre_request(self, req):
+        '''
+        Extension point to make it easy to do things before Switchboard starts
+        processing a request. For example, adding a user to the operator's
+        context.
+        '''
+        pass
+
+    def post_request(self, req, resp):
+        '''
+        Extension point to make it easy to hook additional functionality onto
+        the end of Switchboard' processing of a request.
+        '''
+        pass
+
+    def request_finished(self, req):
         if req:
             # Notify Switchboard that the request is finished
             request_finished.send(req)
