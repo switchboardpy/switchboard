@@ -12,8 +12,8 @@ present in the query string. Furthermore you can easily create your own
 conditions to do fancier things like geo-targeting, specific users, etc.
 In short, Switchboard turns you into a continuous deployment ninja.
 
-* `Switchboard on SourceForge (repository and issue tracker)
-  <http://sf.net/projects/switchboardpy/>`_
+* `Switchboard on GitHub (repository and issue tracker)
+  <https://github.com/switchboardpy/switchboard/>`_
 * `Switchboard on PyPI <http://pypi.python.org/pypi/switchboard/>`_
 
 Switchboard's basic unit is a switch. Every switch has a unique key

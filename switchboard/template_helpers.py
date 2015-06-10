@@ -2,7 +2,7 @@
 switchboard.template_helpers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2012 SourceForge.
+:copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
