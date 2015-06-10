@@ -12,4 +12,7 @@ release:
 	git push origin master
 	python setup.py sdist upload
 
-.PHONY: install test release
+example:
+	python example/server.py
+
+.PHONY: install test release example

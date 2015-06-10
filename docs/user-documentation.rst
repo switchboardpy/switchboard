@@ -1,15 +1,38 @@
 .. _user-documentation:
 
 
+Upgrading
+=========
+
+Upgrading from Switchboard 1.2.x or earlier will require a few changes.
+Switchboard is now an embeddable WSGI app, which should make integrating it
+into apps easier for new users, but existing users will need to change
+(simplify) their approach. An overview of what's changed:
+
+* The `get_user` and `get_request` functions have been removed. Inject objects
+  into the context by extending Switchboard's middleware. Note that using
+  `switchboard.middleware.SwitchboardMiddleware` injects the request into
+  the context automatically.
+* The `switchboard.admin.controllers` module has been removed; any code
+  wrapping the `CoreAdminController` class can be removed.
+* Any code implementing routing for Switchboard can be removed.
+* Post-request cleanup is now handled by
+  `switchboard.middleware.SwitchboardMiddleware`; any custom middleware can
+  either be simplified or removed entirely.
+
+Please see `Other Frameworks`_ for details on the new approach for integrating
+Switchboard into another application.
+
+
 Installation
-=============
+============
 
 Install Switchboard and its dependencies using ``pip``::
 
     pip install switchboard
 
-Next, bootstrap Switchboard within the application. The best approach
-depends on which application framework is being used.
+Next, embed Switchboard and its admin UI within the application. The best
+approach depends on which application framework is being used.
 
 Pyramid
 -------
@@ -94,103 +117,62 @@ And one that does not need ``nested=True``::
 The Admin UI
 ^^^^^^^^^^^^
 
-Once Switchboard is configured, setup a view that exposes Switchboard's admin
-UI.
+The admin UI is a standalone WSGI application; as such it can be embedded as a
+subapplication within a larger application. See specific documentation for
+`Bottle subapplications`_, `Django embedding`_, or `dispatch middleware`_ for
+any WSGI application.
 
-**Really Important Security Note**: Please configure this view so that only
-admins can access it. Switchboard is a powerful tool and should be adequately
-secured.
+.. warning:: Secure Switchboard
 
-Switchboard uses Mako to render its templates, so the framework may need to be
-configured to load the Mako_ engine.
+    Please configure this subapp so that only admins can access it. Switchboard
+    is a powerful tool and should be adequately secured.
 
-Routing
-^^^^^^^
+Middleware
+^^^^^^^^^^
 
-Choose a URL within the application to use as Switchboard's root route; this
-will be referred to as ``SWITCHBOARD_ROOT``. Additonal routes underneath
-``SWITCHBOARD_ROOT`` will also need to be setup:
+The last thing to setup is to handle pre- and post-request tasks. Pre-request
+tasks can include adding objects to the context (eliminating the need to add
+them explicitly when querying ``is_active``). Post-request tasks include
+cleaning up caching data once a request is finished. Switchboard includes
+middleware to handle these tasks. Using it out of the box::
 
-* ``SWITCHBOARD_ROOT/``
-* ``SWITCHBOARD_ROOT/add``
-* ``SWITCHBOARD_ROOT/update``
-* ``SWITCHBOARD_ROOT/status``
-* ``SWITCHBOARD_ROOT/delete``
-* ``SWITCHBOARD_ROOT/add_condition``
-* ``SWITCHBOARD_ROOT/remove_condition``
-* ``SWITCHBOARD_ROOT/history``
+    from switchboard.middleware import SwitchboardMiddleware
+    app = SwitchboardMiddleware(app)
 
-Views
-^^^^^
+It can also be extended for further customization, specifically by implementing
+the ``pre_request`` method. For example, to add a user object to the context::
 
-Depending on the framework, a view or controller will need to be created to
-handle the routes above. Switchboard includes an example_ of integrating with
-`Bottle <http://bottlepy.org/>`_, a lightweight framework that uses WebOb_.
-This class will need to do the following:
+    from switchboard.middleware import SwitchboardMiddleware
 
-* Provide handlers for all of the `Routing`_.
-* Define the output (HTML or JSON) for each handler.
-* Wrap Switchboard's ``switchboard.admin.controllers.CoreAdminController``.
 
-Implement methods within the view class to handle each of the routes below.
-They should delegate to the corresponding function in ``CoreAdminController``
-and render the specified output.
+    class MyMiddleware(SwitchboardMiddleware):
 
-+---------------------------------------+--------+-------------------------------------------+
-| Route                                 | Output | Template                                  |
-+=======================================+========+===========================================+
-| ``SWITCHBOARD_ROOT/``                 | HTML   | ``switchboard.admin.templates.index.mak`` |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/add``              | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/update``           | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/status``           | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/delete``           | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/add_condition``    | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/remove_condition`` | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
-| ``SWITCHBOARD_ROOT/history``          | JSON   | NA                                        |
-+---------------------------------------+--------+-------------------------------------------+
+        def pre_request(self, req):
+            user = req['user']
+            operator.context['user'] = user
 
-For more details, please look through the example_ code. Once the views are
-defined switches may be used in the code.
+        def post_request(self, req, resp):
+            pass  # Included just to show what's available.
 
-Post-Request Cleanup
-^^^^^^^^^^^^^^^^^^^^
 
-The last thing to setup is to trigger an event when the request is finished.
-Switchboard needs to cleanup some caching data. If this event is not triggered
-changes to the switches will not propogate out without server restarts.
-Depending on the framework's architecture invoking something at the end of a
-request may mean creating some sort of WSGI middleware or implementing an
-event handler. For example, as WSGI middleware::
+An Example
+==========
 
-    from webob import Request
-    from switchboard.signals import request_finished
+Switchboard includes an example_ application, which is handy both for doing
+Switchboard development and for playing around with switches and the admin UI
+in a very simple environment. It also provides a look at a working example of
+the setup instructions above.
 
-    class SwitchboardMiddleware(object):
+Before running the example application, setup and activate a
+`virtual environment`_.
 
-        def __init__(self, app):
-            self.app = app
+To run the example application for the first time: ``make install example``.
+On subsequent runs ``make example`` will suffice.
 
-        def __call__(self, environ, start_response):
-            req = resp = None
-            try:
-                req = Request(environ)
-                resp = req.get_response(self.app)
-                return resp(environ, start_response)
-            finally:
-                self._end_request(req)
-
-        def _end_request(self, req):
-            if req:
-                # Notify Switchboard that the request is finished
-                request_finished.send(req)
-
+At this point a very simple application is now running at
+``http://localhost:8080`` and the admin UI is accessible at
+``http://localhost:8080/_switchboard/``. The application has one switch
+(``example``) and outputs text that tells you whether the switch is active.
 
 Using Switches
 ==============
@@ -248,6 +230,22 @@ If autocreate is on (and it is by default), the ``foo`` switch will be
 automatically created and set to disabled the first time it is referenced.
 Activating the switch and controlling exactly when the switch is active,
 are covered in `Managing switches`_.
+
+In Views
+--------
+
+Switchboard has a convenience decorator for when you want to enable/disable an
+entire view based on a switch::
+
+    from switchboard.decorators import switch_is_active
+
+    @switch_is_active('admin_user', redirect_to='/login')
+    def admin_view():
+        # Admin stuff happens here.
+        return
+
+If the ``redirect_to`` argument is not set and the switch is not active, the
+client will get a 404 error.
 
 In Templates
 ------------
@@ -391,6 +389,19 @@ Any objects passed into the ``is_active`` method after the switch's key will be
 added to the context. Normally when dealing with context objects, a custom
 condition will be required to actually evaluate the switch against that object.
 
+Testing switches
+================
+
+Switchboard provides a decorator that makes it easy to turn a switch on or off
+for a particular unit test::
+
+    from switchboard import operator
+    from switchboard.testutils import switches
+
+    @switches(my_switch=True)
+    def test_my_switch:
+        assert operator.is_active('my_switch')
+
 Managing switches
 =================
 
@@ -481,7 +492,11 @@ Two potential spots of confusion:
 
 
 .. _test: http://jinja.pocoo.org/docs/dev/templates/#tests
+.. _`Bottle subapplications`: http://bottlepy.org/docs/stable/tutorial.html#plugins-and-sub-applications
+.. _`Django embedding`: https://pythonhosted.org/twod.wsgi/embedded-apps.html
+.. _`dispatch middleware`: http://werkzeug.pocoo.org/docs/latest/middlewares/#werkzeug.wsgi.DispatcherMiddleware
 .. _example: https://github.com/switchboardpy/switchboard/blob/master/example/server.py
+.. _`virtual environment`: http://docs.python-guide.org/en/latest/dev/virtualenvs/
 .. _flow: https://en.wikipedia.org/wiki/Flow_(psychology)
 .. _WebOb: http://www.webob.org/
 .. _Mako: http://makotemplates.org/

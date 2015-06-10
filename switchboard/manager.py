@@ -25,7 +25,6 @@ log = logging.getLogger(__name__)
 # any and all threads. The only exception to read-only is when they are
 # populated on Switchboard startup (i.e., operator.register()).
 registry = {}
-context = {}
 
 
 def nested_config(config):
@@ -37,7 +36,7 @@ def nested_config(config):
     return cfg
 
 
-def configure(config={}, nested=False, request=None, user=None):
+def configure(config={}, nested=False):
     """
     Useful for when you need to control Switchboard's setup
     """
@@ -60,11 +59,6 @@ def configure(config={}, nested=False, request=None, user=None):
         Switch.c = collection
     except:
         log.exception('Unable to connect to the datastore')
-    # Register the special context objects
-    if request:
-        context['request'] = request
-    if user:
-        context['user'] = user
     # Register the builtins
     __import__('switchboard.builtins')
 
@@ -86,6 +80,7 @@ class SwitchManager(MongoModelDict):
             new_args.append(a)
         kwargs['key'] = 'key'
         kwargs['value'] = 'value'
+        self.context = {}
         MongoModel.post_save.connect(self.version_switch)
         MongoModel.post_delete.connect(self.version_switch)
         super(SwitchManager, self).__init__(*new_args, **kwargs)
@@ -145,7 +140,7 @@ class SwitchManager(MongoModelDict):
                 return default
 
             instances = list(instances) if instances else []
-            instances.extend(context.values())
+            instances.extend(self.context.values())
 
             # check each switch to see if it can execute
             return_value = False
@@ -220,7 +215,7 @@ class SwitchManager(MongoModelDict):
 
     def version_switch(self, switch):
         if hasattr(switch, 'save_version'):
-            user = context.get('user')
+            user = self.context.get('user')
             switch.save_version(username=user.username if user else '')
 
 
