@@ -2,7 +2,7 @@
 switchboard.settings
 ~~~~~~~~~~~~~
 
-:copyright: (c) 2012 Sourceforge.
+:copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
