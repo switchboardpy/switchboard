@@ -532,7 +532,9 @@
             deleted = version['delta']['deleted'];
           }
           var summary = '';
-          if (added || changed) {
+          if (added) {
+            summary = 'Switch added.';
+          } else if (changed) {
             summary = 'Switch edited.';
             if (changed['status']) {
               var oldStatus = changed['status'][0],
