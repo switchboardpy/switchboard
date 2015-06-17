@@ -19,7 +19,8 @@ release:
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	git push origin master
-	python setup.py sdist upload
+	python setup.py sdist bdist_wheel
+	twine upload dist/switchboard-$(VERSION)*
 
 example:
 	python example/server.py
