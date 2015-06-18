@@ -28,7 +28,9 @@ log = logging.getLogger(__name__)
 app = Bottle()
 # Template poke-jiggery; will hopefully give way to config options soon.
 import bottle
-bottle.TEMPLATE_PATH.append('./switchboard/admin/')
+import os
+dir_name = os.path.dirname(os.path.realpath(__file__))
+bottle.TEMPLATE_PATH.append(dir_name)
 
 
 @app.get('/')
