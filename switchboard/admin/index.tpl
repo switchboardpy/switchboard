@@ -525,6 +525,9 @@
           }
         });
         Handlebars.registerHelper('summarize', function(version) {
+          function isEmpty(obj) {
+            return Object.keys(obj).length === 0;
+          }
           var added, changed, deleted;
           if (version['delta']) {
             added = version['delta']['added'];
@@ -532,9 +535,9 @@
             deleted = version['delta']['deleted'];
           }
           var summary = '';
-          if (added) {
+          if (!isEmpty(added)) {
             summary = 'Switch added.';
-          } else if (changed) {
+          } else if (!isEmpty(changed)) {
             summary = 'Switch edited.';
             if (changed['status']) {
               var oldStatus = changed['status'][0],
@@ -563,7 +566,7 @@
             } else {
               summary += ' Fields changed: <span class="changed">' + Object.keys(changed).join(', ') + '</span>.';
             }
-          } else if (deleted) {
+          } else if (!isEmpty(deleted)) {
             summary = 'Switch deleted.';
           }
           return new Handlebars.SafeString(summary);
