@@ -1,2 +1,1 @@
-include README.rst LICENSE
-recursive-include switchboard/admin/templates *
+include README.rst LICENSE switchboard/admin/index.tpl
