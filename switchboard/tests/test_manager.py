@@ -13,7 +13,7 @@ from nose.tools import (
     assert_false,
     assert_raises
 )
-from mock import patch
+from mock import patch, Mock
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -678,6 +678,53 @@ class TestAPI(object):
         assert_false(self.operator.is_active('test:child', req))
 
         assert_false(self.operator.is_active('test:child'))
+
+    def test_version_switch_no_user(self):
+        switch = Mock()
+        switch.save_version = Mock()
+        self.operator.context = dict()
+        self.operator.version_switch(switch)
+        switch.save_version.assert_called_with(username='')
+
+    def test_version_switch_user_dict(self):
+        username = 'test'
+        switch = Mock()
+        switch.save_version = Mock()
+        self.operator.context = dict(user=dict(username=username))
+        self.operator.version_switch(switch)
+        switch.save_version.assert_called_with(username=username)
+
+    def test_version_switch_user_class(self):
+        username = 'test'
+        switch = Mock()
+        switch.save_version = Mock()
+        self.operator.context = dict(user=Mock(username=username))
+        self.operator.version_switch(switch)
+        switch.save_version.assert_called_with(username=username)
+
+    def test_version_switch_nonuser_class(self):
+        class NonUser:
+            pass
+        switch = Mock()
+        switch.save_version = Mock()
+        self.operator.context = dict(user=NonUser())
+        self.operator.version_switch(switch)
+        switch.save_version.assert_called_with(username='')
+
+    def test_version_switch_nonuser_dict(self):
+        switch = Mock()
+        switch.save_version = Mock()
+        self.operator.context = dict(user=dict())
+        self.operator.version_switch(switch)
+        switch.save_version.assert_called_with(username='')
+
+    def test_version_switch_save_error(self):
+        switch = Mock()
+        switch.save_version = Mock()
+        switch.save_version.side_effect = Exception('Boom!')
+        self.operator.context = dict()
+        # Don't need to assert, just need to make sure things don't explode.
+        self.operator.version_switch(switch)
 
 
 class TestConfigure(object):
