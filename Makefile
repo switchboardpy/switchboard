@@ -15,6 +15,9 @@ functional-test:
 		rm $(SERVER_PID) || true; \
 	fi
 
+test-coverage:
+	nosetests --with-coverage --cover-package=switchboard switchboard
+
 release:
 	git tag $(VERSION)
 	git push origin $(VERSION)

@@ -5,6 +5,7 @@
 # Test dependencies
 nose
 mock
+coverage
 bottle
 paste
 splinter
