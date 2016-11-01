@@ -21,8 +21,8 @@ class SwitchboardMiddleware(object):
         try:
             req = Request(environ)
             operator.context['request'] = req
-            resp = req.get_response(self.app)
             self.pre_request(req)
+            resp = req.get_response(self.app)
             return resp(environ, start_response)
         finally:
             self.post_request(req, resp)
