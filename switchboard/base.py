@@ -12,6 +12,7 @@ import threading
 
 from .models import MongoModel
 from .signals import request_finished
+from .settings import settings
 
 log = logging.getLogger(__name__)
 
@@ -20,13 +21,17 @@ NoValue = object()
 
 
 class CachedDict(threading.local):
-    def __init__(self, cache=None, timeout=30):
+    def __init__(self, timeout=30):
+        """
+        Not guaranteed to be called with expected c'tor args of
+        all usages (due to usage of threading.local)
+        """
         cls_name = type(self).__name__
 
         self._cache = None
         self._last_updated = None
         self.timeout = timeout
-        self.cache = cache
+        self.cache = settings.SWITCHBOARD_CACHE
         self.cache_key = cls_name
         self.last_updated_cache_key = '%s.last_updated' % (cls_name,)
 
