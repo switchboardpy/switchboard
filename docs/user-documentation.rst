@@ -155,6 +155,25 @@ the ``pre_request`` method. For example, to add a user object to the context::
             pass  # Included just to show what's available.
 
 
+Caching
+^^^^^^^
+
+By default, switchboard will query all the switches every time one is checked.  In
+many applications, this may be more mongo queries than desired.  Switchboard supports
+a cache system, e.g. via memcache::
+
+    import pylibmc
+
+    memcache_client = pylibmc.Client(['127.0.0.1'])
+    switchboard.configure(config, cache=memcache_client)
+
+This does require memcache to be running, but limits mongodb queries to only occur
+after a switch is changed and the cache is invalidated.
+
+Custom cache objects can be used instead of a memcache client, to implement different caching
+techniques.
+
+
 An Example
 ==========
 
