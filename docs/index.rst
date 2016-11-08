@@ -19,7 +19,7 @@ conditions to do fancier things like geo-targeting, specific users, etc.
 Having a `feature flipper`_ allows features to be inserted without creating
 long-running feature branches. Not having to deal with merge headaches
 and messy conflicts means your continuous integration builds run smoother.
-`Continous deployment`_ is now an option because dangerous code can be hidden
+`Continuous deployment`_ is now an option because dangerous code can be hidden
 behind a switch. In short, Switchboard turns you into a `continuous delivery
 ninja`_.
 
@@ -31,7 +31,7 @@ Documentation
 -------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    user-documentation
 
