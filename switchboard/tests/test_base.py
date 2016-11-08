@@ -162,7 +162,8 @@ class TestCacheIntegration(object):
         self.cache = Mock()
         self.cache.get.return_value = {}
         self.mydict = MongoModelDict(MockModel, key='key', value='value',
-                                     auto_create=True, cache=self.cache)
+                                     auto_create=True)
+        self.mydict.cache = self.cache
 
     def teardown(self):
         MockModel.c.drop()
@@ -251,7 +252,8 @@ class TestCacheIntegration(object):
 class TestCachedDict(object):
     def setup(self):
         self.cache = Mock()
-        self.mydict = CachedDict(timeout=100, cache=self.cache)
+        self.mydict = CachedDict(timeout=100)
+        self.mydict.cache =self.cache
 
     @patch('switchboard.base.CachedDict._update_cache_data')
     @patch('switchboard.base.CachedDict.is_local_expired',
