@@ -19,7 +19,7 @@ setup(name='switchboard',
       packages=find_packages(exclude=['ez_setup']),
       include_package_data=True,
       install_requires=[
-          'pymongo == 2.3',
+          'pymongo >= 2.3, < 3',
           'blinker >= 1.2',
           'WebOb >= 0.9',
           'Mako >= 0.9',
