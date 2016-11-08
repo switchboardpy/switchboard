@@ -36,14 +36,17 @@ def nested_config(config):
     return cfg
 
 
-def configure(config={}, nested=False):
+def configure(config={}, nested=False, cache=None):
     """
     Useful for when you need to control Switchboard's setup
     """
     if nested:
         config = nested_config(config)
     # Re-read settings to make sure we have everything
-    Settings.init(**config)
+    Settings.init(cache=cache, **config)
+
+    operator.cache = cache
+
     # Establish the connection to Mongo
     mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
     # The config is in ms to match memcached, but pymongo wants seconds
