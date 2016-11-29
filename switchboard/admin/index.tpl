@@ -38,6 +38,9 @@
     <title>Switchboard</title>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.0/normalize.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
+    % if  hasattr(settings, 'SWITCHBOARD_ADMIN_BASE_URL'):
+    <base href="${settings.SWITCHBOARD_ADMIN_BASE_URL}">
+    % endif
     <style type="text/css">
       * { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
       /* typography - lifted from Typeplate, http://typeplate.com/ */

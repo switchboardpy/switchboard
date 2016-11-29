@@ -21,6 +21,7 @@ from .utils import (
     SwitchboardException,
     valid_sort_orders
 )
+from ..settings import settings
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +59,7 @@ def index():
         all_conditions=list(operator.get_all_conditions()),
         sorted_by=by,
         messages=messages,
+        settings=settings,
     )
 
 
