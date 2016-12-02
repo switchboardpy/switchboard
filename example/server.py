@@ -1,11 +1,25 @@
+import pickle
+
 from bottle import Bottle, redirect, run
+import datastore.core
 
 from switchboard import operator, configure
 from switchboard.middleware import SwitchboardMiddleware
 from switchboard.admin import app as switchboard
 
-configure()
 
+# Setup a file-based datastore with pickle serialization.
+import datastore.filesystem
+import os
+base_path = os.path.dirname(os.path.realpath(__file__))
+ds_file = os.path.join(base_path, '.switches')
+ds_child = datastore.filesystem.FileSystemDatastore(ds_file)
+ds = datastore.serialize.shim(ds_child, pickle)
+
+# Configure Switchboard.
+configure(datastore=ds)
+
+# Fire up the example application.
 app = Bottle()
 app.mount('/_switchboard/', switchboard)
 

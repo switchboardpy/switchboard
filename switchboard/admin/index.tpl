@@ -286,7 +286,6 @@
                 <div class="actions btn-group">
                   <a href="#edit-switch" class="btn btn-link edit" title="Edit Switch"><i class="fa fa-pencil"></i></a>
                   <a href="#delete-switch" class="btn btn-link delete" title="Delete Switch"><i class="fa fa-trash-o"></i></a>
-                  <a href="#history-switch" class="btn btn-link history" title="View Switch History"><i class="fa fa-clock-o"></i></a>
                 </div>
               </h5>
               <h6 class="timestamp micro">
@@ -389,7 +388,6 @@
                 <div class="actions btn-group">
                   <a href="#edit-switch" class="edit btn-link btn" title="Edit Switch"><i class="fa fa-pencil"></i></a>
                   <a href="#delete-switch" class="delete btn-link btn" title="Delete Switch"><i class="fa fa-trash-o"></i></a>
-                  <a href="#history-switch" class="btn btn-link history" title="View Switch History"><i class="fa fa-clock-o"></i></a>
                 </div>
               </h5>
               <h6 class="timestamp micro">

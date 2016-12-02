@@ -8,11 +8,8 @@ switchboard.manager
 
 import logging
 
-from pymongo import Connection
-
-from .base import MongoModelDict
+from .base import ModelDict
 from .models import (
-    MongoModel,
     Switch,
     DISABLED, SELECTIVE, GLOBAL, INHERIT,
     INCLUDE, EXCLUDE,
@@ -36,37 +33,24 @@ def nested_config(config):
     return cfg
 
 
-def configure(config={}, nested=False, cache=None):
+def configure(config={}, datastore=None, nested=False):
     """
     Useful for when you need to control Switchboard's setup
     """
     if nested:
         config = nested_config(config)
-    # Re-read settings to make sure we have everything
-    Settings.init(cache=cache, **config)
+    # Re-read settings to make sure we have everything.
+    # XXX It would be really nice if we didn't need to do this.
+    Settings.init(**config)
 
-    operator.cache = cache
+    if datastore:
+        Switch.ds = datastore
 
-    # Establish the connection to Mongo
-    mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
-    # The config is in ms to match memcached, but pymongo wants seconds
-    mongo_timeout = mongo_timeout // 1000 if mongo_timeout else mongo_timeout
-    # Ensure we have an integer for port and not a string
-    mongo_port = int(settings.SWITCHBOARD_MONGO_PORT)
-    try:
-        conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
-                          mongo_port,
-                          network_timeout=mongo_timeout)
-        db = conn[settings.SWITCHBOARD_MONGO_DB]
-        collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
-        Switch.c = collection
-    except:
-        log.exception('Unable to connect to the datastore')
     # Register the builtins
     __import__('switchboard.builtins')
 
 
-class SwitchManager(MongoModelDict):
+class SwitchManager(ModelDict):
     DISABLED = DISABLED
     SELECTIVE = SELECTIVE
     GLOBAL = GLOBAL
@@ -84,8 +68,6 @@ class SwitchManager(MongoModelDict):
         kwargs['key'] = 'key'
         kwargs['value'] = 'value'
         self.context = {}
-        MongoModel.post_save.connect(self.version_switch)
-        MongoModel.post_delete.connect(self.version_switch)
         super(SwitchManager, self).__init__(*new_args, **kwargs)
 
     def __unicode__(self):
@@ -215,27 +197,6 @@ class SwitchManager(MongoModelDict):
         from .helpers import MockRequest
 
         return MockRequest(user, ip_address)
-
-    def version_switch(self, switch):
-        '''
-        Save changes made to a switch. Triggered by create and update events
-        on a switch model. The changes are saved as diffs and reassembled to
-        create a switch history. Allows changes to switches to be audited.
-        '''
-        # Try to get the username from both User objects and user dicts.
-        try:
-            user = self.context.get('user', {})
-            if hasattr(user, 'username'):
-                username = user.username
-            else:
-                username = user.get('username', '')
-        except AttributeError:
-            username = ''
-
-        try:
-            switch.save_version(username=username)
-        except:
-            log.warning('Unable to save the switch version', exc_info=True)
 
 
 auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)

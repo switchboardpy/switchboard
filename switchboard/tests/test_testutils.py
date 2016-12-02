@@ -21,7 +21,7 @@ from ..testutils import switches
 
 
 def teardown_collection():
-    Switch.c.drop()
+    Switch.drop()
 
 
 class TestSwitchContextManager(object):

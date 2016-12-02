@@ -20,7 +20,7 @@ from ..models import Switch, SELECTIVE
 
 
 def teardown_collection():
-    Switch.c.drop()
+    Switch.drop()
 
 
 class TestHostConditionSet(object):
