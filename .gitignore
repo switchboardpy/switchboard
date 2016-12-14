@@ -9,3 +9,5 @@ coverage.xml
 docs/_build
 build
 example/.switches
+*.log
+.venv

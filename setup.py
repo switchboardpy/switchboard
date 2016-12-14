@@ -20,18 +20,18 @@ setup(name='switchboard',
       include_package_data=True,
       install_requires=[
           'datastore >= 0.3.6',
-          'smhasher >= 0.150.1',  # Default version won't compile in Xenial.
+          'smhasher >= 0.150',  # Default version won't compile in Xenial.
           'blinker >= 1.2',
           'WebOb >= 0.9',
           'Mako >= 0.9',
-          'bottle == 0.12.8',
+          'bottle >= 0.12.8',
       ],
       zip_safe=False,
       tests_require=[
           'nose',
           'mock',
           'paste',
-          'selenium',
+          'selenium >= 3.0',
           'splinter',
       ],
       test_suite='nose.collector',

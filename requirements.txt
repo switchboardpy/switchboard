@@ -9,4 +9,4 @@ coverage
 bottle
 paste
 splinter
-selenium==2.53.0
+selenium>=3.0
