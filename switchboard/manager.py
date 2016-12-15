@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 # any and all threads. The only exception to read-only is when they are
 # populated on Switchboard startup (i.e., operator.register()).
 registry = {}
+registry_by_namespace = {}
 
 
 def nested_config(config):
@@ -106,7 +107,7 @@ class SwitchManager(MongoModelDict):
         Returns ``True`` if any of ``instances`` match an active switch.
         Otherwise returns ``False``.
 
-        >>> opersator.is_active('my_feature', request) #doctest: +SKIP
+        >>> operator.is_active('my_feature', request) #doctest: +SKIP
         """
         try:
             default = kwargs.pop('default', False)
@@ -148,8 +149,11 @@ class SwitchManager(MongoModelDict):
             # check each switch to see if it can execute
             return_value = False
 
-            for condition_set in registry.itervalues():
-                result = condition_set.has_active_condition(conditions,
+            for namespace, condition in conditions.iteritems():
+                condition_set = registry_by_namespace.get(namespace)
+                if not condition_set:
+                    continue
+                result = condition_set.has_active_condition(condition,
                                                             instances)
                 if result is False:
                     return False
@@ -173,6 +177,7 @@ class SwitchManager(MongoModelDict):
         if callable(condition_set):
             condition_set = condition_set()
         registry[condition_set.get_id()] = condition_set
+        registry_by_namespace[condition_set.get_namespace()] = condition_set
 
     def unregister(self, condition_set):
         """
@@ -183,6 +188,7 @@ class SwitchManager(MongoModelDict):
         if callable(condition_set):
             condition_set = condition_set()
         registry.pop(condition_set.get_id(), None)
+        registry_by_namespace.pop(condition_set.get_namespace(), None)
 
     def get_condition_set_by_id(self, switch_id):
         """
