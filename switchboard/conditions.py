@@ -259,7 +259,7 @@ class ConditionSet(object):
             value = value()
         return value
 
-    def has_active_condition(self, conditions, instances):
+    def has_active_condition(self, condition, instances):
         """
         Given a list of instances, and the conditions active for
         this switch, returns a boolean reprsenting if any
@@ -269,26 +269,26 @@ class ConditionSet(object):
         for instance in itertools.chain(instances, [None]):
             if not self.can_execute(instance):
                 continue
-            result = self.is_active(instance, conditions)
+            result = self.is_active(instance, condition)
             if result is False:
                 return False
             elif result is True:
                 return_value = True
         return return_value
 
-    def is_active(self, instance, conditions):
+    def is_active(self, instance, condition):
         """
         Given an instance, and the conditions active for this switch, returns
         a boolean representing if the feature is active.
         """
         return_value = None
         for name, field in self.fields.iteritems():
-            field_conditions = conditions.get(self.get_namespace(), {}).get(name)
+            field_conditions = condition.get(name)
             if field_conditions:
                 value = self.get_field_value(instance, name)
-                for status, condition in field_conditions:
+                for status, field_cond in field_conditions:
                     exclude = status == EXCLUDE
-                    if field.is_active(condition, value):
+                    if field.is_active(field_cond, value):
                         if exclude:
                             return False
                         return_value = True
