@@ -266,7 +266,7 @@ class ConditionSet(object):
         conditional is met, including a non-instance default.
         """
         return_value = None
-        for instance in itertools.chain(instances, [None]):
+        for instance in instances + [None]:
             if not self.can_execute(instance):
                 continue
             result = self.is_active(instance, condition)
@@ -282,13 +282,13 @@ class ConditionSet(object):
         a boolean representing if the feature is active.
         """
         return_value = None
-        for name, field in self.fields.iteritems():
-            field_conditions = condition.get(name)
-            if field_conditions:
+        for name, field_conditions in condition.iteritems():
+            field = self.fields.get(name)
+            if field:
                 value = self.get_field_value(instance, name)
                 for status, field_cond in field_conditions:
-                    exclude = status == EXCLUDE
                     if field.is_active(field_cond, value):
+                        exclude = status == EXCLUDE
                         if exclude:
                             return False
                         return_value = True
