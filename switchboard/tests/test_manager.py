@@ -800,3 +800,30 @@ class TestManagerConcurrency(object):
 
         if self.exc:
             raise self.exc
+
+class TestManagerResultCaching(object):
+
+    def setUp(self):
+        self.operator = SwitchManager(auto_create=True)
+        self.operator.result_cache = {}
+
+    def test_all(self):
+        switch = Switch.create(
+            key='test',
+            status=GLOBAL,
+        )
+        # first time
+        assert_true(self.operator.is_active('test'))
+        # still the same 2nd time
+        assert_true(self.operator.is_active('test'))
+        # still the same even if something actually changed
+        switch.status=DISABLED
+        switch.save()
+        assert_true(self.operator.is_active('test'))
+        # changes after cache is cleared
+        self.operator.result_cache = {}
+        assert_false(self.operator.is_active('test'))
+        # make sure the false value was cached too
+        switch.status=GLOBAL
+        switch.save()
+        assert_false(self.operator.is_active('test'))

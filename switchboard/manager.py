@@ -84,6 +84,7 @@ class SwitchManager(MongoModelDict):
             new_args.append(a)
         kwargs['key'] = 'key'
         kwargs['value'] = 'value'
+        self.result_cache = None
         self.context = {}
         MongoModel.post_save.connect(self.version_switch)
         MongoModel.post_delete.connect(self.version_switch)
@@ -102,6 +103,31 @@ class SwitchManager(MongoModelDict):
         """
         return SwitchProxy(self, super(SwitchManager, self).__getitem__(key))
 
+    def with_result_cache(func):
+        """
+        Decorator specifically for is_active.  If self.result_cache is set to a {}
+        the is_active results will be cached for each set of params.
+        """
+        def inner(self, *args, **kwargs):
+            dic = self.result_cache
+            cache_key = None
+            if dic is not None:
+                cache_key = (args, tuple(kwargs.items()))
+                try:
+                    result = dic.get(cache_key)
+                except TypeError as e:  # not hashable
+                    log.debug('Switchboard result cache not active for this "%s" check due to: %s within args: %s', args[0], e, repr(cache_key)[:200])
+                    cache_key = None
+                else:
+                    if result is not None:
+                        return result
+            result = func(self, *args, **kwargs)
+            if cache_key is not None:
+                dic[cache_key] = result
+            return result
+        return inner
+
+    @with_result_cache
     def is_active(self, key, *instances, **kwargs):
         """
         Returns ``True`` if any of ``instances`` match an active switch.
