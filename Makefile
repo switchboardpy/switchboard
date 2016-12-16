@@ -28,4 +28,4 @@ release:
 example:
 	python example/server.py
 
-.PHONY: install test functional-test release example
+.PHONY: bootstrap install test functional-test release example

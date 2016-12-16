@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.3.7'
+version = '2.0.0'
 
 setup(name='switchboard',
       version=version,
@@ -19,18 +19,19 @@ setup(name='switchboard',
       packages=find_packages(exclude=['ez_setup']),
       include_package_data=True,
       install_requires=[
-          'pymongo >= 2.3, < 3',
+          'datastore >= 0.3.6',
+          'smhasher >= 0.150',  # Default version won't compile in Xenial.
           'blinker >= 1.2',
           'WebOb >= 0.9',
           'Mako >= 0.9',
-          'bottle == 0.12.8',
+          'bottle >= 0.12.8',
       ],
       zip_safe=False,
       tests_require=[
           'nose',
           'mock',
           'paste',
-          'selenium',
+          'selenium >= 3.0',
           'splinter',
       ],
       test_suite='nose.collector',

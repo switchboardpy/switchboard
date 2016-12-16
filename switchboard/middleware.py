@@ -39,7 +39,7 @@ class SwitchboardMiddleware(object):
     def post_request(self, req, resp):
         '''
         Extension point to make it easy to hook additional functionality onto
-        the end of Switchboard' processing of a request.
+        the end of Switchboard's processing of a request.
         '''
         pass
 

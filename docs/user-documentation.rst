@@ -71,25 +71,19 @@ Switchboard can still be setup manually.
 Configuration
 ^^^^^^^^^^^^^
 
-The first step is to configure switchboard in the application's config file.
+The first step is to configure Switchboard in the application's config file.
 Switchboard has only a handful of settings, none of which are required:
 
-+------------------------------+-------------+--------------------------------+
-| Key                          | Default     | Description                    |
-+==============================+=============+================================+
-| switchboard.mongo_host       | localhost   | The host for MongoDB.          |
-+------------------------------+-------------+--------------------------------+
-| switchboard.mongo_port       | 27017       | The port for MongoDB.          |
-+------------------------------+-------------+--------------------------------+
-| switchboard.mongo_db         | switchboard | The database name.             |
-+------------------------------+-------------+--------------------------------+
-| switchboard.mongo_collection | switches    | The collection name.           |
-+------------------------------+-------------+--------------------------------+
-| switchboard.internal_ips     |             | Comma-delimited list of IPs.   |
-+------------------------------+-------------+--------------------------------+
++--------------------------+---------+----------------------------------------+
+| Key                      | Default | Description                            |
++==========================+=========+========================================+
+| switchboard.auto_create  | True    | Auto-creation of non-existent switches.|
++--------------------------+---------+----------------------------------------+
+| switchboard.internal_ips |         | Comma-delimited list of IPs.           |
++--------------------------+---------+----------------------------------------+
 
-Note that the "switchboard" prefix for the setting keys is also optional; more
-on that in `Initializing`_.
+Note that the "switchboard" prefix for the setting keys is also optional.
+Additionally, Switchboard will need a configured `Datastore`_ object.
 
 Initializing
 ^^^^^^^^^^^^
@@ -98,21 +92,56 @@ In the application's bootstrap or initialization code, pass the settings into
 Switchboard's ``configure`` method::
 
     from switchboard import configure
-    ...
-    configure(settings, nested=True)
+
+    configure(settings, datastore, nested=True)
 
 If the setting keys are *not* prefixed with "switchboard" the ``nested=True``
 argument can be omitted.
 
 An example configuration that needs ``nested=True``::
 
-    switchboard.mongo_host=mongodb.example.org
-    switchboard.mong_port=27018
+    switchboard.internal_ips=192.168.1.11
 
 And one that does not need ``nested=True``::
 
-    mongo_host=mongodb.example.org
-    mong_port=27018
+    internal_ips=192.168.1.11
+
+The *datastore* parameter is discussed in `Persisting Data`_.
+
+Persisting Data
+^^^^^^^^^^^^^^^
+
+Switchboard defaults to an in-memory datastore, which means that data is not
+persistent. To setup a persistent datastore, construct a `Datastore`_ object.
+The details of how that object is built vary depending on what backend is
+choosen.
+
+First ensure that the necessary libraries are installed in the virtualenv and
+added to the application's requirements. Those libraries typically consist of
+one of `Datastore's subprojects`_, along with the choosen backend's Python
+client.
+
+Once the libraries are in place, initialize the appropriate ``Datastore``
+object and then pass it into ``configure``. An example of connecting
+to Mongo (the backend before Switchboard's 2.0 release)::
+
+    import pymongo
+    import datastore.mongo
+    from switchboard import configure
+
+    conn = pymongo.Connection()
+    ds = datastore.mongo.MongoDatastore(conn.switchboard)
+    configure(settings, ds)
+
+An example connecting to Redis with pickle serialization::
+
+    import redis
+    import datastore.redis
+    from switchboard import configure
+
+    r = redis.Redis()
+    ds = datastore.redis.RedisDatastore(r, serializer=pickle)
+    configure(settings, ds)
 
 The Admin UI
 ^^^^^^^^^^^^
@@ -154,25 +183,29 @@ the ``pre_request`` method. For example, to add a user object to the context::
         def post_request(self, req, resp):
             pass  # Included just to show what's available.
 
-
 Caching
 ^^^^^^^
 
-By default, switchboard will query all the switches every time one is checked.  In
-many applications, this may be more mongo queries than desired.  Switchboard supports
-a cache system, e.g. via memcache::
+In some high-volume applications, switch data may need to be cached to maintain
+high performance. Switchboard supports a cache system, e.g. memcached, via
+`Datastore`_'s ``TieredDatastore``::
 
     import pylibmc
+    import pymongo
+    import datastore.core
+    import datastore.memcached
+    import datastore.mongo
+    from switchboard import configure
 
-    memcache_client = pylibmc.Client(['127.0.0.1'])
-    switchboard.configure(config, cache=memcache_client)
+    mc = pylibmc.Client(['127.0.0.1'])
+    cache = datastore.memcached.MemcachedDatastore(mc)
 
-This does require memcache to be running, but limits mongodb queries to only occur
-after a switch is changed and the cache is invalidated.
+    conn = pymongo.Connection()
+    mongo = datastore.mongo.MongoDatastore(conn.switchboard)
 
-Custom cache objects can be used instead of a memcache client, to implement different caching
-techniques.
+    ds = datastore.TieredDatastore([cache, mongo])
 
+    configure(settings, ds)
 
 An Example
 ==========
@@ -239,7 +272,7 @@ To use in Python (views, models, etc.), import the operator singleton
 and use the ``is_active`` method to see if the switch is on or not::
 
     from switchboard import operator
-    ...
+
     if operator.is_active('foo'):
         ... do something ...
     else:
@@ -521,3 +554,5 @@ Two potential spots of confusion:
 .. _Mako: http://makotemplates.org/
 .. _Jinja: http://jinja.pocoo.org
 .. _`Google Analytics Content Experiments`: https://support.google.com/analytics/answer/1745147?hl=en
+.. _Datastore: https://github.com/datastore/datastore
+.. _`Datastore's subprojects`: https://github.com/datastore/datastore#subprojects

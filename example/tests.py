@@ -15,6 +15,9 @@ example``, the example app should already be running in another console.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+import os
+import shutil
+
 from nose.tools import assert_true, assert_false
 from splinter import Browser
 
@@ -44,12 +47,16 @@ def assert_switch_inactive(browser, url=url):
                 'Switch is not inactive')
 
 
+def drop_datastore():
+    Switch.drop()
+
+
 class TestAdmin(object):
     @classmethod
     def setup_class(cls):
         cls.b = Browser()
         # Ensure we're working with a clean slate.
-        Switch.c.drop()
+        drop_datastore()
 
     @classmethod
     def teardown_class(cls):
@@ -61,7 +68,7 @@ class TestAdmin(object):
         self.b.visit(url)
 
     def teardown(self):
-        Switch.c.drop()
+        drop_datastore()
 
     def test_root(self):
         assert_switch_inactive(self.b)
@@ -181,22 +188,6 @@ class TestAdmin(object):
         is_deleted = self.b.is_element_not_present_by_css('#id_{}'.format(key),
                                                           wait_time=10)
         assert_true(is_deleted, 'Switch was not deleted.')
-
-    def test_switch_history(self):
-        self.b.visit(admin_url)
-        # View switch history.
-        self.show_switch_actions()
-        css = '#id_example a[href="#history-switch"]'
-        self.b.find_by_css(css).first.click()
-        # Verify the history appears.
-        is_present = self.b.is_element_present_by_css('.drawer .version',
-                                                      wait_time=10)
-        assert_true(is_present, 'Switch history not found.')
-        drawer = self.b.find_by_css('.drawer').first
-        assert_true(drawer.visible, 'Drawer is not visible')
-        # Close the history.
-        drawer.find_by_css('.close-action').first.click()
-        assert_false(drawer.visible, 'Drawer is not hidden')
 
     def show_switch_actions(self):
         '''

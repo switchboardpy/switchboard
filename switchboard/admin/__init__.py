@@ -11,10 +11,10 @@ import logging
 from operator import attrgetter
 
 from bottle import Bottle, request, mako_view as view
+import datastore.core
 from webob.exc import HTTPNotFound
 
 from .. import operator, signals
-from ..helpers import MockCollection
 from ..models import Switch
 from .utils import (
     json_api,
@@ -48,10 +48,10 @@ def index():
     switches.sort(key=attrgetter(sort_by), reverse=reverse)
 
     messages = []
-    if isinstance(Switch.c, MockCollection):
+    if isinstance(Switch.ds, datastore.DictDatastore):
         m = dict(status='warning',
-                 message='The datastore is in test mode, possibly due \
-                         to an error with the real datastore.')
+                 message='An in-memory datastore is being used; no changes \
+                          will persist after a server restart.')
         messages.append(m)
 
     return dict(
@@ -81,7 +81,7 @@ def add():
         raise SwitchboardException("Name must be less than or equal to 32"
                                    + " characters in length")
 
-    if Switch.get(key=key):
+    if Switch.get(key):
         raise SwitchboardException("Switch with key %s already exists"
                                    % key)
 
@@ -104,7 +104,7 @@ def update():
     label = request.forms.get('label', '')
     description = request.forms.get('description')
 
-    switch = Switch.get(key=curkey)
+    switch = Switch.get(curkey)
 
     if len(key) > 32:
         raise SwitchboardException("Key must be less than or equal to 32"
@@ -150,7 +150,7 @@ def update():
 def status():
     key = request.forms['key']
     status = request.forms['status']
-    switch = Switch.get(key=key)
+    switch = Switch.get(key)
 
     try:
         status = int(status)
@@ -176,7 +176,7 @@ def status():
 @json_api
 def delete():
     key = request.forms['key']
-    switch = Switch.remove(key=key)
+    switch = Switch.remove(key)
     log.info('Switch %r removed' % key)
     signals.switch_deleted.send(switch)
     return {}
@@ -232,10 +232,3 @@ def remove_condition():
     signals.switch_condition_removed.send(switch)
 
     return switch.to_dict(operator)
-
-
-@app.get('/history')
-@json_api
-def history():
-    key = request.query.key
-    return Switch.get(key=key).list_versions()
