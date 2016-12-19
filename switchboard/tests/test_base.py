@@ -6,17 +6,16 @@ switchboard.tests.test_base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from mock import patch
 from nose.tools import (
     assert_equals,
     assert_true,
     assert_false,
     assert_raises
 )
-from blinker import Signal
 
 from ..base import ModelDict
 from ..models import Model
-from ..signals import request_finished
 
 
 class MockModel(Model):
@@ -29,10 +28,10 @@ class MockModel(Model):
                 setattr(self, k, v)
 
     def __eq__(self, other):
-        for a in self._attrs:
-            if not hasattr(other, a):
+        for attr in self._attrs:
+            if not hasattr(other, attr):
                 return False
-            if getattr(self, a) != getattr(other, a):
+            if getattr(self, attr) != getattr(other, attr):
                 return False
         return True
 
@@ -95,7 +94,7 @@ class TestModelDict(object):
     def test_save_behavior(self):
         mydict = ModelDict(MockModel, auto_create=True)
         mydict['hello'] = MockModel(key='hello')
-        for n in xrange(10):
+        for n in range(10):
             key = str(n) + '-model'
             mydict[key] = MockModel(key=key)
         assert_equals(len(mydict), 11)
@@ -118,3 +117,81 @@ class TestModelDict(object):
         assert_equals(MockModel.count(), 11)
         assert_equals(len(mydict), 11)
         assert_equals(mydict['hello'].value, 'bar2')
+
+    def test_iter(self):
+        mydict = ModelDict(MockModel)
+        mydict['1'] = MockModel(key='1', value='foo1')
+        mydict['2'] = MockModel(key='2', value='foo2')
+        mydict['3'] = MockModel(key='3', value='foo3')
+        for key in mydict:
+            assert_equals(key, mydict[key].key)
+
+    def test_iterkeys(self):
+        mydict = ModelDict(MockModel)
+        mydict['1'] = MockModel(key='1', value='foo1')
+        mydict['2'] = MockModel(key='2', value='foo2')
+        mydict['3'] = MockModel(key='3', value='foo3')
+        for key in mydict.iterkeys():
+            assert_equals(key, mydict[key].key)
+
+    def test_itervalues(self):
+        mydict = ModelDict(MockModel)
+        mydict['1'] = MockModel(key='1', value='foo1')
+        mydict['2'] = MockModel(key='2', value='foo2')
+        mydict['3'] = MockModel(key='3', value='foo3')
+        models = mydict.itervalues()
+        for model in models:
+            assert_true(isinstance(model, MockModel))
+
+    def test_iteritems(self):
+        mydict = ModelDict(MockModel)
+        mydict['1'] = MockModel(key='1', value='foo1')
+        mydict['2'] = MockModel(key='2', value='foo2')
+        mydict['3'] = MockModel(key='3', value='foo3')
+        items = mydict.iteritems()
+        for key, model in items:
+            assert_equals(key, mydict[key].key)
+            assert_equals(model, mydict[key])
+
+    def test_set_missing_key(self):
+        mydict = ModelDict(MockModel)
+        mydict['1'] = MockModel(value='foo1')
+        mymodel = mydict['1']
+        assert_true(hasattr(mymodel, 'key'))
+        assert_equals(mymodel.key, '1')
+
+    @patch('switchboard.models.Model.remove')
+    def test_dict_delete(self, remove):
+        mydict = ModelDict(MockModel)
+        mydict['1'] = MockModel(key='1', value='foo1')
+        del mydict['1']
+        assert_true(remove.called)
+
+    def test_dict_get(self):
+        mydict = ModelDict(MockModel)
+        mymodel = MockModel(key='1', value='foo1')
+        mydict['1'] = mymodel
+        assert_equals(mydict.get('1'), mymodel)
+        assert_equals(mydict.get('2'), None)
+
+    def test_dict_pop(self):
+        mydict = ModelDict(MockModel)
+        mymodel = MockModel(key='1', value='foo1')
+        mydict['1'] = mymodel
+        popped = mydict.pop('1')
+        assert_equals(popped, mymodel)
+        popped = mydict.pop('1')
+        assert_equals(popped, None)
+
+    def test_dict_setdefault_no_existing_value(self):
+        mydict = ModelDict(MockModel)
+        mymodel = MockModel(key='1', value='foo1')
+        mydict.setdefault('1', mymodel)
+        assert_equals(mydict['1'], mymodel)
+
+    def test_dict_setdefault_existing_value(self):
+        mydict = ModelDict(MockModel)
+        mymodel = MockModel(key='1', value='foo1')
+        mydict['1'] = mymodel
+        mydict.setdefault('1', MockModel(key='1', value='foo2'))
+        assert_equals(mydict['1'], mymodel)
