@@ -25,8 +25,10 @@ class IPAddress(String):
         # Attempt to validate if the proper library is present.
         try:
             import ipaddress
-            ipaddress.ip_address(value)
-        except ImportError:
+            # The third-party ipaddress lib (not the builtin Python 3 library)
+            # requires a unicode string.
+            ipaddress.ip_address(unicode(value))
+        except ImportError:  # pragma: nocover
             pass
         except ValueError:
             raise Invalid
@@ -53,8 +55,9 @@ class IPAddressConditionSet(RequestConditionSet):
         return super(IPAddressConditionSet, self).get_field_value(instance,
                                                                   field_name)
 
-    def get_group_label(self):
+    def get_group_label(self):  # pragma: nocover
         return 'IP Address'
+
 
 operator.register(IPAddressConditionSet())
 
@@ -70,6 +73,7 @@ class QueryStringConditionSet(RequestConditionSet):
 
     def get_group_label(self):
         return 'Query String'
+
 
 operator.register(QueryStringConditionSet())
 
@@ -89,5 +93,6 @@ class HostConditionSet(ConditionSet):
 
     def get_group_label(self):
         return 'Host'
+
 
 operator.register(HostConditionSet())
