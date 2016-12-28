@@ -13,7 +13,7 @@ from nose.tools import (
     assert_false,
     assert_raises
 )
-from mock import patch, Mock
+from mock import patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -60,6 +60,19 @@ class TestAPI(object):
         assert_true('switchboard.builtins.HostConditionSet' in registry)
         assert_equals(len(list(self.operator.get_condition_sets())), 3,
                       self.operator)
+
+    def test_unregister(self):
+        self.operator.unregister(QueryStringConditionSet)
+        condition_set_id = 'switchboard.builtins.QueryStringConditionSet'
+        assert_false(condition_set_id in registry)
+        assert_equals(len(list(self.operator.get_condition_sets())), 2,
+                      self.operator)
+
+    def test_get_all_conditions(self):
+        conditions = list(self.operator.get_all_conditions())
+        assert_equals(len(conditions), 5)
+        for set_id, label, field in conditions:
+            assert_true(set_id in registry)
 
     @patch('switchboard.base.ModelDict.__getitem__')
     def test_error(self, getitem):
@@ -339,20 +352,6 @@ class TestAPI(object):
         )
 
         assert_true(self.operator.is_active('test', req))
-
-        # test with mock request
-        req = self.operator.as_request(ip_address='192.168.1.1')
-        assert_true(self.operator.is_active('test', req))
-
-        switch.clear_conditions(
-            condition_set=condition_set,
-        )
-        switch.add_condition(
-            condition_set=condition_set,
-            field_name='percent',
-            condition='0-50',
-        )
-        assert_false(self.operator.is_active('test', req))
 
     def test_to_dict(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -678,6 +677,13 @@ class TestAPI(object):
 
         assert_false(self.operator.is_active('test:child'))
 
+    @patch('switchboard.base.ModelDict.__getitem__')
+    def test_defaults_on_key_error(self, getitem):
+        getitem.side_effect = KeyError()
+        operator = SwitchManager()
+        assert_true(operator.is_active('test', default=True))
+        assert_false(operator.is_active('test', default=False))
+
 
 class TestConfigure(object):
     def setup(self):
@@ -688,6 +694,14 @@ class TestConfigure(object):
             internal_ips='127.0.0.1',
             cache_hosts=['127.0.0.1']
         )
+        # Because we muddle with the datastore, save off the datastore so that
+        # it can be restored in the teardown.
+        self.datastore = Switch.ds
+
+    def teardown(self):
+        # Restore the saved datastore so that any changes don't impact
+        # downstream tests.
+        Switch.ds = self.datastore
 
     def assert_settings(self):
         for k, v in self.config.iteritems():
@@ -704,6 +718,10 @@ class TestConfigure(object):
         cfg['foo.bar'] = 'baz'
         configure(cfg, nested=True)
         self.assert_settings()
+
+    def test_set_datastore(self):
+        configure(self.config, datastore='TestDatastore')
+        assert_equals(Switch.ds, 'TestDatastore')
 
 
 class TestManagerConcurrency(object):
