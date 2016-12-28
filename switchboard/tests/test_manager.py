@@ -62,6 +62,19 @@ class TestAPI(object):
         assert_equals(len(list(self.operator.get_condition_sets())), 3,
                       self.operator)
 
+    def test_unregister(self):
+        self.operator.unregister(QueryStringConditionSet)
+        condition_set_id = 'switchboard.builtins.QueryStringConditionSet'
+        assert_false(condition_set_id in registry)
+        assert_equals(len(list(self.operator.get_condition_sets())), 2,
+                      self.operator)
+
+    def test_get_all_conditions(self):
+        conditions = list(self.operator.get_all_conditions())
+        assert_equals(len(conditions), 5)
+        for set_id, label, field in conditions:
+            assert_true(set_id in registry)
+
     @patch('switchboard.base.MongoModelDict.get_default')
     def test_error(self, get_default):
         # force the is_active call to fail right away
@@ -340,20 +353,6 @@ class TestAPI(object):
         )
 
         assert_true(self.operator.is_active('test', req))
-
-        # test with mock request
-        req = self.operator.as_request(ip_address='192.168.1.1')
-        assert_true(self.operator.is_active('test', req))
-
-        switch.clear_conditions(
-            condition_set=condition_set,
-        )
-        switch.add_condition(
-            condition_set=condition_set,
-            field_name='percent',
-            condition='0-50',
-        )
-        assert_false(self.operator.is_active('test', req))
 
     def test_to_dict(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -725,6 +724,13 @@ class TestAPI(object):
         self.operator.context = dict()
         # Don't need to assert, just need to make sure things don't explode.
         self.operator.version_switch(switch)
+
+    @patch('switchboard.base.MongoModelDict.__getitem__')
+    def test_defaults_on_key_error(self, getitem):
+        getitem.side_effect = KeyError()
+        operator = SwitchManager()
+        assert_true(operator.is_active('test', default=True))
+        assert_false(operator.is_active('test', default=False))
 
 
 class TestConfigure(object):

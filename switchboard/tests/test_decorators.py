@@ -16,18 +16,18 @@ from ..testutils import switches
 @switches(test=True)
 def test_switch_is_active_active():
     @switch_is_active('test')
-    def tester():
+    def test():
         pass
-    tester()
+    test()
 
 
 @switches(test=False)
 @raises(HTTPNotFound)
 def test_switch_is_active_inactive():
     @switch_is_active('test')
-    def tester():
+    def test():
         pass
-    tester()
+    test()
 
 
 @switches(test=False)
@@ -35,11 +35,11 @@ def test_switch_is_active_inactive_redirect():
     location = '/'
 
     @switch_is_active('test', redirect_to=location)
-    def tester():
+    def test():
         pass
 
     try:
-        tester()
+        test()
         raise AssertionError('HTTPNotFound was not raised.')
     except HTTPFound, e:
         assert_equals(e.location, location)

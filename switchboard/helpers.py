@@ -10,21 +10,7 @@ import logging
 from collections import defaultdict
 from copy import deepcopy
 
-from webob import Request
-
 log = logging.getLogger(__name__)
-
-
-class MockRequest(Request):
-    """
-    A mock request object which stores a user
-    instance and the ip address.
-    """
-    def __init__(self, user=None, ip_address=None):
-        blank = Request.blank('/')
-        blank.environ['REMOTE_ADDR'] = ip_address
-        super(MockRequest, self).__init__(blank.environ)
-        self.user = user
 
 
 class MockCollection(object):
