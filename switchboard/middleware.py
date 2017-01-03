@@ -28,7 +28,7 @@ class SwitchboardMiddleware(object):
             self.post_request(req, resp)
             self.request_finished(req)
 
-    def pre_request(self, req):
+    def pre_request(self, req):  # pragma: nocover
         '''
         Extension point to make it easy to do things before Switchboard starts
         processing a request. For example, adding a user to the operator's
@@ -36,7 +36,7 @@ class SwitchboardMiddleware(object):
         '''
         pass
 
-    def post_request(self, req, resp):
+    def post_request(self, req, resp):  # pragma: nocover
         '''
         Extension point to make it easy to hook additional functionality onto
         the end of Switchboard' processing of a request.
