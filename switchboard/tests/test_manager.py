@@ -27,6 +27,7 @@ from ..decorators import switch_is_active
 from ..models import (
     Switch,
     SELECTIVE, DISABLED, GLOBAL, INHERIT,
+    INCLUDE, EXCLUDE
 )
 from ..manager import registry, SwitchManager
 from ..settings import settings
@@ -754,6 +755,7 @@ class TestManagerConcurrency(object):
         if self.exc:
             raise self.exc
 
+
 class TestManagerResultCaching(object):
 
     def setUp(self):
@@ -834,3 +836,28 @@ class TestManagerResultCacheDecorator(object):
         result = self.cached_is_active_func(operator_self, 'mykey', {})  # a dict isn't hashable, can't be cached
         assert_true(result)
         assert_equals(operator_self.result_cache, {})
+
+
+class TestManagerConstants(object):
+    def setup(self):
+        self.operator = SwitchManager()
+
+    def test_disabled(self):
+        assert_true(hasattr(self.operator, 'DISABLED'))
+        assert_equals(self.operator.DISABLED, DISABLED)
+
+    def test_selective(self):
+        assert_true(hasattr(self.operator, 'SELECTIVE'))
+        assert_equals(self.operator.SELECTIVE, SELECTIVE)
+
+    def test_global(self):
+        assert_true(hasattr(self.operator, 'GLOBAL'))
+        assert_equals(self.operator.GLOBAL, GLOBAL)
+
+    def test_include(self):
+        assert_true(hasattr(self.operator, 'INCLUDE'))
+        assert_equals(self.operator.INCLUDE, INCLUDE)
+
+    def test_exclude(self):
+        assert_true(hasattr(self.operator, 'EXCLUDE'))
+        assert_equals(self.operator.EXCLUDE, EXCLUDE)

@@ -34,7 +34,13 @@ def _key(key=''):
     '''
     Returns a Datastore key object, prefixed with the NAMESPACE.
     '''
-    return datastore.Key(os.path.join(NAMESPACE, key))
+    if not isinstance(key, datastore.Key):
+        # Switchboard uses ':' to denote one thing (parent-child) and datastore
+        # uses it for another, so replace ':' in the datastore version of the
+        # key.
+        safe_key = key.replace(':', '|')
+        key = datastore.Key(os.path.join(NAMESPACE, safe_key))
+    return key
 
 
 class Model(object):
@@ -83,15 +89,13 @@ class Model(object):
 
     @classmethod
     def get(cls, key):
-        if not isinstance(key, datastore.Key):
-            key = _key(key)
+        key = _key(key)
         data = cls.ds.get(key)
         return cls(**data) if data else None
 
     @classmethod
     def contains(cls, key):
-        if not isinstance(key, datastore.Key):
-            key = _key(key)
+        key = _key(key)
         return cls.ds.contains(key)
 
     @classmethod
@@ -244,14 +248,14 @@ class Switch(Model):
                     kwargs['label'] = switch_default.get('label')
                 if not kwargs.get('description'):
                     kwargs['description'] = switch_default.get('description')
-
-        self.key = kwargs.get('key')
         self.value = kwargs.get('value', {})
         self.label = kwargs.get('label', '')
         self.date_created = kwargs.get('date_created', datetime.utcnow())
         self.date_modified = kwargs.get('date_modified', datetime.utcnow())
         self.description = kwargs.get('description', '')
         self.status = kwargs.get('status', DISABLED)
+        # Parent constructor will handle kwargs like "key" that don't have
+        # default values.
         super(Switch, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
@@ -270,8 +274,8 @@ class Switch(Model):
         database.
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.add_condition(condition_set_id, 'percent', [0, 50], exclude=False) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.add_condition(cs_id, 'percent', [0, 50]) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -301,8 +305,8 @@ class Switch(Model):
         database.
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.remove_condition(condition_set_id, 'percent', [0, 50]) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.remove_condition(cs_id, 'percent', [0, 50]) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -314,8 +318,9 @@ class Switch(Model):
         if field_name not in self.value[namespace]:
             return
 
-        self.value[namespace][field_name] = ([c for c
-            in self.value[namespace][field_name] if c[1] != condition])
+        conditions = self.value[namespace][field_name]
+        self.value[namespace][field_name] = ([c for c in conditions
+                                             if c[1] != condition])
 
         if not self.value[namespace][field_name]:
             del self.value[namespace][field_name]
@@ -337,14 +342,14 @@ class Switch(Model):
         Clear all conditions given a ConditionSet, and a field name:
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.clear_conditions(condition_set_id, 'percent') #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.clear_conditions(cs_id, 'percent') #doctest: +SKIP
 
         You can also clear all conditions given a ConditionSet:
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.clear_conditions(condition_set_id) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.clear_conditions(cs_id) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -364,13 +369,16 @@ class Switch(Model):
             self.save()
 
     def get_active_conditions(self, manager):
-        """
+        '''
         Returns a generator which yields groups of lists of conditions.
 
-        >>> for label, set_id, field, value, exclude in gargoyle.get_all_conditions(): #doctest: +SKIP
-        >>>     print "%(label)s: %(field)s = %(value)s (exclude: %(exclude)s)" % (label, field.label, value, exclude) #doctest: +SKIP
-        """
-        for condition_set in sorted(manager.get_condition_sets(), key=lambda x: x.get_group_label()):
+        >>> conditions = switch.get_active_conditions()
+        >>> for label, set_id, field, value, exc in conditions: #doctest: +SKIP
+        >>>     print ("%(label)s: %(field)s = %(value)s (exclude: %(exc)s)"
+        >>>            % (label, field.label, value, exc)) #doctest: +SKIP
+        '''
+        for condition_set in sorted(manager.get_condition_sets(),
+                                    key=lambda x: x.get_group_label()):
             ns = condition_set.get_namespace()
             condition_set_id = condition_set.get_id()
             if ns in self.value:
@@ -378,7 +386,8 @@ class Switch(Model):
                 for name, field in condition_set.fields.iteritems():
                     for value in self.value[ns].get(name, []):
                         try:
-                            yield condition_set_id, group, field, value[1], value[0] == EXCLUDE
+                            yield (condition_set_id, group, field, value[1],
+                                   value[0] == EXCLUDE)
                         except TypeError:
                             continue
 
