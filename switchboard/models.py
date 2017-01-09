@@ -304,8 +304,8 @@ class Switch(VersioningMongoModel):
         database.
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.add_condition(condition_set_id, 'percent', [0, 50], exclude=False) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.add_condition(cs_id, 'percent', [0, 50]) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -335,8 +335,8 @@ class Switch(VersioningMongoModel):
         database.
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.remove_condition(condition_set_id, 'percent', [0, 50]) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.remove_condition(cs_id, 'percent', [0, 50]) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -348,8 +348,9 @@ class Switch(VersioningMongoModel):
         if field_name not in self.value[namespace]:
             return
 
-        self.value[namespace][field_name] = ([c for c
-            in self.value[namespace][field_name] if c[1] != condition])
+        conditions = self.value[namespace][field_name]
+        self.value[namespace][field_name] = ([c for c in conditions
+                                             if c[1] != condition])
 
         if not self.value[namespace][field_name]:
             del self.value[namespace][field_name]
@@ -371,14 +372,14 @@ class Switch(VersioningMongoModel):
         Clear all conditions given a ConditionSet, and a field name:
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.clear_conditions(condition_set_id, 'percent') #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.clear_conditions(cs_id, 'percent') #doctest: +SKIP
 
         You can also clear all conditions given a ConditionSet:
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.clear_conditions(condition_set_id) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.clear_conditions(cs_id) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -398,13 +399,16 @@ class Switch(VersioningMongoModel):
             self.save()
 
     def get_active_conditions(self, manager):
-        """
+        '''
         Returns a generator which yields groups of lists of conditions.
 
-        >>> for label, set_id, field, value, exclude in gargoyle.get_all_conditions(): #doctest: +SKIP
-        >>>     print "%(label)s: %(field)s = %(value)s (exclude: %(exclude)s)" % (label, field.label, value, exclude) #doctest: +SKIP
-        """
-        for condition_set in sorted(manager.get_condition_sets(), key=lambda x: x.get_group_label()):
+        >>> conditions = switch.get_active_conditions()
+        >>> for label, set_id, field, value, exc in conditions: #doctest: +SKIP
+        >>>     print ("%(label)s: %(field)s = %(value)s (exclude: %(exc)s)"
+        >>>            % (label, field.label, value, exc)) #doctest: +SKIP
+        '''
+        for condition_set in sorted(manager.get_condition_sets(),
+                                    key=lambda x: x.get_group_label()):
             ns = condition_set.get_namespace()
             condition_set_id = condition_set.get_id()
             if ns in self.value:
@@ -412,7 +416,8 @@ class Switch(VersioningMongoModel):
                 for name, field in condition_set.fields.iteritems():
                     for value in self.value[ns].get(name, []):
                         try:
-                            yield condition_set_id, group, field, value[1], value[0] == EXCLUDE
+                            yield (condition_set_id, group, field, value[1],
+                                   value[0] == EXCLUDE)
                         except TypeError:
                             continue
 
