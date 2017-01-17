@@ -116,7 +116,8 @@ class SwitchManager(MongoModelDict):
                 try:
                     result = dic.get(cache_key)
                 except TypeError as e:  # not hashable
-                    log.debug('Switchboard result cache not active for this "%s" check due to: %s within args: %s', args[0], e, repr(cache_key)[:200])
+                    log.debug('Switchboard result cache not active for this "%s" check due to: %s within args: %s',
+                              args[0], e, repr(cache_key)[:200])
                     cache_key = None
                 else:
                     if result is not None:

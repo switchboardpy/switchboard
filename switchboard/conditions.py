@@ -261,8 +261,8 @@ class ConditionSet(object):
 
     def has_active_condition(self, condition, instances):
         """
-        Given a list of instances, and the conditions active for
-        this switch, returns a boolean reprsenting if any
+        Given a list of instances, and the condition active for
+        this switch, returns a boolean representing if the
         conditional is met, including a non-instance default.
         """
         return_value = None
@@ -278,7 +278,7 @@ class ConditionSet(object):
 
     def is_active(self, instance, condition):
         """
-        Given an instance, and the conditions active for this switch, returns
+        Given an instance, and the condition active for this switch, returns
         a boolean representing if the feature is active.
         """
         return_value = None
