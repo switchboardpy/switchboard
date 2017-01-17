@@ -12,12 +12,8 @@ from switchboard.conditions import Invalid
 from switchboard.settings import settings
 
 
-class SwitchboardException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return self.message
+class SwitchboardException(Exception):  # pragma: nocover
+    pass
 
 
 def json_api(func):
@@ -41,7 +37,7 @@ def json_api(func):
         except Invalid, e:
             response = {
                 "success": False,
-                "data": u','.join(map(unicode, e.messages)),
+                "data": e.message,
             }
         except Exception:
             if hasattr(settings, 'DEBUG') and settings.DEBUG:
