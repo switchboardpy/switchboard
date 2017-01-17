@@ -762,3 +762,57 @@ class TestManagerResultCaching(object):
         switch.status=GLOBAL
         switch.save()
         assert_false(self.operator.is_active('test'))
+
+
+class TestManagerResultCacheDecorator(object):
+
+    def setUp(self):
+        # gets a pure function, otherwise we get an unbound function that we can't call
+        self.with_result_cache = SwitchManager.__dict__['with_result_cache']
+
+        # a simple "is_active" to wrap
+        def is_active_func(self, key, *instances, **kwargs):
+            return True
+
+        # wrap it with the decorator
+        self.cached_is_active_func = self.with_result_cache(is_active_func)
+
+    def test_decorator_nocache(self):
+        operator_self = Mock(result_cache=None)
+        result = self.cached_is_active_func(operator_self, 'mykey')
+        assert_true(result)
+        assert_equals(operator_self.result_cache, None)
+
+    def test_decorator_simple(self):
+        operator_self = Mock(result_cache={})
+        result = self.cached_is_active_func(operator_self, 'mykey')
+        assert_true(result)
+        assert_equals(operator_self.result_cache, {
+            (('mykey',), ()): True
+        })
+
+    def test_decorator_uses_cache(self):
+        # put False in cache, to ensure only the cache is used, not is_active_func
+        operator_self = Mock(result_cache={
+            (('mykey',), ()): False
+        })
+        result = self.cached_is_active_func(operator_self, 'mykey')
+        assert_false(result)
+        assert_equals(operator_self.result_cache, {
+            (('mykey',), ()): False
+        })
+
+    def test_decorator_with_params(self):
+        operator_self = Mock(result_cache={})
+        result = self.cached_is_active_func(operator_self, 'mykey', 'someval', a=1, b=2)
+        assert_true(result)
+        assert_equals(operator_self.result_cache, {
+            (('mykey', 'someval'),
+             (('a', 1), ('b', 2))): True
+        })
+
+    def test_decorator_uncachable_params(self):
+        operator_self = Mock(result_cache={})
+        result = self.cached_is_active_func(operator_self, 'mykey', {})  # a dict isn't hashable, can't be cached
+        assert_true(result)
+        assert_equals(operator_self.result_cache, {})
