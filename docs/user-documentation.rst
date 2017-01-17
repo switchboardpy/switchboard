@@ -207,6 +207,17 @@ high performance. Switchboard supports a cache system, e.g. memcached, via
 
     configure(settings, ds)
 
+It is also possible to cache results of ``is_active`` calls.  This speeds up
+switchboard when the same switches are called multiple times, or when multiple
+child switches are used (so the parent will only be checked once).  The
+application is required to clear the cache, e.g. for each web request.  To
+enable ``is_active`` result caching do::
+
+    operator.result_cache = {}
+
+It is recommended to do that in the ``pre_request`` method of your switchboard
+`middleware`_ so that it is reset for each request.
+
 An Example
 ==========
 
