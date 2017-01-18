@@ -13,7 +13,7 @@ from nose.tools import (
     assert_false,
     assert_raises
 )
-from mock import patch, Mock
+from mock import Mock, patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -811,7 +811,7 @@ class TestManagerConcurrency(object):
 
 class TestManagerResultCaching(object):
 
-    def setUp(self):
+    def setup(self):
         self.operator = SwitchManager(auto_create=True)
         self.operator.result_cache = {}
 
@@ -839,7 +839,7 @@ class TestManagerResultCaching(object):
 
 class TestManagerResultCacheDecorator(object):
 
-    def setUp(self):
+    def setup(self):
         # gets a pure function, otherwise we get an unbound function that we can't call
         self.with_result_cache = SwitchManager.__dict__['with_result_cache']
 
