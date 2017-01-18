@@ -336,75 +336,63 @@ class TestConditionSet(object):
         can_execute.assert_any_call(instances[0])
         is_active.assert_any_call(instances[0], conditions)
 
-    @patch('switchboard.conditions.ConditionSet.get_namespace')
     @patch('switchboard.conditions.ConditionSet.get_field_value')
-    def test_is_active_include_true(self, get_field_value, get_namespace):
+    def test_is_active_include_true(self, get_field_value):
         field = Mock()
         field.is_active.return_value = True
         name = 'bar'
-        namespace = 'foo'
-        condition = value = 'baz'
+        field_condition = value = 'baz'
         self.cs.fields = {name: field}
-        get_namespace.return_value = namespace
-        conditions = {namespace: {name: [(INCLUDE, condition)]}}
+        condition = {name: [(INCLUDE, field_condition)]}
         get_field_value.return_value = value
         instance = 'test'
-        is_active = self.cs.is_active(instance, conditions)
+        is_active = self.cs.is_active(instance, condition)
         assert_equals(is_active, True)
         get_field_value.assert_called_with(instance, name)
-        field.is_active.assert_called_with(condition, value)
+        field.is_active.assert_called_with(field_condition, value)
 
-    @patch('switchboard.conditions.ConditionSet.get_namespace')
     @patch('switchboard.conditions.ConditionSet.get_field_value')
-    def test_is_active_no_conditions(self, get_field_value, get_namespace):
+    def test_is_active_no_field_conditions(self, get_field_value):
         field = Mock()
         field.is_active.return_value = True
         name = 'bar'
-        namespace = 'foo'
         self.cs.fields = {name: field}
-        get_namespace.return_value = namespace
-        conditions = {namespace: {name: []}}
+        condition = {}
         instance = 'test'
-        is_active = self.cs.is_active(instance, conditions)
+        is_active = self.cs.is_active(instance, condition)
         assert_equals(is_active, None)
         assert_false(get_field_value.called)
         assert_false(field.is_active.called)
 
-    @patch('switchboard.conditions.ConditionSet.get_namespace')
     @patch('switchboard.conditions.ConditionSet.get_field_value')
-    def test_is_active_false(self, get_field_value, get_namespace):
+    def test_is_active_false(self, get_field_value):
         field = Mock()
         field.is_active.return_value = False
         name = 'bar'
-        namespace = 'foo'
-        condition = value = 'baz'
+        field_condition = value = 'baz'
         self.cs.fields = {name: field}
-        get_namespace.return_value = namespace
-        conditions = {namespace: {name: [(INCLUDE, condition)]}}
+        condition = {name: [(INCLUDE, field_condition)]}
         get_field_value.return_value = value
         instance = 'test'
-        is_active = self.cs.is_active(instance, conditions)
+        is_active = self.cs.is_active(instance, condition)
         assert_equals(is_active, None)
         get_field_value.assert_called_with(instance, name)
-        field.is_active.assert_called_with(condition, value)
+        field.is_active.assert_called_with(field_condition, value)
 
-    @patch('switchboard.conditions.ConditionSet.get_namespace')
     @patch('switchboard.conditions.ConditionSet.get_field_value')
-    def test_is_active_true_exclude(self, get_field_value, get_namespace):
+    def test_is_active_true_exclude(self, get_field_value):
         field = Mock()
         field.is_active.return_value = True
         name = 'bar'
-        namespace = 'foo'
-        condition = value = 'baz'
+        field_condition = value = 'baz'
         self.cs.fields = {name: field}
-        get_namespace.return_value = namespace
-        conditions = {namespace: {name: [(EXCLUDE, condition)]}}
+        condition = {name: [(EXCLUDE, field_condition)]}
         get_field_value.return_value = value
         instance = 'test'
-        is_active = self.cs.is_active(instance, conditions)
+        is_active = self.cs.is_active(instance, condition)
         assert_equals(is_active, False)
         get_field_value.assert_called_with(instance, name)
-        field.is_active.assert_called_with(condition, value)
+        field.is_active.assert_called_with(field_condition, value)
 
 
 class TestModelConditionSet(object):
