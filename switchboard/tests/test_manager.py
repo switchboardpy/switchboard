@@ -825,14 +825,14 @@ class TestManagerResultCaching(object):
         # still the same 2nd time
         assert_true(self.operator.is_active('test'))
         # still the same even if something actually changed
-        switch.status=DISABLED
+        switch.status = DISABLED
         switch.save()
         assert_true(self.operator.is_active('test'))
         # changes after cache is cleared
         self.operator.result_cache = {}
         assert_false(self.operator.is_active('test'))
         # make sure the false value was cached too
-        switch.status=GLOBAL
+        switch.status = GLOBAL
         switch.save()
         assert_false(self.operator.is_active('test'))
 
@@ -840,7 +840,8 @@ class TestManagerResultCaching(object):
 class TestManagerResultCacheDecorator(object):
 
     def setup(self):
-        # gets a pure function, otherwise we get an unbound function that we can't call
+        # Gets a pure function, otherwise we get an unbound function that we
+        # can't call.
         self.with_result_cache = SwitchManager.__dict__['with_result_cache']
 
         # a simple "is_active" to wrap
@@ -865,7 +866,8 @@ class TestManagerResultCacheDecorator(object):
         })
 
     def test_decorator_uses_cache(self):
-        # put False in cache, to ensure only the cache is used, not is_active_func
+        # Put False in cache, to ensure only the cache is used, not
+        # is_active_func.
         operator_self = Mock(result_cache={
             (('mykey',), ()): False
         })
@@ -877,7 +879,8 @@ class TestManagerResultCacheDecorator(object):
 
     def test_decorator_with_params(self):
         operator_self = Mock(result_cache={})
-        result = self.cached_is_active_func(operator_self, 'mykey', 'someval', a=1, b=2)
+        result = self.cached_is_active_func(operator_self, 'mykey',
+                                            'someval', a=1, b=2)
         assert_true(result)
         assert_equals(operator_self.result_cache, {
             (('mykey', 'someval'),
@@ -886,7 +889,8 @@ class TestManagerResultCacheDecorator(object):
 
     def test_decorator_uncachable_params(self):
         operator_self = Mock(result_cache={})
-        result = self.cached_is_active_func(operator_self, 'mykey', {})  # a dict isn't hashable, can't be cached
+        # A dict isn't hashable, can't be cached.
+        result = self.cached_is_active_func(operator_self, 'mykey', {})
         assert_true(result)
         assert_equals(operator_self.result_cache, {})
 
