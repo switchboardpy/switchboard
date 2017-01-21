@@ -63,23 +63,23 @@ class ModelDict(threading.local):
     def __contains__(self, key):  # pragma: nocover
         return self._model.contains(key)
 
-    def __iter__(self):  # pragma: nocover
-        return self._model.all()
+    def __iter__(self):
+        return self.iterkeys()
 
     def __repr__(self):  # pragma: nocover
         return "<%s>" % (self.__class__.__name__)
 
-    def iteritems(self):  # pragma: nocover
+    def iteritems(self):
         def make_item(model):
-            return (getattr(self._key, model), model)
+            return (getattr(model, self._key), model)
         items = [make_item(model) for model in self._model.all()]
         return iter(items)
 
-    def itervalues(self):  # pragma: nocover
-        return self._model.all()
+    def itervalues(self):
+        return iter(self._model.all())
 
-    def iterkeys(self):  # pragma: nocover
-        return iter([getattr(self._key, model) for model in self._model.all()])
+    def iterkeys(self):
+        return iter([getattr(model, self._key) for model in self._model.all()])
 
     def keys(self):  # pragma: nocover
         return list(self.iterkeys())

@@ -72,7 +72,7 @@ class SwitchManager(ModelDict):
         self.context = {}
         super(SwitchManager, self).__init__(*new_args, **kwargs)
 
-    def __unicode__(self):
+    def __unicode__(self):  # pragma: nocover
         return "<%s: %s (%s)>" % (self.__class__.__name__,
                                   getattr(self, 'model', ''),
                                   registry.values())
@@ -225,11 +225,6 @@ class SwitchManager(ModelDict):
             group = unicode(condition_set.get_group_label())
             for field in condition_set.fields.itervalues():
                 yield condition_set.get_id(), group, field
-
-    def as_request(self, user=None, ip_address=None):
-        from .helpers import MockRequest
-
-        return MockRequest(user, ip_address)
 
 
 auto_create = getattr(settings, 'SWITCHBOARD_AUTO_CREATE', True)
