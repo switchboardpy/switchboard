@@ -572,7 +572,6 @@
           }
           return new Handlebars.SafeString(summary);
         });
-        // TODO: replace with https://github.com/helpers/handlebars-helper-moment
         Handlebars.registerHelper('timeSince', function(date) {
           return moment(date).fromNow();
         });
