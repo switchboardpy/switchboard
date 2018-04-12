@@ -70,4 +70,5 @@ class SwitchContextManager(object):
     def unpatch(self):
         self.operator.is_active = self.is_active_func
 
+
 switches = SwitchContextManager
