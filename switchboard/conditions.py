@@ -9,7 +9,6 @@ switchboard.conditions
 # Credit to Haystack for abstraction concepts
 
 import datetime
-import itertools
 import re
 
 from .models import EXCLUDE
@@ -307,8 +306,8 @@ class ConditionSet(object):
 
     def get_namespace(self):  # pragma: nocover
         """
-        Returns a string specifying a unique registration namespace for this ConditionSet
-        instance.
+        Returns a string specifying a unique registration namespace for this
+        ConditionSet instance.
         """
         return self.__class__.__name__
 
