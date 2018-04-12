@@ -59,8 +59,8 @@ do](http://switchboard.readthedocs.io/en/stable/user-documentation.html#using-sw
 ## Development
 
 These instructions cover setting Switchboard up locally for development and
-testing purposes. See installing for notes on how to use Switchboard within a
-web application.
+testing purposes. See [Getting Started](#getting-started) for notes on how to
+use Switchboard within a web application.
 
 ### Prerequisites
 
@@ -103,6 +103,14 @@ To run the unit tests:
 $ make test
 ```
 
+The functional test requires both an updated
+[Firefox](https://www.mozilla.org/en-US/firefox/new/) and
+[geckodriver](https://github.com/mozilla/geckodriver):
+
+```
+$ npm install -g geckodriver
+```
+
 To run the functional tests:
 
 ```
@@ -122,8 +130,9 @@ $ make release
 
 ### Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available,
-see the [tags on this repository](https://github.com/switchboardpy/switchboard/tags).
+We use [Semantic Versioning](http://semver.org/) for versioning. For the
+versions available, see the [tags on this
+repository](https://github.com/switchboardpy/switchboard/tags).
 
 
 ## Contributing
