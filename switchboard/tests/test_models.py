@@ -456,6 +456,9 @@ class TestSwitch(object):
 
     def test_to_dict(self):
         switch_dict = self.switch.to_dict(self.manager)
+        for cond in switch_dict['conditions']:
+            cond['conditions'].sort()
+        assert_equals.__self__.maxDiff = None
         assert_equals(switch_dict, {
             'key': 'test',
             'status': DISABLED,
@@ -470,8 +473,8 @@ class TestSwitch(object):
                     'label': 'IP Address',
                     'conditions': [
                         ('ip_address', '10.1.1.1', '10.1.1.1', False),
-                        ('ip_address', '192.168.1.1', '192.168.1.1', False),
                         ('ip_address', '127.0.0.1', '127.0.0.1', False),
+                        ('ip_address', '192.168.1.1', '192.168.1.1', False),
                         ('percent', '0-50', 'Percent: 50% (0-50)', False),
                     ]
                 }
