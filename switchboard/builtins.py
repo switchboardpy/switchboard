@@ -5,6 +5,8 @@ switchboard.builtins
 :copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import socket
 
 from . import operator
@@ -18,6 +20,7 @@ from .conditions import (
     Invalid,
 )
 from .settings import settings
+import six
 
 
 class IPAddress(String):
@@ -27,7 +30,7 @@ class IPAddress(String):
             import ipaddress
             # The third-party ipaddress lib (not the builtin Python 3 library)
             # requires a unicode string.
-            ipaddress.ip_address(unicode(value))
+            ipaddress.ip_address(six.text_type(value))
         except ImportError:  # pragma: nocover
             pass
         except ValueError:

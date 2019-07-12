@@ -5,6 +5,8 @@ switchboard.tests.test_manager
 :copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import threading
 
 from nose.tools import (
@@ -31,6 +33,7 @@ from ..models import (
 )
 from ..manager import registry, SwitchManager
 from ..settings import settings
+import six
 
 
 class TestAPI(object):
@@ -705,7 +708,7 @@ class TestConfigure(object):
         Switch.ds = self.datastore
 
     def assert_settings(self):
-        for k, v in self.config.iteritems():
+        for k, v in six.iteritems(self.config):
             assert_equals(getattr(settings, 'SWITCHBOARD_%s' % k.upper()), v)
 
     def test_unnested(self):
@@ -714,7 +717,7 @@ class TestConfigure(object):
 
     def test_nested(self):
         cfg = {}
-        for k, v in self.config.iteritems():
+        for k, v in six.iteritems(self.config):
             cfg['switchboard.%s' % k] = v
         cfg['foo.bar'] = 'baz'
         configure(cfg, nested=True)

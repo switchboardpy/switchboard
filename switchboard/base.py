@@ -6,7 +6,10 @@ switchboard.base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import threading
+import six
 
 
 class ModelDict(threading.local):
@@ -64,7 +67,7 @@ class ModelDict(threading.local):
         return self._model.contains(key)
 
     def __iter__(self):
-        return self.iterkeys()
+        return six.iterkeys(self)
 
     def __repr__(self):  # pragma: nocover
         return "<%s>" % (self.__class__.__name__)
@@ -82,13 +85,13 @@ class ModelDict(threading.local):
         return iter([getattr(model, self._key) for model in self._model.all()])
 
     def keys(self):  # pragma: nocover
-        return list(self.iterkeys())
+        return list(six.iterkeys(self))
 
     def values(self):  # pragma: nocover
-        return list(self.itervalues())
+        return list(six.itervalues(self))
 
     def items(self):  # pragma: nocover
-        return list(self.iteritems())
+        return list(six.iteritems(self))
 
     def get(self, key, default=None):
         try:

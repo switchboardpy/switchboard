@@ -6,6 +6,8 @@ switchboard.models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from datetime import datetime
 import logging
 import os
@@ -16,6 +18,7 @@ import datastore.core
 import datastore.filesystem
 
 from .settings import settings
+import six
 
 log = logging.getLogger(__name__)
 
@@ -181,7 +184,7 @@ class Model(object):
         '''
         if hasattr(cls.ds, '_redis'):
             r = cls.ds._redis
-            keys = r.keys()
+            keys = list(r.keys())
             serializer = cls.ds.child_datastore.serializer
 
             def get_value(k):
@@ -259,7 +262,7 @@ class Switch(Model):
         super(Switch, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return u'%s=%s' % (self.key, self.value)
+        return '%s=%s' % (self.key, self.value)
 
     def get_status_display(self):
         return self.STATUS_CHOICES[self.status]
@@ -279,7 +282,7 @@ class Switch(Model):
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
-        assert isinstance(condition, basestring), 'conditions must be strings'
+        assert isinstance(condition, six.string_types), 'conditions must be strings'
 
         namespace = condition_set.get_namespace()
 
@@ -383,7 +386,7 @@ class Switch(Model):
             condition_set_id = condition_set.get_id()
             if ns in self.value:
                 group = condition_set.get_group_label()
-                for name, field in condition_set.fields.iteritems():
+                for name, field in six.iteritems(condition_set.fields):
                     for value in self.value[ns].get(name, []):
                         try:
                             yield (condition_set_id, group, field, value[1],

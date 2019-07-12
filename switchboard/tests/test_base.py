@@ -6,6 +6,8 @@ switchboard.tests.test_base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from mock import patch
 from nose.tools import (
     assert_equals,
@@ -16,13 +18,15 @@ from nose.tools import (
 
 from ..base import ModelDict
 from ..models import Model
+import six
+from six.moves import range
 
 
 class MockModel(Model):
 
     def __init__(self, *args, **kwargs):
         self._attrs = []
-        for k, v in kwargs.iteritems():
+        for k, v in six.iteritems(kwargs):
             if not hasattr(self, k):
                 self._attrs.append(k)
                 setattr(self, k, v)
@@ -131,7 +135,7 @@ class TestModelDict(object):
         mydict['1'] = MockModel(key='1', value='foo1')
         mydict['2'] = MockModel(key='2', value='foo2')
         mydict['3'] = MockModel(key='3', value='foo3')
-        for key in mydict.iterkeys():
+        for key in six.iterkeys(mydict):
             assert_equals(key, mydict[key].key)
 
     def test_itervalues(self):
@@ -139,7 +143,7 @@ class TestModelDict(object):
         mydict['1'] = MockModel(key='1', value='foo1')
         mydict['2'] = MockModel(key='2', value='foo2')
         mydict['3'] = MockModel(key='3', value='foo3')
-        models = mydict.itervalues()
+        models = six.itervalues(mydict)
         for model in models:
             assert_true(isinstance(model, MockModel))
 
@@ -148,7 +152,7 @@ class TestModelDict(object):
         mydict['1'] = MockModel(key='1', value='foo1')
         mydict['2'] = MockModel(key='2', value='foo2')
         mydict['3'] = MockModel(key='3', value='foo3')
-        items = mydict.iteritems()
+        items = six.iteritems(mydict)
         for key, model in items:
             assert_equals(key, mydict[key].key)
             assert_equals(model, mydict[key])

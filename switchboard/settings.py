@@ -6,6 +6,8 @@ switchboard.settings
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+import six
 NoValue = object()
 
 
@@ -15,7 +17,7 @@ class Settings(object):
 
     @classmethod
     def init(cls, **kwargs):
-        settings = kwargs.iteritems()
+        settings = six.iteritems(kwargs)
         settings = [('SWITCHBOARD_%s' % k.upper(), v) for k, v in settings]
         # convert timeouts to ints
         settings = [(k, int(v) if k.endswith('TIMEOUT') else v)

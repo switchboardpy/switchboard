@@ -5,6 +5,8 @@ switchboard.tests.test_models
 :copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import copy
 import pickle
 
@@ -26,6 +28,7 @@ from ..models import (
     _key
 )
 from ..settings import settings
+import six
 
 
 default_datastore = Model.ds
@@ -208,10 +211,10 @@ class TestModel(object):
             'test:child': dict(key='test:child'),
         }
         data = dict()
-        for k, v in raw_data.iteritems():
+        for k, v in six.iteritems(raw_data):
             data[_key(k)] = pickle.dumps(v)
         redis = Mock()
-        redis.keys.return_value = data.keys()
+        redis.keys.return_value = list(data.keys())
         redis.get = lambda k: data[k]
         ds = MockDatastore()
         ds.query = Mock()
@@ -222,7 +225,7 @@ class TestModel(object):
         ds.get = lambda k: pickle.dumps(redis.get(k))
         Model.ds = ds
         models = Model.all()
-        expected_keys = data.keys()
+        expected_keys = list(data.keys())
         actual_keys = [_key(model.key) for model in models]
         assert_equals(len(expected_keys), len(actual_keys))
         for key in expected_keys:

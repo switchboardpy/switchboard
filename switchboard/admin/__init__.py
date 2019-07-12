@@ -6,6 +6,8 @@ switchboard.admin
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from datetime import datetime
 import logging
 from operator import attrgetter
@@ -22,6 +24,7 @@ from .utils import (
     valid_sort_orders
 )
 from ..settings import settings
+import six
 
 log = logging.getLogger(__name__)
 
@@ -121,7 +124,7 @@ def update():
     )
 
     changes = {}
-    for k, v in values.iteritems():
+    for k, v in six.iteritems(values):
         old_value = getattr(switch, k)
         if old_value != v:
             changes[k] = (v, old_value)
@@ -138,7 +141,7 @@ def update():
 
         log.info('Switch %r updated %%s' % switch.key,
                  ', '.join('%s=%r->%r' % (k, v[0], v[1]) for k, v in
-                           sorted(changes.iteritems())))
+                           sorted(six.iteritems(changes))))
 
         signals.switch_updated.send(switch)
 
