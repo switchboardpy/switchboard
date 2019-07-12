@@ -8,7 +8,7 @@ switchboard.manager
 
 import logging
 
-from pymongo import Connection
+from pymongo.mongo_client import MongoClient
 
 from .base import MongoModelDict
 from .models import (
@@ -50,18 +50,18 @@ def configure(config={}, nested=False, cache=None):
 
     # Establish the connection to Mongo
     mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
-    # The config is in ms to match memcached, but pymongo wants seconds
-    mongo_timeout = mongo_timeout // 1000 if mongo_timeout else mongo_timeout
     # Ensure we have an integer for port and not a string
     mongo_port = int(settings.SWITCHBOARD_MONGO_PORT)
     try:
-        conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
-                          mongo_port,
-                          network_timeout=mongo_timeout)
+        conn = MongoClient(settings.SWITCHBOARD_MONGO_HOST,
+                           mongo_port,
+                           socketTimeoutMS=mongo_timeout,
+                           connectTimeoutMS=mongo_timeout,
+                           )
         db = conn[settings.SWITCHBOARD_MONGO_DB]
         collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
         Switch.c = collection
-    except:
+    except Exception:
         log.exception('Unable to connect to the datastore')
     # Register the builtins
     __import__('switchboard.builtins')
