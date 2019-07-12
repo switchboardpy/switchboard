@@ -11,3 +11,5 @@ build
 example/.switches
 *.log
 .venv
+geckodriver.log
+server.pid
