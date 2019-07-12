@@ -3,7 +3,7 @@ import sys
 
 VERSION = '1.4.0'
 INSTALL_REQUIRES = [
-    'pymongo >= 2.3, < 3',
+    'pymongo >= 2.4',
     'blinker >= 1.2',
     'WebOb >= 0.9',
     'Mako >= 0.9',

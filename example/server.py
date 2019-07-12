@@ -4,7 +4,7 @@ from switchboard import operator, configure
 from switchboard.middleware import SwitchboardMiddleware
 from switchboard.admin import app as switchboard
 
-configure()
+configure({'mongo_timeout': 1000})
 
 app = Bottle()
 app.mount('/_switchboard/', switchboard)

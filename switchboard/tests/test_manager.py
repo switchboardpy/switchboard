@@ -755,14 +755,14 @@ class TestConfigure(object):
         for k, v in self.config.iteritems():
             assert_equals(getattr(settings, 'SWITCHBOARD_%s' % k.upper()), v)
 
-    @patch('switchboard.manager.Connection')
-    def test_unnested(self, Connection):
+    @patch('switchboard.manager.MongoClient')
+    def test_unnested(self, MongoClient):
         configure(self.config)
         self.assert_settings()
         assert_false(isinstance(Switch.c, MockCollection))
 
-    @patch('switchboard.manager.Connection')
-    def test_nested(self, Connection):
+    @patch('switchboard.manager.MongoClient')
+    def test_nested(self, MongoClient):
         cfg = {}
         for k, v in self.config.iteritems():
             cfg['switchboard.%s' % k] = v
@@ -771,9 +771,9 @@ class TestConfigure(object):
         self.assert_settings()
         assert_false(isinstance(Switch.c, MockCollection))
 
-    @patch('switchboard.manager.Connection')
-    def test_database_failure(self, Connection):
-        Connection.side_effect = Exception('Boom!')
+    @patch('switchboard.manager.MongoClient')
+    def test_database_failure(self, MongoClient):
+        MongoClient.side_effect = Exception('Boom!')
         configure(self.config)
         assert_true(isinstance(Switch.c, MockCollection))
 
