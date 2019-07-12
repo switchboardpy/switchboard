@@ -1,5 +1,21 @@
 language: python
-python: 2.7
+
+# https://docs.travis-ci.com/user/languages/python/#using-tox-as-the-build-script
+dist: xenial   # required for Python >= 3.7
+matrix:
+  include:
+    # for each version of python, run each tox build separately
+    - python: 2.7
+      env: TOXENV=py27
+
+    - python: 3.6
+      env: TOXENV=py36
+
+    - python: 3.7
+      env: TOXENV=py37
+
+services:
+  - xvfb
 
 addons:
   firefox: "latest"
@@ -7,14 +23,11 @@ addons:
 sudo: false
 
 before_install:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
   - npm install -g geckodriver
 
 install: make install
 
-script: make test-coverage functional-test
+script: make test test-coverage functional-test
 
 after_success:
   - pip install codecov

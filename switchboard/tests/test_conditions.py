@@ -174,14 +174,14 @@ class TestPercent(object):
             self.field.clean(['0', '200'])
             raise AssertionError('Should have thrown an Invalid exception')
         except Invalid as e:
-            assert_true('0 and 100' in e.message)
+            assert_true('0 and 100' in e.args[0])
 
     def test_percentile_min_higher_than_max(self):
         try:
             self.field.clean(['50', '0'])
             raise AssertionError('Should have thrown an Invalid exception')
         except Invalid as e:
-            assert_true('less than' in e.message)
+            assert_true('less than' in e.args[0])
 
 
 class TestRegex(object):

@@ -67,7 +67,7 @@ class ModelDict(threading.local):
         return self._model.contains(key)
 
     def __iter__(self):
-        return six.iterkeys(self)
+        return self.iterkeys()
 
     def __repr__(self):  # pragma: nocover
         return "<%s>" % (self.__class__.__name__)
@@ -85,13 +85,13 @@ class ModelDict(threading.local):
         return iter([getattr(model, self._key) for model in self._model.all()])
 
     def keys(self):  # pragma: nocover
-        return list(six.iterkeys(self))
+        return list(self.iterkeys())
 
     def values(self):  # pragma: nocover
-        return list(six.itervalues(self))
+        return list(self.itervalues())
 
     def items(self):  # pragma: nocover
-        return list(six.iteritems(self))
+        return list(self.iteritems())
 
     def get(self, key, default=None):
         try:

@@ -71,7 +71,7 @@ class Model(object):
         try:
             key = _key(self.key)
         except AttributeError:
-            self.key = str(uuid.uuid4())
+            self.key = six.text_type(uuid.uuid4())
             key = _key(self.key)
             previous = None
         else:

@@ -5,12 +5,12 @@ import sys
 
 VERSION = '2.0.0'
 INSTALL_REQUIRES = [
-    'datastore >= 0.3.6',
     'smhasher >= 0.150',  # Version used by datastore won't compile in Xenial.
     'blinker >= 1.2',
     'WebOb >= 0.9',
     'Mako >= 0.9',
     'bottle >= 0.12.8',
+    'six',
 ]
 EXTRAS_REQUIRE = {}
 
@@ -21,8 +21,17 @@ if int(setuptools.__version__.split('.', 1)[0]) < 18:
     assert 'bdist_wheel' not in sys.argv
     if sys.version_info[0:2] < (3, 3):
         INSTALL_REQUIRES.append('ipaddress')
+
+    if sys.version_info[0:2] < (3, 0):
+        INSTALL_REQUIRES.append('datastore == 0.3.6')
+    else:
+        # see https://github.com/datastore/datastore/pull/30/
+        INSTALL_REQUIRES.append('datastore@http://github.com/dheatovwil/datastore/tarball/master#egg=datastore-0.4.0dev')
 else:
     EXTRAS_REQUIRE[":python_version<'3.3'"] = ['ipaddress']
+    EXTRAS_REQUIRE[":python_version<'3.0'"] = ['datastore == 0.3.6']
+    EXTRAS_REQUIRE[":python_version>='3.0'"] = ['datastore@http://github.com/dheatovwil/datastore/tarball/master#egg=datastore-0.4.0dev']
+
 
 setuptools.setup(
     name='switchboard',

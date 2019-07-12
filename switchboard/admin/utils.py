@@ -9,6 +9,7 @@ switchboard.admin.utils
 from __future__ import unicode_literals
 from __future__ import absolute_import
 import json
+import six
 
 from switchboard.conditions import Invalid
 from switchboard.settings import settings
@@ -29,7 +30,7 @@ def json_api(func):
         except SwitchboardException as e:
             response = {
                 "success": False,
-                "data": e.message
+                "data": e.args[0]
             }
         except ValueError:
             response = {
@@ -39,7 +40,7 @@ def json_api(func):
         except Invalid as e:
             response = {
                 "success": False,
-                "data": e.message,
+                "data": e.args[0],
             }
         except Exception:
             if hasattr(settings, 'DEBUG') and settings.DEBUG:
@@ -52,7 +53,7 @@ def json_api(func):
             if hasattr(obj, 'isoformat'):
                 return obj.isoformat()
             else:
-                return str(obj)
+                return six.text_type(obj)
         santized_response = json.loads(json.dumps(response, default=handler))
         return santized_response
     return wrapper
