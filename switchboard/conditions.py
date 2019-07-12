@@ -223,7 +223,7 @@ class AbstractDate(Field):
             date = self.str_to_date(value)
         except ValueError as e:
             msg = ("Date must be a valid date in the format YYYY-MM-DD.\n(%s)"
-                   % e.message)
+                   % e.args[0])
             raise Invalid(msg)
 
         return date.strftime(self.DATE_FORMAT)
@@ -279,7 +279,7 @@ class ConditionSetBase(type):
             if fields:
                 attrs['fields'].update(fields)
 
-        for field_name, obj in attrs.items():
+        for field_name, obj in list(attrs.items()):
             if isinstance(obj, Field):
                 field = attrs.pop(field_name)
                 field.set_values(field_name)

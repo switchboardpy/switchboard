@@ -10,6 +10,7 @@ INSTALL_REQUIRES = [
     'WebOb >= 0.9',
     'Mako >= 0.9',
     'bottle >= 0.12.8',
+    'six',
 ]
 EXTRAS_REQUIRE = {}
 
