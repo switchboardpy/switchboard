@@ -6,6 +6,8 @@ switchboard.testutils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from functools import wraps
 
 from . import operator

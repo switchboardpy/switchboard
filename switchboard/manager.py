@@ -6,6 +6,8 @@ switchboard.manager
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import logging
 
 import pymongo
@@ -20,6 +22,7 @@ from .models import (
 )
 from .proxy import SwitchProxy
 from .settings import settings, Settings
+import six
 
 log = logging.getLogger(__name__)
 # These are (mostly) read-only module variables since we want it shared among
@@ -32,7 +35,7 @@ registry_by_namespace = {}
 def nested_config(config):
     cfg = {}
     token = 'switchboard.'
-    for k, v in config.iteritems():
+    for k, v in six.iteritems(config):
         if k.startswith(token):
             cfg[k.replace(token, '')] = v
     return cfg
@@ -99,7 +102,7 @@ class SwitchManager(MongoModelDict):
     def __unicode__(self):  # pragma: nocover
         return "<%s: %s (%s)>" % (self.__class__.__name__,
                                   getattr(self, 'model', ''),
-                                  registry.values())
+                                  list(registry.values()))
 
     def __getitem__(self, key):
         """
@@ -177,12 +180,12 @@ class SwitchManager(MongoModelDict):
                 return default
 
             instances = list(instances) if instances else []
-            instances.extend(self.context.values())
+            instances.extend(list(self.context.values()))
 
             # check each switch to see if it can execute
             return_value = False
 
-            for namespace, condition in conditions.iteritems():
+            for namespace, condition in six.iteritems(conditions):
                 condition_set = registry_by_namespace.get(namespace)
                 if not condition_set:
                     continue
@@ -235,7 +238,7 @@ class SwitchManager(MongoModelDict):
         Returns a generator yielding all currently registered
         ConditionSet instances.
         """
-        return registry.itervalues()
+        return six.itervalues(registry)
 
     def get_all_conditions(self):
         """
@@ -246,8 +249,8 @@ class SwitchManager(MongoModelDict):
         """
         cs = self.get_condition_sets()
         for condition_set in sorted(cs, key=lambda x: x.get_group_label()):
-            group = unicode(condition_set.get_group_label())
-            for field in condition_set.fields.itervalues():
+            group = six.text_type(condition_set.get_group_label())
+            for field in six.itervalues(condition_set.fields):
                 yield condition_set.get_id(), group, field
 
     def version_switch(self, switch):

@@ -8,10 +8,14 @@ switchboard.conditions
 
 # Credit to Haystack for abstraction concepts
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import datetime
 import re
 
 from .models import EXCLUDE
+import six
+from six.moves import map
 
 
 class Invalid(Exception):  # pragma: nocover
@@ -57,7 +61,7 @@ class Field(object):
         value = data.get(self.name)
         if value:
             value = self.clean(value)
-            is_string = isinstance(value, basestring)
+            is_string = isinstance(value, six.string_types)
             assert is_string, 'clean methods must return strings'
         return value
 
@@ -116,13 +120,13 @@ class Range(Field):
     def validate(self, data):
         min_limit = data.get(self.name + '[min]')
         max_limit = data.get(self.name + '[max]')
-        value = filter(None, [min_limit, max_limit]) or None
+        value = [_f for _f in [min_limit, max_limit] if _f] or None
         return self.clean(value)
 
     def clean(self, value):
         if value:
             try:
-                map(int, value)
+                list(map(int, value))
             except (TypeError, ValueError):
                 raise Invalid('You must enter valid integer values.')
         else:
@@ -153,7 +157,7 @@ class Percent(Range):
     default_help_text = 'Enter two ranges, e.g. 0-50 is lower 50%.'
 
     def is_active(self, value, actual_value):
-        value = map(int, value.split('-'))
+        value = list(map(int, value.split('-')))
         mod = actual_value % 100
         return super(Percent, self).is_active(value, mod)
 
@@ -217,7 +221,7 @@ class AbstractDate(Field):
     def clean(self, value):
         try:
             date = self.str_to_date(value)
-        except ValueError, e:
+        except ValueError as e:
             msg = ("Date must be a valid date in the format YYYY-MM-DD.\n(%s)"
                    % e.message)
             raise Invalid(msg)
@@ -284,9 +288,7 @@ class ConditionSetBase(type):
         return super(ConditionSetBase, cls).__new__(cls, name, bases, attrs)
 
 
-class ConditionSet(object):
-    __metaclass__ = ConditionSetBase
-
+class ConditionSet(six.with_metaclass(ConditionSetBase, object)):
     def __repr__(self):  # pragma: nocover
         return '<%s>' % (self.__class__.__name__,)
 
@@ -350,7 +352,7 @@ class ConditionSet(object):
         a boolean representing if the feature is active.
         """
         return_value = None
-        for name, field_conditions in condition.iteritems():
+        for name, field_conditions in six.iteritems(condition):
             field = self.fields.get(name)
             if field:
                 value = self.get_field_value(instance, name)

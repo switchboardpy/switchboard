@@ -6,9 +6,12 @@ switchboard.helpers
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import logging
 from collections import defaultdict
 from copy import deepcopy
+import six
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +27,7 @@ class MockCollection(object):
         self.database = defaultdict(lambda: MockCollection(), name=self)
 
     def _matches(self, spec, document):
-        for k, v in spec.iteritems():
+        for k, v in six.iteritems(spec):
             if k not in document or document[k] != v:
                 return False
         return True
@@ -45,7 +48,7 @@ class MockCollection(object):
         return results or None
 
     def _update_partial(self, old, new):
-        for k, v in new.iteritems():
+        for k, v in six.iteritems(new):
             old[k] = v
 
     def update(self, spec, update, upsert=False):
@@ -61,7 +64,7 @@ class MockCollection(object):
                     'ok': 1.0,
                     'updatedExisting': True
                 }
-        for k, v in update.iteritems():
+        for k, v in six.iteritems(update):
             if k == '$set':
                 self._update_partial(current, v)
             else:

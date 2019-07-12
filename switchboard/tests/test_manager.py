@@ -5,6 +5,8 @@ switchboard.tests.test_manager
 :copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import threading
 
 from nose.tools import (
@@ -32,6 +34,7 @@ from ..models import (
 from ..manager import registry, SwitchManager
 from ..helpers import MockCollection
 from ..settings import settings
+import six
 
 
 class TestAPI(object):
@@ -752,7 +755,7 @@ class TestConfigure(object):
         Switch.c = MockCollection()
 
     def assert_settings(self):
-        for k, v in self.config.iteritems():
+        for k, v in six.iteritems(self.config):
             assert_equals(getattr(settings, 'SWITCHBOARD_%s' % k.upper()), v)
 
     @patch('switchboard.manager.MongoClient')
@@ -764,7 +767,7 @@ class TestConfigure(object):
     @patch('switchboard.manager.MongoClient')
     def test_nested(self, MongoClient):
         cfg = {}
-        for k, v in self.config.iteritems():
+        for k, v in six.iteritems(self.config):
             cfg['switchboard.%s' % k] = v
         cfg['foo.bar'] = 'baz'
         configure(cfg, nested=True)

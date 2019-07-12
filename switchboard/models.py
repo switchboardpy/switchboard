@@ -6,6 +6,8 @@ switchboard.models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from datetime import datetime
 import logging
 
@@ -14,6 +16,7 @@ from pymongo import DESCENDING
 
 from .settings import settings
 from .helpers import MockCollection
+import six
 
 log = logging.getLogger(__name__)
 
@@ -152,8 +155,8 @@ class VersioningMongoModel(MongoModel):
         prev = prev.to_bson() if prev else None
         # Both models are present so something's changed between them
         if prev and curr:
-            current_fields = curr.keys()
-            previous_fields = prev.keys()
+            current_fields = list(curr.keys())
+            previous_fields = list(prev.keys())
             added = [f for f in current_fields if f not in previous_fields]
             deleted = [f for f in previous_fields if f not in current_fields]
             changed = [f for f in current_fields if (f in previous_fields
@@ -224,7 +227,7 @@ class VersioningMongoModel(MongoModel):
                 for k in deleted.keys():
                     if k in previous:
                         del previous[k]
-                for k, v in changed.iteritems():
+                for k, v in six.iteritems(changed):
                     old, new = v
                     previous[k] = new
         previous = self.__class__(**previous) if previous else None
@@ -289,7 +292,7 @@ class Switch(VersioningMongoModel):
         super(Switch, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return u'%s=%s' % (self.key, self.value)
+        return '%s=%s' % (self.key, self.value)
 
     def get_status_display(self):
         return self.STATUS_CHOICES[self.status]
@@ -309,7 +312,7 @@ class Switch(VersioningMongoModel):
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
-        assert isinstance(condition, basestring), 'conditions must be strings'
+        assert isinstance(condition, six.string_types), 'conditions must be strings'
 
         namespace = condition_set.get_namespace()
 
@@ -413,7 +416,7 @@ class Switch(VersioningMongoModel):
             condition_set_id = condition_set.get_id()
             if ns in self.value:
                 group = condition_set.get_group_label()
-                for name, field in condition_set.fields.iteritems():
+                for name, field in six.iteritems(condition_set.fields):
                     for value in self.value[ns].get(name, []):
                         try:
                             yield (condition_set_id, group, field, value[1],

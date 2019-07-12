@@ -6,6 +6,8 @@ switchboard.admin.utils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import json
 
 from switchboard.conditions import Invalid
@@ -24,7 +26,7 @@ def json_api(func):
                 "success": True,
                 "data": func(*args, **kwargs)
             }
-        except SwitchboardException, e:
+        except SwitchboardException as e:
             response = {
                 "success": False,
                 "data": e.message
@@ -34,7 +36,7 @@ def json_api(func):
                 "success": False,
                 "data": "Switch cannot be found"
             }
-        except Invalid, e:
+        except Invalid as e:
             response = {
                 "success": False,
                 "data": e.message,

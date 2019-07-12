@@ -6,6 +6,8 @@ switchboard.tests.test_models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from datetime import datetime
 
 from nose.tools import assert_equals, assert_true, assert_false

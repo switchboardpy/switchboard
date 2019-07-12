@@ -6,6 +6,8 @@ switchboard.base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import time
 import logging
 import threading
@@ -13,6 +15,7 @@ import threading
 from .models import MongoModel
 from .signals import request_finished
 from .settings import settings
+import six
 
 log = logging.getLogger(__name__)
 
@@ -68,25 +71,25 @@ class CachedDict(threading.local):
 
     def iteritems(self):  # pragma: nocover
         self._populate()
-        return self._cache.iteritems()
+        return six.iteritems(self._cache)
 
     def itervalues(self):  # pragma: nocover
         self._populate()
-        return self._cache.itervalues()
+        return six.itervalues(self._cache)
 
     def iterkeys(self):  # pragma: nocover
         self._populate()
-        return self._cache.iterkeys()
+        return six.iterkeys(self._cache)
 
     def keys(self):  # pragma: nocover
-        return list(self.iterkeys())
+        return list(six.iterkeys(self))
 
     def values(self):  # pragma: nocover
-        return list(self.itervalues())
+        return list(six.itervalues(self))
 
     def items(self):  # pragma: nocover
         self._populate()
-        return self._cache.items()
+        return list(self._cache.items())
 
     def get(self, key, default=None):
         self._populate()

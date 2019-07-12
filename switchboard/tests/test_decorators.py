@@ -6,6 +6,8 @@ switchboard.tests.test_decorators
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from nose.tools import assert_equals, raises
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -41,5 +43,5 @@ def test_switch_is_active_inactive_redirect():
     try:
         test()
         raise AssertionError('HTTPNotFound was not raised.')
-    except HTTPFound, e:
+    except HTTPFound as e:
         assert_equals(e.location, location)

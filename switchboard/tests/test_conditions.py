@@ -6,6 +6,8 @@ switchboard.tests.test_conditions
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import datetime
 
 from mock import Mock, patch
@@ -34,6 +36,7 @@ from ..conditions import (
     titlize,
 )
 from ..models import INCLUDE, EXCLUDE
+import six
 
 
 def test_titlize():
@@ -98,7 +101,7 @@ class TestChoice(object):
 
     def test_clean_valid_choice(self):
         cleaned = self.field.clean('foo')
-        assert_true(isinstance(cleaned, basestring))
+        assert_true(isinstance(cleaned, six.string_types))
         assert_equals(cleaned, 'foo')
 
     @raises(Invalid)
@@ -170,14 +173,14 @@ class TestPercent(object):
         try:
             self.field.clean(['0', '200'])
             raise AssertionError('Should have thrown an Invalid exception')
-        except Invalid, e:
+        except Invalid as e:
             assert_true('0 and 100' in e.message)
 
     def test_percentile_min_higher_than_max(self):
         try:
             self.field.clean(['50', '0'])
             raise AssertionError('Should have thrown an Invalid exception')
-        except Invalid, e:
+        except Invalid as e:
             assert_true('less than' in e.message)
 
 
