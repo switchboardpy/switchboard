@@ -384,6 +384,16 @@ class ModelConditionSet(ConditionSet):
     def can_execute(self, instance):
         return isinstance(instance, self.model)
 
+    def get_id(self):
+        return '%s.%s(%s)' % (self.__module__, self.__class__.__name__, self.get_namespace())
+
+    def get_namespace(self):
+        raise NotImplementedError('Subclasses should implement this, returning a unique identifier. '
+                                  '(e.g. self.model.__tablename__ for SQLAlchemy models)')
+
+    def get_group_label(self):
+        return self.get_namespace().title()
+
 
 class RequestConditionSet(ConditionSet):
     def get_namespace(self):  # pragma: nocover
