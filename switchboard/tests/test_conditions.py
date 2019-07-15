@@ -400,11 +400,21 @@ class TestConditionSet(object):
 
 class TestModelConditionSet(object):
     def setup(self):
-        self.cs = ModelConditionSet(Mock)
+        class OurModelConditionSet(ModelConditionSet):
+            def get_namespace(self):
+                return 'ourmodel'
+
+        self.cs = OurModelConditionSet(model=Mock)
 
     def test_can_execute(self):
         assert_true(self.cs.can_execute(Mock()))
         assert_false(self.cs.can_execute('foo'))
+
+    def test_get_id(self):
+        assert_equals(self.cs.get_id(), 'switchboard.tests.test_conditions.OurModelConditionSet(ourmodel)')
+
+    def test_get_group_label(self):
+        assert_equals(self.cs.get_group_label(), 'Ourmodel')
 
 
 class TestRequestConditionSet(object):
