@@ -6,9 +6,12 @@ switchboard.manager
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import logging
 
-from pymongo import Connection
+import pymongo
+from pymongo.mongo_client import MongoClient
 
 from .base import MongoModelDict
 from .models import (
@@ -19,6 +22,7 @@ from .models import (
 )
 from .proxy import SwitchProxy
 from .settings import settings, Settings
+import six
 
 log = logging.getLogger(__name__)
 # These are (mostly) read-only module variables since we want it shared among
@@ -31,7 +35,7 @@ registry_by_namespace = {}
 def nested_config(config):
     cfg = {}
     token = 'switchboard.'
-    for k, v in config.iteritems():
+    for k, v in six.iteritems(config):
         if k.startswith(token):
             cfg[k.replace(token, '')] = v
     return cfg
@@ -50,18 +54,23 @@ def configure(config={}, nested=False, cache=None):
 
     # Establish the connection to Mongo
     mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
-    # The config is in ms to match memcached, but pymongo wants seconds
-    mongo_timeout = mongo_timeout // 1000 if mongo_timeout else mongo_timeout
     # Ensure we have an integer for port and not a string
     mongo_port = int(settings.SWITCHBOARD_MONGO_PORT)
     try:
-        conn = Connection(settings.SWITCHBOARD_MONGO_HOST,
-                          mongo_port,
-                          network_timeout=mongo_timeout)
+        more_settings = {}
+        if pymongo.version_tuple[0] >= 3:
+            more_settings['serverSelectionTimeoutMS'] = mongo_timeout
+        conn = MongoClient(settings.SWITCHBOARD_MONGO_HOST,
+                           mongo_port,
+                           socketTimeoutMS=mongo_timeout,
+                           connectTimeoutMS=mongo_timeout,
+                           **more_settings
+                           )
+        conn.admin.command('ping')  # make sure we're actually connected
         db = conn[settings.SWITCHBOARD_MONGO_DB]
         collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
         Switch.c = collection
-    except:
+    except Exception:
         log.exception('Unable to connect to the datastore')
     # Register the builtins
     __import__('switchboard.builtins')
@@ -90,10 +99,10 @@ class SwitchManager(MongoModelDict):
         MongoModel.post_delete.connect(self.version_switch)
         super(SwitchManager, self).__init__(*new_args, **kwargs)
 
-    def __unicode__(self):
+    def __unicode__(self):  # pragma: nocover
         return "<%s: %s (%s)>" % (self.__class__.__name__,
                                   getattr(self, 'model', ''),
-                                  registry.values())
+                                  list(registry.values()))
 
     def __getitem__(self, key):
         """
@@ -112,7 +121,7 @@ class SwitchManager(MongoModelDict):
             dic = self.result_cache
             cache_key = None
             if dic is not None:
-                cache_key = (args, tuple(kwargs.items()))
+                cache_key = (args, tuple(sorted(kwargs.items())))
                 try:
                     result = dic.get(cache_key)
                 except TypeError as e:  # not hashable
@@ -171,12 +180,12 @@ class SwitchManager(MongoModelDict):
                 return default
 
             instances = list(instances) if instances else []
-            instances.extend(self.context.values())
+            instances.extend(list(self.context.values()))
 
             # check each switch to see if it can execute
             return_value = False
 
-            for namespace, condition in conditions.iteritems():
+            for namespace, condition in six.iteritems(conditions):
                 condition_set = registry_by_namespace.get(namespace)
                 if not condition_set:
                     continue
@@ -229,7 +238,7 @@ class SwitchManager(MongoModelDict):
         Returns a generator yielding all currently registered
         ConditionSet instances.
         """
-        return registry.itervalues()
+        return six.itervalues(registry)
 
     def get_all_conditions(self):
         """
@@ -240,14 +249,9 @@ class SwitchManager(MongoModelDict):
         """
         cs = self.get_condition_sets()
         for condition_set in sorted(cs, key=lambda x: x.get_group_label()):
-            group = unicode(condition_set.get_group_label())
-            for field in condition_set.fields.itervalues():
+            group = six.text_type(condition_set.get_group_label())
+            for field in six.itervalues(condition_set.fields):
                 yield condition_set.get_id(), group, field
-
-    def as_request(self, user=None, ip_address=None):
-        from .helpers import MockRequest
-
-        return MockRequest(user, ip_address)
 
     def version_switch(self, switch):
         '''

@@ -6,6 +6,8 @@ switchboard.models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from datetime import datetime
 import logging
 
@@ -14,6 +16,7 @@ from pymongo import DESCENDING
 
 from .settings import settings
 from .helpers import MockCollection
+import six
 
 log = logging.getLogger(__name__)
 
@@ -152,8 +155,8 @@ class VersioningMongoModel(MongoModel):
         prev = prev.to_bson() if prev else None
         # Both models are present so something's changed between them
         if prev and curr:
-            current_fields = curr.keys()
-            previous_fields = prev.keys()
+            current_fields = list(curr.keys())
+            previous_fields = list(prev.keys())
             added = [f for f in current_fields if f not in previous_fields]
             deleted = [f for f in previous_fields if f not in current_fields]
             changed = [f for f in current_fields if (f in previous_fields
@@ -224,7 +227,7 @@ class VersioningMongoModel(MongoModel):
                 for k in deleted.keys():
                     if k in previous:
                         del previous[k]
-                for k, v in changed.iteritems():
+                for k, v in six.iteritems(changed):
                     old, new = v
                     previous[k] = new
         previous = self.__class__(**previous) if previous else None
@@ -289,7 +292,7 @@ class Switch(VersioningMongoModel):
         super(Switch, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return u'%s=%s' % (self.key, self.value)
+        return '%s=%s' % (self.key, self.value)
 
     def get_status_display(self):
         return self.STATUS_CHOICES[self.status]
@@ -304,12 +307,12 @@ class Switch(VersioningMongoModel):
         database.
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.add_condition(condition_set_id, 'percent', [0, 50], exclude=False) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.add_condition(cs_id, 'percent', [0, 50]) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
-        assert isinstance(condition, basestring), 'conditions must be strings'
+        assert isinstance(condition, six.string_types), 'conditions must be strings'
 
         namespace = condition_set.get_namespace()
 
@@ -335,8 +338,8 @@ class Switch(VersioningMongoModel):
         database.
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.remove_condition(condition_set_id, 'percent', [0, 50]) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.remove_condition(cs_id, 'percent', [0, 50]) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -348,8 +351,9 @@ class Switch(VersioningMongoModel):
         if field_name not in self.value[namespace]:
             return
 
-        self.value[namespace][field_name] = ([c for c
-            in self.value[namespace][field_name] if c[1] != condition])
+        conditions = self.value[namespace][field_name]
+        self.value[namespace][field_name] = ([c for c in conditions
+                                             if c[1] != condition])
 
         if not self.value[namespace][field_name]:
             del self.value[namespace][field_name]
@@ -371,14 +375,14 @@ class Switch(VersioningMongoModel):
         Clear all conditions given a ConditionSet, and a field name:
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.clear_conditions(condition_set_id, 'percent') #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.clear_conditions(cs_id, 'percent') #doctest: +SKIP
 
         You can also clear all conditions given a ConditionSet:
 
         >>> switch = operator['my_switch'] #doctest: +SKIP
-        >>> condition_set_id = condition_set.get_id() #doctest: +SKIP
-        >>> switch.clear_conditions(condition_set_id) #doctest: +SKIP
+        >>> cs_id = condition_set.get_id() #doctest: +SKIP
+        >>> switch.clear_conditions(cs_id) #doctest: +SKIP
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
@@ -398,21 +402,25 @@ class Switch(VersioningMongoModel):
             self.save()
 
     def get_active_conditions(self, manager):
-        """
+        '''
         Returns a generator which yields groups of lists of conditions.
 
-        >>> for label, set_id, field, value, exclude in gargoyle.get_all_conditions(): #doctest: +SKIP
-        >>>     print "%(label)s: %(field)s = %(value)s (exclude: %(exclude)s)" % (label, field.label, value, exclude) #doctest: +SKIP
-        """
-        for condition_set in sorted(manager.get_condition_sets(), key=lambda x: x.get_group_label()):
+        >>> conditions = switch.get_active_conditions()
+        >>> for label, set_id, field, value, exc in conditions: #doctest: +SKIP
+        >>>     print ("%(label)s: %(field)s = %(value)s (exclude: %(exc)s)"
+        >>>            % (label, field.label, value, exc)) #doctest: +SKIP
+        '''
+        for condition_set in sorted(manager.get_condition_sets(),
+                                    key=lambda x: x.get_group_label()):
             ns = condition_set.get_namespace()
             condition_set_id = condition_set.get_id()
             if ns in self.value:
                 group = condition_set.get_group_label()
-                for name, field in condition_set.fields.iteritems():
+                for name, field in six.iteritems(condition_set.fields):
                     for value in self.value[ns].get(name, []):
                         try:
-                            yield condition_set_id, group, field, value[1], value[0] == EXCLUDE
+                            yield (condition_set_id, group, field, value[1],
+                                   value[0] == EXCLUDE)
                         except TypeError:
                             continue
 

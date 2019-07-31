@@ -6,6 +6,8 @@ switchboard.testutils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from functools import wraps
 
 from . import operator
@@ -69,5 +71,6 @@ class SwitchContextManager(object):
 
     def unpatch(self):
         self.operator.is_active = self.is_active_func
+
 
 switches = SwitchContextManager

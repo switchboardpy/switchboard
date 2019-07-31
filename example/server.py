@@ -1,10 +1,12 @@
+from __future__ import unicode_literals
+from __future__ import absolute_import
 from bottle import Bottle, redirect, run
 
 from switchboard import operator, configure
 from switchboard.middleware import SwitchboardMiddleware
 from switchboard.admin import app as switchboard
 
-configure()
+configure({'mongo_timeout': 1000})
 
 app = Bottle()
 app.mount('/_switchboard/', switchboard)

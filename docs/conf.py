@@ -12,6 +12,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import sys
 import os
 
@@ -43,8 +45,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Switchboard'
-copyright = u'2015, Kyle Adams'
+project = 'Switchboard'
+copyright = '2015, Kyle Adams'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -196,8 +198,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'Switchboard.tex', u'Switchboard Documentation',
-   u'Kyle Adams', 'manual'),
+  ('index', 'Switchboard.tex', 'Switchboard Documentation',
+   'Kyle Adams', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -226,8 +228,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'switchboard', u'Switchboard Documentation',
-     [u'Kyle Adams'], 1)
+    ('index', 'switchboard', 'Switchboard Documentation',
+     ['Kyle Adams'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -240,8 +242,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Switchboard', u'Switchboard Documentation',
-   u'Kyle Adams', 'Switchboard', 'One line description of project.',
+  ('index', 'Switchboard', 'Switchboard Documentation',
+   'Kyle Adams', 'Switchboard', 'One line description of project.',
    'Miscellaneous'),
 ]
 

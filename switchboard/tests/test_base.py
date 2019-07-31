@@ -6,6 +6,8 @@ switchboard.tests.test_base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import time
 import threading
 
@@ -21,13 +23,15 @@ from blinker import Signal
 from ..base import MongoModelDict, CachedDict
 from ..models import VersioningMongoModel
 from ..signals import request_finished
+import six
+from six.moves import range
 
 
 class MockModel(VersioningMongoModel):
 
     def __init__(self, *args, **kwargs):
         self._attrs = []
-        for k, v in kwargs.iteritems():
+        for k, v in six.iteritems(kwargs):
             if not hasattr(self, k):
                 self._attrs.append(k)
                 setattr(self, k, v)
@@ -122,7 +126,7 @@ class TestMongoModelDict(object):
         mydict = MongoModelDict(MockModel, key='key', value='value',
                                 auto_create=True)
         mydict['hello'] = 'foo'
-        for n in xrange(10):
+        for n in range(10):
             mydict[str(n)] = 'foo'
         assert_equals(len(mydict), 11)
         assert_equals(MockModel.count(), 11)

@@ -6,18 +6,17 @@ switchboard.admin.utils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+from __future__ import absolute_import
 import json
+import six
 
 from switchboard.conditions import Invalid
 from switchboard.settings import settings
 
 
-class SwitchboardException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return self.message
+class SwitchboardException(Exception):  # pragma: nocover
+    pass
 
 
 def json_api(func):
@@ -28,20 +27,20 @@ def json_api(func):
                 "success": True,
                 "data": func(*args, **kwargs)
             }
-        except SwitchboardException, e:
+        except SwitchboardException as e:
             response = {
                 "success": False,
-                "data": e.message
+                "data": e.args[0]
             }
         except ValueError:
             response = {
                 "success": False,
                 "data": "Switch cannot be found"
             }
-        except Invalid, e:
+        except Invalid as e:
             response = {
                 "success": False,
-                "data": u','.join(map(unicode, e.messages)),
+                "data": e.args[0],
             }
         except Exception:
             if hasattr(settings, 'DEBUG') and settings.DEBUG:
@@ -54,7 +53,7 @@ def json_api(func):
             if hasattr(obj, 'isoformat'):
                 return obj.isoformat()
             else:
-                return str(obj)
+                return six.text_type(obj)
         santized_response = json.loads(json.dumps(response, default=handler))
         return santized_response
     return wrapper

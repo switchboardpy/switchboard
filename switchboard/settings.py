@@ -6,6 +6,8 @@ switchboard.settings
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
+from __future__ import unicode_literals
+import six
 NoValue = object()
 
 
@@ -22,7 +24,7 @@ class Settings(object):
         cls._state['SWITCHBOARD_MONGO_DB'] = mongo_db
         cls._state['SWITCHBOARD_MONGO_COLLECTION'] = mongo_collection
         cls._state['SWITCHBOARD_CACHE'] = cache
-        remainder = kwargs.iteritems()
+        remainder = six.iteritems(kwargs)
         remainder = [('SWITCHBOARD_%s' % k.upper(), v) for k, v in remainder]
         # convert timeouts to ints
         remainder = [(k, int(v) if k.endswith('TIMEOUT') else v)
