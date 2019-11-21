@@ -342,6 +342,15 @@ class TestCachedDict(object):
         self.cache.get.assert_called_once_with(last_updated)
         assert_equals(result, True)
 
+    def test_is_expired_if_never_updated(self):
+        # _last_updated None
+        self.mydict._last_updated = None
+        self.cache.get.return_value = time.time()
+
+        result = self.mydict.has_global_changed()
+
+        assert_equals(result, True)
+
     @patch('switchboard.base.CachedDict._populate')
     @patch('switchboard.base.CachedDict.get_default')
     def test_returns_default_if_no_local_cache(self, get_default, populate):

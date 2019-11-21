@@ -143,7 +143,7 @@ class CachedDict(threading.local):
         if not cache_last_updated:
             return None
 
-        if int(cache_last_updated) > self._last_updated:
+        if int(cache_last_updated) > (self._last_updated or 0):
             return True
 
         return False
