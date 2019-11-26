@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import setuptools
 import sys
 
-VERSION = '1.5.0'
+VERSION = '1.5.1'
 INSTALL_REQUIRES = [
     'pymongo >= 2.4',
     'blinker >= 1.2',
