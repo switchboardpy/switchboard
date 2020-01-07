@@ -260,18 +260,28 @@ class SwitchManager(MongoModelDict):
         create a switch history. Allows changes to switches to be audited.
         '''
         # Try to get the username from both User objects and user dicts.
+        user = self.context.get('user', {})
+        username = ''
+
         try:
-            user = self.context.get('user', {})
-            if hasattr(user, 'username'):
-                username = user.username
-            else:
-                username = user.get('username', '')
+            username = user.username
         except AttributeError:
-            username = ''
+            # doesn't have that attr, ok
+            pass
+        except Exception:
+            # @property username threw some other error
+            log.debug('Error when trying user.username attr', exc_info=True)
+
+        if not username:
+            try:
+                username = user.get('username', '')
+            except AttributeError:
+                # not a dict, ok
+                pass
 
         try:
             switch.save_version(username=username)
-        except:
+        except Exception:
             log.warning('Unable to save the switch version', exc_info=True)
 
 

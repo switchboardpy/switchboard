@@ -705,6 +705,17 @@ class TestAPI(object):
         self.operator.version_switch(switch)
         switch.save_version.assert_called_with(username=username)
 
+    def test_version_switch_user_class_properror(self):
+        class OurUser:
+            @property
+            def username(self):
+                raise IOError('whoops')
+        switch = Mock()
+        switch.save_version = Mock()
+        self.operator.context = dict(user=OurUser())
+        self.operator.version_switch(switch)
+        switch.save_version.assert_called_with(username='')
+
     def test_version_switch_nonuser_class(self):
         class NonUser:
             pass
