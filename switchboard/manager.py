@@ -121,7 +121,7 @@ class SwitchManager(MongoModelDict):
             dic = self.result_cache
             cache_key = None
             if dic is not None:
-                cache_key = (args, tuple(sorted(kwargs.items())))
+                cache_key = (args, tuple(sorted(kwargs.items())) if kwargs else ())
                 try:
                     result = dic.get(cache_key)
                 except TypeError as e:  # not hashable

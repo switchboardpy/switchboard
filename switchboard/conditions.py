@@ -193,8 +193,14 @@ class Regex(String):
     regular expression used to look for matches in the actual value. Much more
     flexible than the :class:`String` field's equality comparison.
     '''
+    regex_cache = {}
+
     def is_active(self, value, actual_value):
-        return bool(re.search(value, actual_value))
+        try:
+            regex = self.regex_cache[value]
+        except KeyError:
+            regex = self.regex_cache[value] = re.compile(value)
+        return bool(regex.search(actual_value))
 
     def render(self, value):
         html = ('/<input type="text" value="%s" name="%s" '
@@ -403,7 +409,6 @@ class RequestConditionSet(ConditionSet):
         # There is no Request interface shared across libraries (Webob,
         # Werkzeug) so instead we check for enough attributes to be
         # reasonably certain this is a Request-ish object.
-        return (hasattr(instance, 'path') and
-                hasattr(instance, 'environ') and
+        return (hasattr(instance, 'environ') and
                 hasattr(instance, 'headers') and
                 hasattr(instance, 'method'))
