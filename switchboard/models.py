@@ -470,7 +470,7 @@ class Switch(VersioningMongoModel):
         Return a display-friendly list of all versions.
         '''
         vc = self._versioned_collection()
-        versions = vc.find(dict(switch_id=self._id))
-        if not versions:
-            return dict(versions={})
-        return list(versions.sort('timestamp', DESCENDING))
+        return list(vc.find(
+            dict(switch_id=self._id),
+            sort=[('timestamp', DESCENDING)],
+        ))
