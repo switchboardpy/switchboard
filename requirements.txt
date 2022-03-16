@@ -7,7 +7,6 @@ pytest
 mock
 coverage
 bottle
-paste
 splinter
 selenium>=3.0
 tox

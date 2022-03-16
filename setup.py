@@ -46,7 +46,6 @@ setuptools.setup(
     tests_require=[
         'pytest',
         'mock',
-        'paste',
         'selenium >= 3.0',
         'splinter',
     ],
