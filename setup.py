@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from __future__ import absolute_import
 import setuptools
+from pathlib import Path
 
 VERSION = '1.5.3'
 INSTALL_REQUIRES = [
@@ -12,10 +13,15 @@ INSTALL_REQUIRES = [
     'six',
 ]
 
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 setuptools.setup(
     name='switchboard',
     version=VERSION,
     description="Feature flipper for Pyramid, Pylons, or TurboGears apps.",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     # http://www.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         "Programming Language :: Python",
