@@ -41,11 +41,10 @@ setuptools.setup(
     install_requires=INSTALL_REQUIRES,
     zip_safe=False,
     tests_require=[
-        'nose',
+        'pytest',
         'mock',
         'paste',
         'selenium >= 3.0',
         'splinter',
     ],
-    test_suite='nose.collector',
 )

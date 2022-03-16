@@ -8,11 +8,6 @@ switchboard.tests.test_testutils
 
 from __future__ import unicode_literals
 from __future__ import absolute_import
-from nose.tools import (
-    assert_equals,
-    assert_true,
-    assert_false,
-)
 
 from ..models import (
     Switch,
@@ -41,8 +36,8 @@ class TestSwitchContextManager(object):
         def test():
             return self.operator.is_active('test')
 
-        assert_true(test())
-        assert_equals(self.operator['test'].status, DISABLED)
+        assert test()
+        assert self.operator['test'].status == DISABLED
 
         switch.status = GLOBAL
         switch.save()
@@ -51,22 +46,22 @@ class TestSwitchContextManager(object):
         def test2():
             return self.operator.is_active('test')
 
-        assert_false(test2())
-        assert_equals(self.operator['test'].status, GLOBAL)
+        assert not test2()
+        assert self.operator['test'].status == GLOBAL
 
     def test_context_manager(self):
         switch = self.operator['test']
         switch.status = DISABLED
 
         with switches(self.operator, test=True):
-            assert_true(self.operator.is_active('test'))
+            assert self.operator.is_active('test')
 
-        assert_equals(self.operator['test'].status, DISABLED)
+        assert self.operator['test'].status == DISABLED
 
         switch.status = GLOBAL
         switch.save()
 
         with switches(self.operator, test=False):
-            assert_false(self.operator.is_active('test'))
+            assert not self.operator.is_active('test')
 
-        assert_equals(self.operator['test'].status, GLOBAL)
+        assert self.operator['test'].status == GLOBAL

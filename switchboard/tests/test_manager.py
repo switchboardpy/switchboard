@@ -9,12 +9,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 import threading
 
-from nose.tools import (
-    assert_equals,
-    assert_true,
-    assert_false,
-    assert_raises
-)
+import pytest
 from mock import Mock, patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
@@ -60,30 +55,28 @@ class TestAPI(object):
         Switch.c.drop()
 
     def test_builtin_registration(self):
-        assert_true('switchboard.builtins.QueryStringConditionSet' in registry)
-        assert_true('switchboard.builtins.IPAddressConditionSet' in registry)
-        assert_true('switchboard.builtins.HostConditionSet' in registry)
-        assert_equals(len(list(self.operator.get_condition_sets())), 3,
-                      self.operator)
+        assert 'switchboard.builtins.QueryStringConditionSet' in registry
+        assert 'switchboard.builtins.IPAddressConditionSet' in registry
+        assert 'switchboard.builtins.HostConditionSet' in registry
+        assert len(list(self.operator.get_condition_sets())) == 3, self.operator
 
     def test_unregister(self):
         self.operator.unregister(QueryStringConditionSet)
         condition_set_id = 'switchboard.builtins.QueryStringConditionSet'
-        assert_false(condition_set_id in registry)
-        assert_equals(len(list(self.operator.get_condition_sets())), 2,
-                      self.operator)
+        assert not condition_set_id in registry
+        assert len(list(self.operator.get_condition_sets())) == 2, self.operator
 
     def test_get_all_conditions(self):
         conditions = list(self.operator.get_all_conditions())
-        assert_equals(len(conditions), 5)
+        assert len(conditions) == 5
         for set_id, label, field in conditions:
-            assert_true(set_id in registry)
+            assert set_id in registry
 
     @patch('switchboard.base.MongoModelDict.get_default')
     def test_error(self, get_default):
         # force the is_active call to fail right away
         get_default.side_effect = Exception('Boom!')
-        assert_false(self.operator.is_active('test'))
+        assert not self.operator.is_active('test')
 
     def test_exclusions(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -108,10 +101,10 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        assert_true(self.operator.is_active('test', req))
+        assert self.operator.is_active('test', req)
 
         req.environ['REMOTE_ADDR'] = '10.1.1.1'
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
     def test_only_exclusions(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -131,10 +124,10 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
         req.environ['REMOTE_ADDR'] = '10.1.1.1'
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
     def test_decorator_for_ip_address(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -153,7 +146,7 @@ class TestAPI(object):
         def test():
             return True
 
-        assert_raises(HTTPNotFound, test)
+        pytest.raises(HTTPNotFound, test)
 
         switch.status = SELECTIVE
         switch.save()
@@ -164,7 +157,7 @@ class TestAPI(object):
             condition='192.168.1.1',
         )
 
-        assert_true(test())
+        assert test()
 
         # add in a second condition, so that removing the first one won't kick
         # in the "no conditions returns is_active True for selective switches"
@@ -180,7 +173,7 @@ class TestAPI(object):
             condition='192.168.1.1',
         )
 
-        assert_raises(HTTPNotFound, test)
+        pytest.raises(HTTPNotFound, test)
 
         switch.add_condition(
             condition_set=condition_set,
@@ -188,7 +181,7 @@ class TestAPI(object):
             condition='192.168.1.1',
         )
 
-        assert_true(test())
+        assert test()
 
         switch.clear_conditions(
             condition_set=condition_set,
@@ -201,7 +194,7 @@ class TestAPI(object):
             condition='50-100',
         )
 
-        assert_true(test())
+        assert test()
 
         switch.clear_conditions(
             condition_set=condition_set,
@@ -213,7 +206,7 @@ class TestAPI(object):
             condition='0-50',
         )
 
-        assert_raises(HTTPNotFound, test)
+        pytest.raises(HTTPNotFound, test)
 
     def test_decorator_with_redirect(self):
         Switch.create(
@@ -228,7 +221,7 @@ class TestAPI(object):
         def test():
             return True
 
-        assert_raises(HTTPFound, test)
+        pytest.raises(HTTPFound, test)
 
     def test_global(self):
         switch = Switch.create(
@@ -239,14 +232,14 @@ class TestAPI(object):
 
         req = Request.blank('/')
 
-        assert_false(self.operator.is_active('test'))
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test')
+        assert not self.operator.is_active('test', req)
 
         switch.status = GLOBAL
         switch.save()
 
-        assert_true(self.operator.is_active('test'))
-        assert_true(self.operator.is_active('test', req))
+        assert self.operator.is_active('test')
+        assert self.operator.is_active('test', req)
 
     def test_disable(self):
         switch = Switch.create(key='test')
@@ -258,20 +251,20 @@ class TestAPI(object):
         switch.status = DISABLED
         switch.save()
 
-        assert_false(self.operator.is_active('test'))
+        assert not self.operator.is_active('test')
 
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
     def test_deletion(self):
         switch = Switch.create(key='test')
 
         switch = self.operator['test']
 
-        assert_true('test' in self.operator)
+        assert 'test' in self.operator
 
         switch.delete()
 
-        assert_false('test' in self.operator)
+        assert not 'test' in self.operator
 
     def test_expiration(self):
         switch = Switch.create(key='test')
@@ -281,7 +274,7 @@ class TestAPI(object):
         switch.status = DISABLED
         switch.save()
 
-        assert_false(self.operator.is_active('test'))
+        assert not self.operator.is_active('test')
 
     def test_ip_address_internal_ips(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -295,7 +288,7 @@ class TestAPI(object):
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
 
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
         switch.add_condition(
             condition_set=condition_set,
@@ -305,11 +298,11 @@ class TestAPI(object):
 
         settings.SWITCHBOARD_INTERNAL_IPS = ['192.168.1.1']
 
-        assert_true(self.operator.is_active('test', req))
+        assert self.operator.is_active('test', req)
 
         settings.SWITCHBOARD_INTERNAL_IPS = []
 
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
     def test_ip_address(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -323,7 +316,7 @@ class TestAPI(object):
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
 
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
         switch.add_condition(
             condition_set=condition_set,
@@ -331,7 +324,7 @@ class TestAPI(object):
             condition='192.168.1.1',
         )
 
-        assert_true(self.operator.is_active('test', req))
+        assert self.operator.is_active('test', req)
 
         switch.clear_conditions(
             condition_set=condition_set,
@@ -342,13 +335,13 @@ class TestAPI(object):
             condition='127.0.0.1',
         )
 
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
         switch.clear_conditions(
             condition_set=condition_set,
         )
 
-        assert_false(self.operator.is_active('test', req))
+        assert not self.operator.is_active('test', req)
 
         switch.add_condition(
             condition_set=condition_set,
@@ -356,7 +349,7 @@ class TestAPI(object):
             condition='50-100',
         )
 
-        assert_true(self.operator.is_active('test', req))
+        assert self.operator.is_active('test', req)
 
     def test_to_dict(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -377,35 +370,35 @@ class TestAPI(object):
 
         result = switch.to_dict(self.operator)
 
-        assert_true('label' in result)
-        assert_equals(result['label'], 'my switch')
+        assert 'label' in result
+        assert result['label'] == 'my switch'
 
-        assert_true('status' in result)
-        assert_equals(result['status'], SELECTIVE)
+        assert 'status' in result
+        assert result['status'] == SELECTIVE
 
-        assert_true('description' in result)
-        assert_equals(result['description'], 'foo bar baz')
+        assert 'description' in result
+        assert result['description'] == 'foo bar baz'
 
-        assert_true('key' in result)
-        assert_equals(result['key'], 'test')
+        assert 'key' in result
+        assert result['key'] == 'test'
 
-        assert_true('conditions' in result)
-        assert_equals(len(result['conditions']), 1)
+        assert 'conditions' in result
+        assert len(result['conditions']) == 1
 
         condition = result['conditions'][0]
-        assert_true('id' in condition)
-        assert_equals(condition['id'], condition_set)
-        assert_true('label' in condition)
-        assert_equals(condition['label'], 'IP Address')
-        assert_true('conditions' in condition)
-        assert_equals(len(condition['conditions']), 1)
+        assert 'id' in condition
+        assert condition['id'] == condition_set
+        assert 'label' in condition
+        assert condition['label'] == 'IP Address'
+        assert 'conditions' in condition
+        assert len(condition['conditions']) == 1
 
         inner_condition = condition['conditions'][0]
-        assert_equals(len(inner_condition), 4)
-        assert_true(inner_condition[0], 'ip_address')
-        assert_true(inner_condition[1], '192.168.1.1')
-        assert_true(inner_condition[2], '192.168.1.1')
-        assert_false(inner_condition[3])
+        assert len(inner_condition) == 4
+        assert inner_condition[0], 'ip_address'
+        assert inner_condition[1], '192.168.1.1'
+        assert inner_condition[2], '192.168.1.1'
+        assert not inner_condition[3]
 
     def test_remove_condition(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -420,7 +413,7 @@ class TestAPI(object):
         req1.environ['REMOTE_ADDR'] = '192.168.1.1'
 
         # inactive if selective with no conditions
-        assert_false(self.operator.is_active('test', req1))
+        assert not self.operator.is_active('test', req1)
 
         req2 = Request.blank('/2')
         req2.environ['REMOTE_ADDR'] = '10.1.1.1'
@@ -430,9 +423,9 @@ class TestAPI(object):
             field_name='internal_ip',
             condition='1',
         )
-        assert_true(self.operator.is_active('test', req2))
+        assert self.operator.is_active('test', req2)
         # No longer is_active for IP as we have other conditions
-        assert_false(self.operator.is_active('test', req1))
+        assert not self.operator.is_active('test', req1)
 
         switch.remove_condition(
             condition_set=condition_set,
@@ -441,8 +434,8 @@ class TestAPI(object):
         )
 
         # back to inactive for everyone with no conditions
-        assert_false(self.operator.is_active('test', req1))
-        assert_false(self.operator.is_active('test', req2))
+        assert not self.operator.is_active('test', req1)
+        assert not self.operator.is_active('test', req2)
 
     def test_switch_defaults(self):
         """Test that defaults are pulled from SWITCHBOARD_SWITCH_DEFAULTS.
@@ -450,20 +443,18 @@ class TestAPI(object):
         Requires SwitchManager to use auto_create.
 
         """
-        assert_true(self.operator.is_active('active_by_default'))
-        assert_false(self.operator.is_active('inactive_by_default'))
-        assert_equals(
-            self.operator['inactive_by_default'].label,
-            'Default Inactive',
-        )
-        assert_equals(
-            self.operator['active_by_default'].label,
-            'Default Active',
-        )
+        assert self.operator.is_active('active_by_default')
+        assert not self.operator.is_active('inactive_by_default')
+        assert (
+            self.operator['inactive_by_default'].label ==
+            'Default Inactive')
+        assert (
+            self.operator['active_by_default'].label ==
+            'Default Active')
         active_by_default = self.operator['active_by_default']
         active_by_default.status = DISABLED
         active_by_default.save()
-        assert_false(self.operator.is_active('active_by_default'))
+        assert not self.operator.is_active('active_by_default')
 
     def test_invalid_condition(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -477,7 +468,7 @@ class TestAPI(object):
         req1 = Request.blank('/1')
 
         # inactive if selective with no conditions
-        assert_false(self.operator.is_active('test', req1))
+        assert not self.operator.is_active('test', req1)
 
         req2 = Request.blank('/2')
         req2.environ['REMOTE_ADDR'] = '10.1.1.1'
@@ -487,7 +478,7 @@ class TestAPI(object):
             field_name='foo',
             condition='1',
         )
-        assert_false(self.operator.is_active('test', req2))
+        assert not self.operator.is_active('test', req2)
 
     def test_inheritance(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -514,30 +505,30 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '1.1.1.1'
-        assert_true(self.operator.is_active('test:child', req))
+        assert self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '20.20.20.20'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
         # Test parent with disabled status.
         parent_switch.status = DISABLED
         parent_switch.save()
 
         req.environ['REMOTE_ADDR'] = '1.1.1.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '20.20.20.20'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
         # Test parent with global status.
         parent_switch.status = GLOBAL
         parent_switch.save()
 
         req.environ['REMOTE_ADDR'] = '1.1.1.1'
-        assert_true(self.operator.is_active('test:child', req))
+        assert self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '20.20.20.20'
-        assert_true(self.operator.is_active('test:child', req))
+        assert self.operator.is_active('test:child', req)
 
     def test_parent_override_child_state(self):
         Switch.create(
@@ -550,7 +541,7 @@ class TestAPI(object):
             status=GLOBAL,
         )
 
-        assert_false(self.operator.is_active('test:child'))
+        assert not self.operator.is_active('test:child')
 
     def test_child_state_is_used(self):
         Switch.create(
@@ -563,7 +554,7 @@ class TestAPI(object):
             status=DISABLED,
         )
 
-        assert_false(self.operator.is_active('test:child'))
+        assert not self.operator.is_active('test:child')
 
     def test_parent_override_child_condition(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -588,12 +579,12 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        assert_true(self.operator.is_active('test:child', req))
+        assert self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '10.1.1.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
-        assert_false(self.operator.is_active('test:child'))
+        assert not self.operator.is_active('test:child')
 
     def test_child_condition_differing_than_parent_loses(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -626,15 +617,15 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '10.1.1.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '127.0.0.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
-        assert_false(self.operator.is_active('test:child'))
+        assert not self.operator.is_active('test:child')
 
     def test_child_condition_including_parent_wins(self):
         condition_set = 'switchboard.builtins.IPAddressConditionSet'
@@ -672,15 +663,15 @@ class TestAPI(object):
 
         req = Request.blank('/')
         req.environ['REMOTE_ADDR'] = '192.168.1.1'
-        assert_true(self.operator.is_active('test:child', req))
+        assert self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '10.1.1.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
         req.environ['REMOTE_ADDR'] = '127.0.0.1'
-        assert_false(self.operator.is_active('test:child', req))
+        assert not self.operator.is_active('test:child', req)
 
-        assert_false(self.operator.is_active('test:child'))
+        assert not self.operator.is_active('test:child')
 
     def test_version_switch_no_user(self):
         switch = Mock()
@@ -744,8 +735,8 @@ class TestAPI(object):
     def test_defaults_on_key_error(self, getitem):
         getitem.side_effect = KeyError()
         operator = SwitchManager()
-        assert_true(operator.is_active('test', default=True))
-        assert_false(operator.is_active('test', default=False))
+        assert operator.is_active('test', default=True)
+        assert not operator.is_active('test', default=False)
 
 
 class TestConfigure(object):
@@ -767,13 +758,13 @@ class TestConfigure(object):
 
     def assert_settings(self):
         for k, v in six.iteritems(self.config):
-            assert_equals(getattr(settings, 'SWITCHBOARD_%s' % k.upper()), v)
+            assert getattr(settings, 'SWITCHBOARD_%s' % k.upper()) == v
 
     @patch('switchboard.manager.MongoClient')
     def test_unnested(self, MongoClient):
         configure(self.config)
         self.assert_settings()
-        assert_false(isinstance(Switch.c, MockCollection))
+        assert not isinstance(Switch.c, MockCollection)
 
     @patch('switchboard.manager.MongoClient')
     def test_nested(self, MongoClient):
@@ -783,13 +774,13 @@ class TestConfigure(object):
         cfg['foo.bar'] = 'baz'
         configure(cfg, nested=True)
         self.assert_settings()
-        assert_false(isinstance(Switch.c, MockCollection))
+        assert not isinstance(Switch.c, MockCollection)
 
     @patch('switchboard.manager.MongoClient')
     def test_database_failure(self, MongoClient):
         MongoClient.side_effect = Exception('Boom!')
         configure(self.config)
-        assert_true(isinstance(Switch.c, MockCollection))
+        assert isinstance(Switch.c, MockCollection)
 
 
 class TestManagerConcurrency(object):
@@ -808,7 +799,7 @@ class TestManagerConcurrency(object):
 
         def verify_context():
             try:
-                assert_equals(self.operator.context.get('foo'), None)
+                assert self.operator.context.get('foo') == None
             except Exception as e:
                 self.exc = e
 
@@ -835,20 +826,20 @@ class TestManagerResultCaching(object):
             status=GLOBAL,
         )
         # first time
-        assert_true(self.operator.is_active('test'))
+        assert self.operator.is_active('test')
         # still the same 2nd time
-        assert_true(self.operator.is_active('test'))
+        assert self.operator.is_active('test')
         # still the same even if something actually changed
         switch.status = DISABLED
         switch.save()
-        assert_true(self.operator.is_active('test'))
+        assert self.operator.is_active('test')
         # changes after cache is cleared
         self.operator.result_cache = {}
-        assert_false(self.operator.is_active('test'))
+        assert not self.operator.is_active('test')
         # make sure the false value was cached too
         switch.status = GLOBAL
         switch.save()
-        assert_false(self.operator.is_active('test'))
+        assert not self.operator.is_active('test')
 
 
 class TestManagerResultCacheDecorator(object):
@@ -868,16 +859,16 @@ class TestManagerResultCacheDecorator(object):
     def test_decorator_nocache(self):
         operator_self = Mock(result_cache=None)
         result = self.cached_is_active_func(operator_self, 'mykey')
-        assert_true(result)
-        assert_equals(operator_self.result_cache, None)
+        assert result
+        assert operator_self.result_cache == None
 
     def test_decorator_simple(self):
         operator_self = Mock(result_cache={})
         result = self.cached_is_active_func(operator_self, 'mykey')
-        assert_true(result)
-        assert_equals(operator_self.result_cache, {
+        assert result
+        assert operator_self.result_cache == {
             (('mykey',), ()): True
-        })
+        }
 
     def test_decorator_uses_cache(self):
         # Put False in cache, to ensure only the cache is used, not
@@ -886,27 +877,27 @@ class TestManagerResultCacheDecorator(object):
             (('mykey',), ()): False
         })
         result = self.cached_is_active_func(operator_self, 'mykey')
-        assert_false(result)
-        assert_equals(operator_self.result_cache, {
+        assert not result
+        assert operator_self.result_cache == {
             (('mykey',), ()): False
-        })
+        }
 
     def test_decorator_with_params(self):
         operator_self = Mock(result_cache={})
         result = self.cached_is_active_func(operator_self, 'mykey',
                                             'someval', a=1, b=2)
-        assert_true(result)
-        assert_equals(operator_self.result_cache, {
+        assert result
+        assert operator_self.result_cache == {
             (('mykey', 'someval'),
              (('a', 1), ('b', 2))): True
-        })
+        }
 
     def test_decorator_uncachable_params(self):
         operator_self = Mock(result_cache={})
         # A dict isn't hashable, can't be cached.
         result = self.cached_is_active_func(operator_self, 'mykey', {})
-        assert_true(result)
-        assert_equals(operator_self.result_cache, {})
+        assert result
+        assert operator_self.result_cache == {}
 
 
 class TestManagerConstants(object):
@@ -914,21 +905,21 @@ class TestManagerConstants(object):
         self.operator = SwitchManager()
 
     def test_disabled(self):
-        assert_true(hasattr(self.operator, 'DISABLED'))
-        assert_equals(self.operator.DISABLED, DISABLED)
+        assert hasattr(self.operator, 'DISABLED')
+        assert self.operator.DISABLED == DISABLED
 
     def test_selective(self):
-        assert_true(hasattr(self.operator, 'SELECTIVE'))
-        assert_equals(self.operator.SELECTIVE, SELECTIVE)
+        assert hasattr(self.operator, 'SELECTIVE')
+        assert self.operator.SELECTIVE == SELECTIVE
 
     def test_global(self):
-        assert_true(hasattr(self.operator, 'GLOBAL'))
-        assert_equals(self.operator.GLOBAL, GLOBAL)
+        assert hasattr(self.operator, 'GLOBAL')
+        assert self.operator.GLOBAL == GLOBAL
 
     def test_include(self):
-        assert_true(hasattr(self.operator, 'INCLUDE'))
-        assert_equals(self.operator.INCLUDE, INCLUDE)
+        assert hasattr(self.operator, 'INCLUDE')
+        assert self.operator.INCLUDE == INCLUDE
 
     def test_exclude(self):
-        assert_true(hasattr(self.operator, 'EXCLUDE'))
-        assert_equals(self.operator.EXCLUDE, EXCLUDE)
+        assert hasattr(self.operator, 'EXCLUDE')
+        assert self.operator.EXCLUDE == EXCLUDE

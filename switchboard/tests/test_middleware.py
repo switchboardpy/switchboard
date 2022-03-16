@@ -9,7 +9,6 @@ switchboard.tests.test_manager
 from __future__ import unicode_literals
 from __future__ import absolute_import
 from mock import Mock, patch
-from nose.tools import assert_true
 from webob import Request
 
 from .. import operator
@@ -30,13 +29,13 @@ class TestSwitchboardMiddleware(object):
         environ = {}
         start_response = Mock()
         self.middleware(environ, start_response)
-        assert_true('request' in operator.context)
-        assert_true(pre_request.called)
-        assert_true(post_request.called)
-        assert_true(request_finished.called)
+        assert 'request' in operator.context
+        assert pre_request.called
+        assert post_request.called
+        assert request_finished.called
 
     @patch('switchboard.middleware.request_finished.send')
     def test_request_finished(self, send):
         req = Request.blank('/')
         self.middleware.request_finished(req)
-        assert_true(send.called)
+        assert send.called
