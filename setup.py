@@ -5,7 +5,7 @@ from pathlib import Path
 
 VERSION = '1.5.3'
 INSTALL_REQUIRES = [
-    'pymongo >= 3',
+    'pymongo >= 3, < 4',
     'blinker >= 1.2',
     'WebOb >= 0.9',
     'Mako >= 0.9',
