@@ -9,7 +9,7 @@ test:
 
 functional-test:
 	python -u example/server.py & echo $$! > $(SERVER_PID)
-	pytest example/tests.py; ret=$$?; kill -9 `cat $(SERVER_PID)`; rm $(SERVER_PID); exit $$ret
+	pytest --tb=short example/tests.py; ret=$$?; kill -9 `cat $(SERVER_PID)`; rm $(SERVER_PID); exit $$ret
 
 test-coverage:
 	tox -e coverage
