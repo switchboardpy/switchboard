@@ -762,7 +762,7 @@ class TestConfigure(object):
 
     @patch('switchboard.manager.MongoClient')
     def test_unnested(self, MongoClient):
-        configure(self.config)
+        configure(self.config, allow_no_mongo=True)
         self.assert_settings()
         assert not isinstance(Switch.c, MockCollection)
 
@@ -772,15 +772,23 @@ class TestConfigure(object):
         for k, v in six.iteritems(self.config):
             cfg['switchboard.%s' % k] = v
         cfg['foo.bar'] = 'baz'
-        configure(cfg, nested=True)
+        configure(cfg, nested=True, allow_no_mongo=True)
         self.assert_settings()
         assert not isinstance(Switch.c, MockCollection)
 
     @patch('switchboard.manager.MongoClient')
-    def test_database_failure(self, MongoClient):
+    def test_database_failure_permitted(self, MongoClient):
         MongoClient.side_effect = Exception('Boom!')
-        configure(self.config)
+        configure(self.config, allow_no_mongo=True)
         assert isinstance(Switch.c, MockCollection)
+
+    @patch('switchboard.manager.MongoClient')
+    def test_database_failure_fails(self, MongoClient):
+        class CustomException(Exception):
+            pass
+        MongoClient.side_effect = CustomException('Boom!')
+        with pytest.raises(CustomException):
+            configure(self.config)
 
 
 class TestManagerConcurrency(object):

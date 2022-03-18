@@ -41,7 +41,7 @@ def nested_config(config):
     return cfg
 
 
-def configure(config={}, nested=False, cache=None):
+def configure(config={}, nested=False, cache=None, allow_no_mongo=False):
     """
     Useful for when you need to control Switchboard's setup
     """
@@ -71,7 +71,10 @@ def configure(config={}, nested=False, cache=None):
         collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
         Switch.c = collection
     except Exception:
-        log.exception('Unable to connect to the datastore')
+        if allow_no_mongo:
+            log.exception('Unable to connect to the datastore, will use in-memory switch collection')
+        else:
+            raise
     # Register the builtins
     __import__('switchboard.builtins')
 

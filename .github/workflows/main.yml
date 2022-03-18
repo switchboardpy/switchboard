@@ -65,7 +65,7 @@ jobs:
         # TODO: have this be part of a venv, and part of tox perhaps
         run: |
           make install
-          SELENIUM_REMOTE=1 make functional-test
+          SELENIUM_REMOTE=1 MUST_USE_REAL_MONGO=1 make functional-test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

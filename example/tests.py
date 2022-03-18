@@ -22,7 +22,6 @@ import os
 
 from splinter import Browser
 
-from switchboard import configure
 from switchboard.models import (
     DISABLED,
     SELECTIVE,
@@ -30,7 +29,6 @@ from switchboard.models import (
     Switch,
 )
 
-configure()
 
 url = 'http://localhost:8080/'
 admin_url = url + '_switchboard/'
