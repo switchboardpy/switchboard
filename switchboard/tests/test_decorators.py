@@ -8,7 +8,8 @@ switchboard.tests.test_decorators
 
 from __future__ import unicode_literals
 from __future__ import absolute_import
-from nose.tools import assert_equals, raises
+
+import pytest
 from webob.exc import HTTPNotFound, HTTPFound
 
 from ..decorators import switch_is_active
@@ -24,12 +25,13 @@ def test_switch_is_active_active():
 
 
 @switches(test=False)
-@raises(HTTPNotFound)
 def test_switch_is_active_inactive():
     @switch_is_active('test')
     def test():
         pass
-    test()
+
+    with pytest.raises(HTTPNotFound):
+        test()
 
 
 @switches(test=False)
@@ -44,4 +46,4 @@ def test_switch_is_active_inactive_redirect():
         test()
         raise AssertionError('HTTPNotFound was not raised.')
     except HTTPFound as e:
-        assert_equals(e.location, location)
+        assert e.location == location

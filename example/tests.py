@@ -17,10 +17,11 @@ example``, the example app should already be running in another console.
 
 from __future__ import unicode_literals
 from __future__ import absolute_import
-from nose.tools import assert_true, assert_false
+
+import os
+
 from splinter import Browser
 
-from switchboard import configure
 from switchboard.models import (
     DISABLED,
     SELECTIVE,
@@ -28,7 +29,6 @@ from switchboard.models import (
     Switch,
 )
 
-configure()
 
 url = 'http://localhost:8080/'
 admin_url = url + '_switchboard/'
@@ -36,20 +36,25 @@ admin_url = url + '_switchboard/'
 
 def assert_switch_active(browser, url=url):
     browser.visit(url)
-    assert_true(browser.is_text_present('is active'),
-                'Switch is not active')
+    assert browser.is_text_present('is active'), 'Switch is not active'
 
 
 def assert_switch_inactive(browser, url=url):
     browser.visit(url)
-    assert_true(browser.is_text_present('is NOT active'),
-                'Switch is not inactive')
+    assert browser.is_text_present('is NOT active'), 'Switch is not inactive'
 
 
 class TestAdmin(object):
     @classmethod
     def setup_class(cls):
-        cls.b = Browser()
+        browser_kwargs = {}
+        if os.environ.get('SELENIUM_REMOTE'):
+            browser_kwargs = dict(
+                driver_name='remote',
+                command_executor='http://localhost:4444',
+            )
+        cls.b = Browser(**browser_kwargs)
+
         # Ensure we're working with a clean slate.
         Switch.c.drop()
 
@@ -70,7 +75,7 @@ class TestAdmin(object):
 
     def test_admin_index(self):
         self.b.visit(admin_url)
-        assert_true(len(self.b.find_by_id('id_example')))
+        assert len(self.b.find_by_id('id_example'))
 
     def test_change_status(self):
         # Set the switch to global status and verify it's active.
@@ -82,7 +87,7 @@ class TestAdmin(object):
         active_selector = css.format(status=GLOBAL)
         is_status_updated = self.b.is_element_present_by_css(active_selector,
                                                              wait_time=10)
-        assert_true(is_status_updated, 'Switch status not updated')
+        assert is_status_updated, 'Switch status not updated'
         self.b.visit(url)
         assert_switch_active(self.b)
         # Set the switch back to inactive and verify.
@@ -91,7 +96,7 @@ class TestAdmin(object):
         inactive_selector = css.format(status=DISABLED)
         is_status_updated = self.b.is_element_present_by_css(inactive_selector,
                                                              wait_time=10)
-        assert_true(is_status_updated, 'Switch status not updated')
+        assert is_status_updated, 'Switch status not updated'
         self.b.visit(url)
         assert_switch_inactive(self.b)
 
@@ -103,7 +108,7 @@ class TestAdmin(object):
         btn.click()
         # Setup a condition.
         form = switch.find_by_css('.conditions-form').first
-        assert_true(form.visible, 'Add conditions form is not visible.')
+        assert form.visible, 'Add conditions form is not visible.'
         condition_id = 'switchboard.builtins.QueryStringConditionSet,regex'
         # Can't use select() here because it doesn't support <optgroup>.
         css = 'select[name="{}"] option[value="{}"]'.format(
@@ -113,7 +118,7 @@ class TestAdmin(object):
         form.find_by_css(css)._element.click()
         css = '.fields[data-path="{}"]'.format(condition_id.replace(',', '.'))
         field = form.find_by_css(css)
-        assert_true(field.visible, 'Condition field is not visible')
+        assert field.visible, 'Condition field is not visible'
         data_value = 'test'
         field.find_by_name('regex').fill(data_value)
         field.find_by_css('button[type="submit"]').first.click()
@@ -130,7 +135,7 @@ class TestAdmin(object):
         )
         is_created = self.b.is_element_present_by_css(condition_css,
                                                       wait_time=10)
-        assert_true(is_created, 'Condition was not created')
+        assert is_created, 'Condition was not created'
         # Set the proper status.
         self.b.select('status_example', SELECTIVE)
         # Ensure that the switch is off when condition is not met...
@@ -143,7 +148,7 @@ class TestAdmin(object):
         cond.find_by_css('a[href="#delete-condition"]').first.click()
         is_deleted = self.b.is_element_not_present_by_css(condition_css,
                                                           wait_time=10)
-        assert_true(is_deleted, 'Condition was not deleted')
+        assert is_deleted, 'Condition was not deleted'
         # Verify that the switch is no longer active.
         assert_switch_inactive(self.b, url=url + '?test')
 
@@ -152,27 +157,27 @@ class TestAdmin(object):
         # Add the switch.
         self.b.find_link_by_href('#add-switch').first.click()
         drawer = self.b.find_by_css('.drawer').first
-        assert_true(drawer.visible, 'Drawer is not visible')
+        assert drawer.visible, 'Drawer is not visible'
         key = 'test1'
         drawer.find_by_css('input[name="key"]').first.fill(key)
         drawer.find_by_css('a.submit-switch').first.click()
         # Verify the addition.
         is_added = self.b.is_element_present_by_css('#id_{}'.format(key),
                                                     wait_time=10)
-        assert_true(is_added, 'Switch was not added.')
-        assert_false(drawer.visible, 'Drawer is not hidden')
+        assert is_added, 'Switch was not added.'
+        assert not drawer.visible, 'Drawer is not hidden'
         # Edit the switch.
         self.show_switch_actions()
         css = '#id_{} a[href="#edit-switch"]'.format(key)
         self.b.find_by_css(css).first.click()
-        assert_true(drawer.visible, 'Drawer is not visible')
+        assert drawer.visible, 'Drawer is not visible'
         label = 'Foobar'
         drawer.find_by_css('input[name="label"]').first.fill(label)
         drawer.find_by_css('a.submit-switch').first.click()
         # Verify the edit.
         is_edited = self.b.is_text_present(label, wait_time=10)
-        assert_true(is_edited, 'Switch was not edited.')
-        assert_false(drawer.visible, 'Drawer is not hidden')
+        assert is_edited, 'Switch was not edited.'
+        assert not drawer.visible, 'Drawer is not hidden'
         # Delete the switch.
         self.show_switch_actions()
         css = '#id_{} a[href="#delete-switch"]'.format(key)
@@ -182,7 +187,7 @@ class TestAdmin(object):
         # Verify the deletion.
         is_deleted = self.b.is_element_not_present_by_css('#id_{}'.format(key),
                                                           wait_time=10)
-        assert_true(is_deleted, 'Switch was not deleted.')
+        assert is_deleted, 'Switch was not deleted.'
 
     def test_switch_history(self):
         self.b.visit(admin_url)
@@ -193,12 +198,12 @@ class TestAdmin(object):
         # Verify the history appears.
         is_present = self.b.is_element_present_by_css('.drawer .version',
                                                       wait_time=10)
-        assert_true(is_present, 'Switch history not found.')
+        assert is_present, 'Switch history not found.'
         drawer = self.b.find_by_css('.drawer').first
-        assert_true(drawer.visible, 'Drawer is not visible')
+        assert drawer.visible, 'Drawer is not visible'
         # Close the history.
         drawer.find_by_css('.close-action').first.click()
-        assert_false(drawer.visible, 'Drawer is not hidden')
+        assert not drawer.visible, 'Drawer is not hidden'
 
     def show_switch_actions(self):
         '''

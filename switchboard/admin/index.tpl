@@ -663,7 +663,7 @@
               var html = templates.switchHistory({ versions: data.data });
               $drawer.trigger('drawer:show', [html, $row]);
             } else {
-              alert("Unable to retrieve the switch's history.")
+              alert("Unable to retrieve the switch's history. Got: " + JSON.stringify(data));
             }
           });
         });

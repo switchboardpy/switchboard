@@ -1,12 +1,17 @@
 from __future__ import unicode_literals
 from __future__ import absolute_import
+
+import os
+
 from bottle import Bottle, redirect, run
 
 from switchboard import operator, configure
 from switchboard.middleware import SwitchboardMiddleware
 from switchboard.admin import app as switchboard
 
-configure({'mongo_timeout': 1000})
+configure({'mongo_timeout': 1000},
+          allow_no_mongo=not os.environ.get('MUST_USE_REAL_MONGO'),
+          )
 
 app = Bottle()
 app.mount('/_switchboard/', switchboard)
@@ -27,6 +32,5 @@ def trailing_slash():
 
 app = SwitchboardMiddleware(app)
 
-
-run(app, host='localhost', port=8080, debug=True, server='paste',
-    reloader=True)
+run(app, host='localhost', port=8080, debug=True,
+    reloader=False)

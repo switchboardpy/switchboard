@@ -1,0 +1,76 @@
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
+          - "3.10"
+
+    services:
+      mongodb:
+        image: mongo:4  # from docker hub
+        ports:
+          - 27017:27017
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade tox
+
+      - name: Run tox targets for ${{ matrix.python-version }}
+        # sed is used to remove the '.' so '3.7' becomes '37' for tox (and pypy3 doesn't become pypypy3)
+        run: tox -e py`echo ${{ matrix.python-version }} | sed s/\\\.// | sed s/pypy/py/`
+
+      - name: Run coverage
+        # TODO kind of redundant with main `tox` run above
+        run: |
+          make test-coverage
+
+      # run docker directly rather than a `services` entry above, because --network=host is needed for selenium to reach our localhost:8080 server
+      - name: Start Selenium docker daemon
+        run: docker run --name selenium --rm -d --network=host -v /dev/shm:/dev/shm selenium/standalone-firefox:4
+
+      - name: Wait until the Selenium instance is ready
+        run: until nc -w 1 127.0.0.1 4444; do sleep 1; done
+
+      - name: Run functional-test
+        # TODO: have this be part of a venv, and part of tox perhaps
+        run: |
+          make install
+          SELENIUM_REMOTE=1 MUST_USE_REAL_MONGO=1 make functional-test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+          flags: tests-${{ matrix.python-version }}
+          name: codecov-umbrella
+          verbose: true

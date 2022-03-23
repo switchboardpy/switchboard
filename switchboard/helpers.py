@@ -36,7 +36,7 @@ class MockCollection(object):
         result = self.find(spec)
         return result[0] if result else None
 
-    def find(self, spec=None):
+    def find(self, spec=None, sort=None):
         results = []
         if not spec:
             # Return a copy of the list so that updating the returned list does

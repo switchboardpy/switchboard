@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/switchboardpy/switchboard.svg?branch=master)](https://travis-ci.org/switchboardpy/switchboard)
+[![Build Status](https://github.com/switchboardpy/switchboard/actions/workflows/main.yml/badge.svg)](https://github.com/switchboardpy/switchboard/actions/workflows/main.yml)
 [![Code Coverage](https://codecov.io/gh/switchboardpy/switchboard/branch/master/graph/badge.svg)](https://codecov.io/gh/switchboardpy/switchboard)
 
 

@@ -44,7 +44,7 @@ def index():
     if by not in valid_sort_orders():
         raise HTTPNotFound('Invalid sort order.')
 
-    reverse = by.find('-') is 0
+    reverse = by.find('-') == 0
     sort_by = by.lstrip('-')
 
     switches = Switch.all()

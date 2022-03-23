@@ -11,7 +11,7 @@ from __future__ import absolute_import
 from datetime import datetime
 
 from mock import patch
-from nose.tools import assert_equals, assert_true, raises
+import pytest
 
 from switchboard.admin.utils import (
     SwitchboardException,
@@ -29,7 +29,7 @@ def test_json_api_success():
     def tester():
         return data
 
-    assert_equals(tester(), dict(success=True, data=data))
+    assert tester() == dict(success=True, data=data)
 
 
 def test_json_api_switchboard_exception():
@@ -37,7 +37,7 @@ def test_json_api_switchboard_exception():
     def tester():
         raise SwitchboardException('Boom!')
 
-    assert_equals(tester(), dict(success=False, data='Boom!'))
+    assert tester() == dict(success=False, data='Boom!')
 
 
 def test_json_api_value_error():
@@ -45,7 +45,7 @@ def test_json_api_value_error():
     def tester():
         raise ValueError
 
-    assert_equals(tester(), dict(success=False, data='Switch cannot be found'))
+    assert tester() == dict(success=False, data='Switch cannot be found')
 
 
 def test_json_api_invalid():
@@ -53,16 +53,16 @@ def test_json_api_invalid():
     def tester():
         raise Invalid('Boom!')
 
-    assert_equals(tester(), dict(success=False, data='Boom!'))
+    assert tester() == dict(success=False, data='Boom!')
 
 
-@raises(Exception)
 def test_json_api_exception():
     @json_api
     def tester():
         raise Exception('Boom!')
 
-    tester()
+    with pytest.raises(Exception):
+        tester()
 
 
 @patch('traceback.print_exc')
@@ -75,7 +75,7 @@ def test_json_api_exception_debug(print_exc):
     try:
         tester()
     except Exception:
-        assert_true(print_exc.called)
+        assert print_exc.called
     else:
         raise AssertionError('Exception not raised.')
 
@@ -87,10 +87,10 @@ def test_json_api_datetime():
     def tester():
         return dict(now=now)
 
-    assert_equals(tester(), dict(
+    assert tester() == dict(
         success=True,
         data=dict(now=now.isoformat())
-    ))
+    )
 
 
 def test_json_api_object():
@@ -103,18 +103,18 @@ def test_json_api_object():
     def tester():
         return dict(foobar=foobar)
 
-    assert_equals(tester(), dict(
+    assert tester() == dict(
         success=True,
         data=dict(foobar='foobar')
-    ))
+    )
 
 
 def test_valid_sort_orders():
-    assert_equals(valid_sort_orders(), [
+    assert valid_sort_orders() == [
         'label',
         'date_created',
         'date_modified',
         '-label',
         '-date_created',
         '-date_modified',
-    ])
+    ]

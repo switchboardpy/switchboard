@@ -11,12 +11,7 @@ from __future__ import absolute_import
 import datetime
 
 from mock import Mock, patch
-from nose.tools import (
-    assert_equals,
-    assert_false,
-    assert_true,
-    raises,
-)
+import pytest
 from webob import Request
 
 from ..conditions import (
@@ -40,8 +35,8 @@ import six
 
 
 def test_titlize():
-    assert_equals(titlize('foo_bar'), 'Foo Bar')
-    assert_equals(titlize('foobar'), 'Foobar')
+    assert titlize('foo_bar') == 'Foo Bar'
+    assert titlize('foobar') == 'Foobar'
 
 
 class TestField(object):
@@ -51,25 +46,25 @@ class TestField(object):
     def test_set_values(self):
         name = 'foo'
         self.field.set_values(name)
-        assert_equals(self.field.name, name)
-        assert_equals(self.field.label, titlize(name))
+        assert self.field.name == name
+        assert self.field.label == titlize(name)
 
     def test_is_active(self):
-        assert_true(self.field.is_active('foo', 'foo'))
-        assert_false(self.field.is_active('foo', 'bar'))
+        assert self.field.is_active('foo', 'foo')
+        assert not self.field.is_active('foo', 'bar')
 
     def test_validate_valid_string(self):
         self.field.name = 'foo'
-        assert_equals(self.field.validate(dict(foo='bar')), 'bar')
+        assert self.field.validate(dict(foo='bar')) == 'bar'
 
-    @raises(AssertionError)
     def test_validate_invalid_string(self):
         self.field.name = 'foo'
-        self.field.validate(dict(foo=1))
+        with pytest.raises(AssertionError):
+            self.field.validate(dict(foo=1))
 
     def test_render(self):
         self.field.name = 'foo'
-        assert_equals(self.field.render('bar'),
+        assert (self.field.render('bar') ==
                       '<input type="text" value="bar" name="foo"/>')
 
 
@@ -78,14 +73,14 @@ class TestBoolean(object):
         self.field = Boolean()
 
     def test_is_active(self):
-        assert_true(self.field.is_active(None, True))
-        assert_true(self.field.is_active(None, 'foo'))
-        assert_false(self.field.is_active(None, False))
-        assert_false(self.field.is_active(None, None))
+        assert self.field.is_active(None, True)
+        assert self.field.is_active(None, 'foo')
+        assert not self.field.is_active(None, False)
+        assert not self.field.is_active(None, None)
 
     def test_render(self):
         self.field.name = 'foo'
-        assert_equals(self.field.render(None),
+        assert (self.field.render(None) ==
                       '<input type="hidden" value="1" name="foo"/>')
 
 
@@ -95,18 +90,18 @@ class TestChoice(object):
         self.field = Choice(choices)
 
     def test_is_active(self):
-        assert_true(self.field.is_active('foo', 'foo'))
-        assert_false(self.field.is_active('bar', 'bar'))
-        assert_false(self.field.is_active('scooby', 'foo'))
+        assert self.field.is_active('foo', 'foo')
+        assert not self.field.is_active('bar', 'bar')
+        assert not self.field.is_active('scooby', 'foo')
 
     def test_clean_valid_choice(self):
         cleaned = self.field.clean('foo')
-        assert_true(isinstance(cleaned, six.string_types))
-        assert_equals(cleaned, 'foo')
+        assert isinstance(cleaned, six.string_types)
+        assert cleaned == 'foo'
 
-    @raises(Invalid)
     def test_clean_invalid_choice(self):
-        self.field.clean('bar')
+        with pytest.raises(Invalid):
+            self.field.clean('bar')
 
 
 class TestRange(object):
@@ -115,32 +110,32 @@ class TestRange(object):
         self.field.name = 'qi'
 
     def test_is_active(self):
-        assert_true(self.field.is_active([0, 50], 25))
-        assert_true(self.field.is_active([0, 50], 0))
-        assert_true(self.field.is_active([0, 50], 50))
-        assert_false(self.field.is_active([0, 50], -1))
-        assert_false(self.field.is_active([0, 50], 51))
+        assert self.field.is_active([0, 50], 25)
+        assert self.field.is_active([0, 50], 0)
+        assert self.field.is_active([0, 50], 50)
+        assert not self.field.is_active([0, 50], -1)
+        assert not self.field.is_active([0, 50], 51)
 
     def test_validate_valid_range(self):
         data = dict()
         data[self.field.name + '[min]'] = '0'
         data[self.field.name + '[max]'] = '50'
         cleaned = self.field.validate(data)
-        assert_equals(cleaned, '0-50')
+        assert cleaned == '0-50'
 
-    @raises(Invalid)
     def test_validate_invalid_range(self):
         data = dict()
         data[self.field.name + '[min]'] = 'foo'
         data[self.field.name + '[max]'] = 'bar'
-        self.field.validate(data)
+        with pytest.raises(Invalid):
+            self.field.validate(data)
 
-    @raises(Invalid)
     def test_validate_empty_range(self):
         data = dict()
         data[self.field.name + '[min]'] = None
         data[self.field.name + '[max]'] = None
-        self.field.validate(data)
+        with pytest.raises(Invalid):
+            self.field.validate(data)
 
     def test_render(self):
         html = (
@@ -148,7 +143,7 @@ class TestRange(object):
             + ' - '
             + '<input type="text" placeholder="to" value="50" name="qi[max]"/>'
         )
-        assert_equals(self.field.render([0, 50]), html)
+        assert self.field.render([0, 50]) == html
 
 
 class TestPercent(object):
@@ -157,31 +152,31 @@ class TestPercent(object):
         self.field.label = 'Foo'
 
     def test_is_active(self):
-        assert_true(self.field.is_active('0-50', 25))
-        assert_true(self.field.is_active('0-50', 0))
-        assert_true(self.field.is_active('0-50', 50))
-        assert_false(self.field.is_active('0-50', -1))
-        assert_false(self.field.is_active('0-50', 51))
+        assert self.field.is_active('0-50', 25)
+        assert self.field.is_active('0-50', 0)
+        assert self.field.is_active('0-50', 50)
+        assert not self.field.is_active('0-50', -1)
+        assert not self.field.is_active('0-50', 51)
 
     def test_display(self):
-        assert_equals(self.field.display('0-50'), 'Foo: 50% (0-50)')
+        assert self.field.display('0-50') == 'Foo: 50% (0-50)'
 
     def test_clean_valid_percentile(self):
-        assert_equals(self.field.clean(['0', '50']), '0-50')
+        assert self.field.clean(['0', '50']) == '0-50'
 
     def test_clean_percentile_out_of_range(self):
         try:
             self.field.clean(['0', '200'])
             raise AssertionError('Should have thrown an Invalid exception')
         except Invalid as e:
-            assert_true('0 and 100' in e.args[0])
+            assert '0 and 100' in e.args[0]
 
     def test_percentile_min_higher_than_max(self):
         try:
             self.field.clean(['50', '0'])
             raise AssertionError('Should have thrown an Invalid exception')
         except Invalid as e:
-            assert_true('less than' in e.args[0])
+            assert 'less than' in e.args[0]
 
 
 class TestRegex(object):
@@ -190,13 +185,13 @@ class TestRegex(object):
         self.field.name = 'foo'
 
     def test_is_active(self):
-        assert_true(self.field.is_active('^abc', 'abcdef'))
-        assert_false(self.field.is_active('^abc', 'defabc'))
+        assert self.field.is_active('^abc', 'abcdef')
+        assert not self.field.is_active('^abc', 'defabc')
 
     def test_render(self):
         html = ('/<input type="text" value="^abc" name="foo" '
                 + 'placeholder="regular expression"/>/')
-        assert_equals(self.field.render('^abc'), html)
+        assert self.field.render('^abc') == html
 
 
 class TestAbstractDate(object):
@@ -205,24 +200,24 @@ class TestAbstractDate(object):
 
     def test_str_to_date(self):
         date = datetime.date(1900, 1, 1)
-        assert_equals(self.field.str_to_date('1900-01-01'), date)
+        assert self.field.str_to_date('1900-01-01') == date
 
     def test_display(self):
         self.field.label = 'Foo'
-        assert_equals(self.field.display('1900-01-01'), 'Foo: 01 Jan 1900')
+        assert self.field.display('1900-01-01') == 'Foo: 01 Jan 1900'
 
     def test_clean_valid_date(self):
-        assert_equals(self.field.clean('1900-01-01'), '1900-01-01')
+        assert self.field.clean('1900-01-01') == '1900-01-01'
 
-    @raises(Invalid)
     def test_clean_invalid_date(self):
-        self.field.clean('01-01-1900')
+        with pytest.raises(Invalid):
+            self.field.clean('01-01-1900')
 
     def test_render_with_date(self):
         self.field.name = 'foo'
         html = '<input type="text" value="1900-01-01" name="foo"/>'
         rendered = self.field.render('1900-01-01')
-        assert_equals(rendered, html)
+        assert rendered == html
 
     def test_render_with_no_date(self):
         self.field.name = 'foo'
@@ -230,7 +225,7 @@ class TestAbstractDate(object):
         today_str = today.strftime('%Y-%m-%d')
         html = '<input type="text" value="%s" name="foo"/>' % today_str
         rendered = self.field.render()
-        assert_equals(rendered, html)
+        assert rendered == html
 
     @patch('switchboard.conditions.AbstractDate.date_is_active')
     def test_is_active_with_date(self, date_is_active):
@@ -247,9 +242,9 @@ class TestAbstractDate(object):
         self.field.is_active('1900-01-01', dt)
         date_is_active.assert_called_with(date, date)
 
-    @raises(AssertionError)
     def test_is_active_with_invalid(self):
-        self.field.is_active('1900-01-01', 'foo')
+        with pytest.raises(AssertionError):
+            self.field.is_active('1900-01-01', 'foo')
 
 
 class TestBeforeDate(object):
@@ -260,9 +255,9 @@ class TestBeforeDate(object):
         old_date = datetime.date(1900, 1, 1)
         new_date = datetime.date(2000, 1, 1)
         is_before = self.field.date_is_active
-        assert_true(is_before(new_date, old_date))
-        assert_false(is_before(old_date, new_date))
-        assert_false(is_before(new_date, new_date))
+        assert is_before(new_date, old_date)
+        assert not is_before(old_date, new_date)
+        assert not is_before(new_date, new_date)
 
 
 class TestOnOrAfterDate(object):
@@ -273,9 +268,9 @@ class TestOnOrAfterDate(object):
         old_date = datetime.date(1900, 1, 1)
         new_date = datetime.date(2000, 1, 1)
         on_or_after = self.field.date_is_active
-        assert_true(on_or_after(old_date, new_date))
-        assert_false(on_or_after(new_date, old_date))
-        assert_true(on_or_after(new_date, new_date))
+        assert on_or_after(old_date, new_date)
+        assert not on_or_after(new_date, old_date)
+        assert on_or_after(new_date, new_date)
 
 
 class TestConditionSet(object):
@@ -286,20 +281,20 @@ class TestConditionSet(object):
         value = 'foo'
         instance = Mock()
         instance.value = value
-        assert_equals(self.cs.get_field_value(instance, 'value'), value)
+        assert self.cs.get_field_value(instance, 'value') == value
 
     def test_get_field_value_percent(self):
         value = 100
         instance = Mock()
         instance.id = value
-        assert_equals(self.cs.get_field_value(instance, 'percent'), value)
+        assert self.cs.get_field_value(instance, 'percent') == value
 
     def test_get_field_value_callable(self):
         value = Mock
         instance = Mock()
         instance.value = value
         actual = self.cs.get_field_value(instance, 'value')
-        assert_true(isinstance(actual, value))
+        assert isinstance(actual, value)
 
     @patch('switchboard.conditions.ConditionSet.can_execute')
     @patch('switchboard.conditions.ConditionSet.is_active')
@@ -310,7 +305,7 @@ class TestConditionSet(object):
         instances = ['foo']
         has_active_condition = self.cs.has_active_condition(conditions,
                                                             instances)
-        assert_equals(has_active_condition, True)
+        assert has_active_condition == True
         can_execute.assert_any_call(instances[0])
         is_active.assert_any_call(instances[0], conditions)
 
@@ -322,9 +317,9 @@ class TestConditionSet(object):
         instances = ['foo']
         has_active_condition = self.cs.has_active_condition(conditions,
                                                             instances)
-        assert_equals(has_active_condition, None)
+        assert has_active_condition == None
         can_execute.assert_any_call(instances[0])
-        assert_false(is_active.called)
+        assert not is_active.called
 
     @patch('switchboard.conditions.ConditionSet.can_execute')
     @patch('switchboard.conditions.ConditionSet.is_active')
@@ -335,7 +330,7 @@ class TestConditionSet(object):
         instances = ['foo']
         has_active_condition = self.cs.has_active_condition(conditions,
                                                             instances)
-        assert_equals(has_active_condition, False)
+        assert has_active_condition == False
         can_execute.assert_any_call(instances[0])
         is_active.assert_any_call(instances[0], conditions)
 
@@ -350,7 +345,7 @@ class TestConditionSet(object):
         get_field_value.return_value = value
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert_equals(is_active, True)
+        assert is_active == True
         get_field_value.assert_called_with(instance, name)
         field.is_active.assert_called_with(field_condition, value)
 
@@ -363,9 +358,9 @@ class TestConditionSet(object):
         condition = {}
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert_equals(is_active, None)
-        assert_false(get_field_value.called)
-        assert_false(field.is_active.called)
+        assert is_active == None
+        assert not get_field_value.called
+        assert not field.is_active.called
 
     @patch('switchboard.conditions.ConditionSet.get_field_value')
     def test_is_active_false(self, get_field_value):
@@ -378,7 +373,7 @@ class TestConditionSet(object):
         get_field_value.return_value = value
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert_equals(is_active, None)
+        assert is_active == None
         get_field_value.assert_called_with(instance, name)
         field.is_active.assert_called_with(field_condition, value)
 
@@ -393,7 +388,7 @@ class TestConditionSet(object):
         get_field_value.return_value = value
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert_equals(is_active, False)
+        assert is_active == False
         get_field_value.assert_called_with(instance, name)
         field.is_active.assert_called_with(field_condition, value)
 
@@ -407,14 +402,14 @@ class TestModelConditionSet(object):
         self.cs = OurModelConditionSet(model=Mock)
 
     def test_can_execute(self):
-        assert_true(self.cs.can_execute(Mock()))
-        assert_false(self.cs.can_execute('foo'))
+        assert self.cs.can_execute(Mock())
+        assert not self.cs.can_execute('foo')
 
     def test_get_id(self):
-        assert_equals(self.cs.get_id(), 'switchboard.tests.test_conditions.OurModelConditionSet(ourmodel)')
+        assert self.cs.get_id() == 'switchboard.tests.test_conditions.OurModelConditionSet(ourmodel)'
 
     def test_get_group_label(self):
-        assert_equals(self.cs.get_group_label(), 'Ourmodel')
+        assert self.cs.get_group_label() == 'Ourmodel'
 
 
 class TestRequestConditionSet(object):
@@ -422,5 +417,5 @@ class TestRequestConditionSet(object):
         self.cs = RequestConditionSet()
 
     def test_can_execute(self):
-        assert_true(self.cs.can_execute(Request.blank('/')))
-        assert_false(self.cs.can_execute('foo'))
+        assert self.cs.can_execute(Request.blank('/'))
+        assert not self.cs.can_execute('foo')

@@ -10,7 +10,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from datetime import datetime
 
-from nose.tools import assert_equals, assert_true, assert_false
 from mock import Mock, patch
 
 from ..builtins import IPAddressConditionSet
@@ -37,9 +36,9 @@ class TestMongoModel(object):
         self.m.create(key=0, foo='bar')
         defaults = dict(foo='bar')
         instance, created = self.m.get_or_create(defaults=defaults, key=0)
-        assert_false(created)
-        assert_false(update.called)
-        assert_equals(instance.foo, 'bar')
+        assert not created
+        assert not update.called
+        assert instance.foo == 'bar'
 
     @patch('switchboard.models.MongoModel.update')
     @patch('switchboard.helpers.MockCollection.find_one')
@@ -47,9 +46,9 @@ class TestMongoModel(object):
         find_one.side_effect = [None, dict(foo='bar', key=0)]
         defaults = dict(foo='bar')
         instance, created = self.m.get_or_create(defaults=defaults, key=0)
-        assert_true(created)
-        assert_true(update.called)
-        assert_equals(instance.foo, 'bar')
+        assert created
+        assert update.called
+        assert instance.foo == 'bar'
 
 
 class TestVersioningMongoModel(object):
@@ -63,56 +62,56 @@ class TestVersioningMongoModel(object):
         self.m.previous_version = lambda: VersioningMongoModel(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1, b=2, c=3)
         delta = self.m._diff()
-        assert_equals(delta['added'], dict(c=3))
+        assert delta['added'] == dict(c=3)
 
     def test_diff_fields_deleted(self):
         self.m.previous_version = lambda: VersioningMongoModel(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1)
         delta = self.m._diff()
-        assert_equals(delta['deleted'], dict(b=2))
+        assert delta['deleted'] == dict(b=2)
 
     def test_diff_fields_changed(self):
         self.m.previous_version = lambda: VersioningMongoModel(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1, b=3)
         delta = self.m._diff()
-        assert_equals(delta['changed'], dict(b=(2, 3)))
+        assert delta['changed'] == dict(b=(2, 3))
 
     def test_diff_fields_same(self):
         self.m.previous_version = lambda: VersioningMongoModel(a=1, b=2)
         self.m.c.find_one = lambda x: dict(a=1, b=2)
         delta = self.m._diff()
-        assert_equals(delta['changed'], dict())
-        assert_equals(delta['added'], dict())
-        assert_equals(delta['deleted'], dict())
+        assert delta['changed'] == dict()
+        assert delta['added'] == dict()
+        assert delta['deleted'] == dict()
 
     def test_diff_created(self):
         self.m.previous_version = lambda: None
         self.m.c.find_one = lambda x: dict(a=1, b=2)
         delta = self.m._diff()
-        assert_equals(delta['changed'], dict())
-        assert_equals(delta['added'], dict(a=1, b=2))
-        assert_equals(delta['deleted'], dict())
+        assert delta['changed'] == dict()
+        assert delta['added'] == dict(a=1, b=2)
+        assert delta['deleted'] == dict()
 
     def test_diff_removed(self):
         self.m.previous_version = lambda: VersioningMongoModel(a=1, b=2)
         self.m.c.find_one = lambda x: None
         delta = self.m._diff()
-        assert_equals(delta['changed'], dict())
-        assert_equals(delta['added'], dict())
-        assert_equals(delta['deleted'], dict(a=1, b=2))
+        assert delta['changed'] == dict()
+        assert delta['added'] == dict()
+        assert delta['deleted'] == dict(a=1, b=2)
 
     def test_diff_noop(self):
         self.m.previous_version = lambda: None
         self.m.c.find_one = lambda x: None
         delta = self.m._diff()
-        assert_equals(delta, dict(added={}, deleted={}, changed={}))
+        assert delta == dict(added={}, deleted={}, changed={})
 
     def test_previous_version_new(self):
         c = Mock()
         c.find.return_value = None
         self.m._versioned_collection = lambda: c
         prev = self.m.previous_version()
-        assert_false(hasattr(prev, '_id'))
+        assert not hasattr(prev, '_id')
 
     def test_previous_version_singlediff(self):
         delta = dict(
@@ -123,8 +122,8 @@ class TestVersioningMongoModel(object):
                                     delta=delta)]
         self.m._versioned_collection = lambda: c
         prev = self.m.previous_version()
-        assert_equals(prev.a, 1)
-        assert_equals(prev.b, 2)
+        assert prev.a == 1
+        assert prev.b == 2
 
     def test_previous_version_multidiff(self):
         v1 = dict(
@@ -147,9 +146,9 @@ class TestVersioningMongoModel(object):
         c.find.return_value = [v1, v2, v3, v4]
         self.m._versioned_collection = lambda: c
         prev = self.m.previous_version()
-        assert_equals(prev.b, 3)
-        assert_equals(prev.c, 4)
-        assert_false(hasattr(prev, 'a'))
+        assert prev.b == 3
+        assert prev.c == 4
+        assert not hasattr(prev, 'a')
 
 
 class TestConstant(object):
@@ -157,24 +156,24 @@ class TestConstant(object):
         self.operator = SwitchManager()
 
     def test_disabled(self):
-        assert_true(hasattr(self.operator, 'DISABLED'))
-        assert_equals(self.operator.DISABLED, 1)
+        assert hasattr(self.operator, 'DISABLED')
+        assert self.operator.DISABLED == 1
 
     def test_selective(self):
-        assert_true(hasattr(self.operator, 'SELECTIVE'))
-        assert_equals(self.operator.SELECTIVE, 2)
+        assert hasattr(self.operator, 'SELECTIVE')
+        assert self.operator.SELECTIVE == 2
 
     def test_global(self):
-        assert_true(hasattr(self.operator, 'GLOBAL'))
-        assert_equals(self.operator.GLOBAL, 3)
+        assert hasattr(self.operator, 'GLOBAL')
+        assert self.operator.GLOBAL == 3
 
     def test_include(self):
-        assert_true(hasattr(self.operator, 'INCLUDE'))
-        assert_equals(self.operator.INCLUDE, 'i')
+        assert hasattr(self.operator, 'INCLUDE')
+        assert self.operator.INCLUDE == 'i'
 
     def test_exclude(self):
-        assert_true(hasattr(self.operator, 'EXCLUDE'))
-        assert_equals(self.operator.EXCLUDE, 'e')
+        assert hasattr(self.operator, 'EXCLUDE')
+        assert self.operator.EXCLUDE == 'e'
 
 
 class TestSwitch(object):
@@ -202,15 +201,15 @@ class TestSwitch(object):
         self.switch.key = 'test2'
         self.switch.save()
         _id = self.switch._id
-        assert_equals(self.switch.to_bson(),
+        assert (self.switch.to_bson() ==
                       self.switch.c.find_one(dict(_id=_id)))
         vc = self.switch._versioned_collection()
         versions = list(vc.find(dict(switch_id=_id)))
-        assert_true(versions)
+        assert versions
         versions.sort(key=lambda x:x['timestamp'])
         version = versions[-1]
-        assert_true(version)
-        assert_equals(version['delta']['changed']['key'], ('test', 'test2'))
+        assert version
+        assert version['delta']['changed']['key'] == ('test', 'test2')
 
     def test_construct_with_defaults(self):
         settings.SWITCHBOARD_SWITCH_DEFAULTS = {
@@ -218,20 +217,20 @@ class TestSwitch(object):
             'inactive_by_default': dict(is_active=False, label='inactive'),
         }
         active_switch = Switch(key='active_by_default')
-        assert_equals(active_switch.status, GLOBAL)
-        assert_equals(active_switch.label, 'active')
+        assert active_switch.status == GLOBAL
+        assert active_switch.label == 'active'
         inactive_switch = Switch(key='inactive_by_default')
-        assert_equals(inactive_switch.status, DISABLED)
-        assert_equals(inactive_switch.label, 'inactive')
+        assert inactive_switch.status == DISABLED
+        assert inactive_switch.label == 'inactive'
 
     def test_get_status_display(self):
-        assert_equals(Switch(status=INHERIT).get_status_display(),
+        assert (Switch(status=INHERIT).get_status_display() ==
                       'Inherit')
-        assert_equals(Switch(status=GLOBAL).get_status_display(),
+        assert (Switch(status=GLOBAL).get_status_display() ==
                       'Global')
-        assert_equals(Switch(status=SELECTIVE).get_status_display(),
+        assert (Switch(status=SELECTIVE).get_status_display() ==
                       'Selective')
-        assert_equals(Switch(status=DISABLED).get_status_display(),
+        assert (Switch(status=DISABLED).get_status_display() ==
                       'Disabled')
 
     @patch('switchboard.models.Switch.save')
@@ -244,8 +243,8 @@ class TestSwitch(object):
         )
         namespace = self.condition_set.get_namespace()
         conditions = self.switch.value[namespace]['ip_address']
-        assert_true([INCLUDE, '10.0.0.2'] in conditions)
-        assert_true(save.called)
+        assert [INCLUDE, '10.0.0.2'] in conditions
+        assert save.called
 
     @patch('switchboard.models.Switch.save')
     def test_add_condition_exclude(self, save):
@@ -258,8 +257,8 @@ class TestSwitch(object):
         )
         namespace = self.condition_set.get_namespace()
         conditions = self.switch.value[namespace]['ip_address']
-        assert_true([EXCLUDE, '10.0.0.2'] in conditions)
-        assert_true(save.called)
+        assert [EXCLUDE, '10.0.0.2'] in conditions
+        assert save.called
 
     @patch('switchboard.models.Switch.save')
     def test_add_condition_no_commit(self, save):
@@ -272,8 +271,8 @@ class TestSwitch(object):
         )
         namespace = self.condition_set.get_namespace()
         conditions = self.switch.value[namespace]['ip_address']
-        assert_true([INCLUDE, '10.0.0.2'] in conditions)
-        assert_false(save.called)
+        assert [INCLUDE, '10.0.0.2'] in conditions
+        assert not save.called
 
     @patch('switchboard.models.Switch.save')
     def test_remove_condition_single(self, save):
@@ -287,10 +286,10 @@ class TestSwitch(object):
             condition='10.1.1.1',
         )
         namespace = self.condition_set.get_namespace()
-        assert_equals(self.switch.value[namespace]['ip_address'],
+        assert (self.switch.value[namespace]['ip_address'] ==
                       [[INCLUDE, '192.168.1.1'],
                        [INCLUDE, '127.0.0.1']])
-        assert_true(save.called)
+        assert save.called
 
     @patch('switchboard.models.Switch.save')
     def test_remove_condition_multiple(self, save):
@@ -307,12 +306,12 @@ class TestSwitch(object):
             field_name='ip_address',
             condition='192.168.1.1',
         )
-        assert_true(self.condition_set.get_namespace() in self.switch.value)
-        assert_true('ip_address' in self.switch.value[namespace])
-        assert_equals(self.switch.value[namespace]['ip_address'],
+        assert self.condition_set.get_namespace() in self.switch.value
+        assert 'ip_address' in self.switch.value[namespace]
+        assert (self.switch.value[namespace]['ip_address'] ==
                       [[INCLUDE, '10.1.1.1'],
                        [INCLUDE, '127.0.0.1']])
-        assert_equals(save.call_count, 1)
+        assert save.call_count == 1
         self.switch.remove_condition(
             manager=self.manager,
             condition_set=self.condition_set.get_id(),
@@ -325,19 +324,19 @@ class TestSwitch(object):
             field_name='ip_address',
             condition='127.0.0.1',
         )
-        assert_true(self.condition_set.get_namespace() in self.switch.value)
-        assert_false('ip_address' in self.switch.value[namespace])
-        assert_equals(self.switch.value[namespace]['percent'],
+        assert self.condition_set.get_namespace() in self.switch.value
+        assert not 'ip_address' in self.switch.value[namespace]
+        assert (self.switch.value[namespace]['percent'] ==
                       [[INCLUDE, '0-50']])
-        assert_equals(save.call_count, 3)
+        assert save.call_count == 3
         self.switch.remove_condition(
             manager=self.manager,
             condition_set=self.condition_set.get_id(),
             field_name='percent',
             condition='0-50',
         )
-        assert_false(self.condition_set.get_namespace() in self.switch.value)
-        assert_equals(save.call_count, 4)
+        assert not self.condition_set.get_namespace() in self.switch.value
+        assert save.call_count == 4
 
     @patch('switchboard.models.Switch.save')
     def test_remove_condition_no_commit(self, save):
@@ -349,10 +348,10 @@ class TestSwitch(object):
             commit=False
         )
         namespace = self.condition_set.get_namespace()
-        assert_equals(self.switch.value[namespace]['ip_address'],
+        assert (self.switch.value[namespace]['ip_address'] ==
                       [[INCLUDE, '192.168.1.1'],
                        [INCLUDE, '127.0.0.1']])
-        assert_false(save.called)
+        assert not save.called
 
     @patch('switchboard.models.Switch.save')
     def test_remove_condition_not_found(self, save):
@@ -364,11 +363,11 @@ class TestSwitch(object):
             condition='bar',
         )
         namespace = self.condition_set.get_namespace()
-        assert_equals(self.switch.value[namespace]['ip_address'],
+        assert (self.switch.value[namespace]['ip_address'] ==
                       [[INCLUDE, '10.1.1.1'],
                        [INCLUDE, '192.168.1.1'],
                        [INCLUDE, '127.0.0.1']])
-        assert_false(save.called)
+        assert not save.called
         # Test a namespace that doesn't exist.
         MockConditionSet = Mock()
         MockConditionSet.get_namespace = lambda: 'foobar'
@@ -380,34 +379,34 @@ class TestSwitch(object):
             condition='bar',
         )
         namespace = self.condition_set.get_namespace()
-        assert_equals(self.switch.value[namespace]['ip_address'],
+        assert (self.switch.value[namespace]['ip_address'] ==
                       [[INCLUDE, '10.1.1.1'],
                        [INCLUDE, '192.168.1.1'],
                        [INCLUDE, '127.0.0.1']])
-        assert_false(save.called)
+        assert not save.called
 
     @patch('switchboard.models.Switch.save')
     def test_clear_conditions_with_field_name(self, save):
         self.switch.clear_conditions(self.manager, self.condition_set.get_id(),
                                      field_name='ip_address')
         namespace = self.condition_set.get_namespace()
-        assert_false('ip_address' in self.switch.value[namespace])
-        assert_equals(self.switch.value[namespace]['percent'],
+        assert not 'ip_address' in self.switch.value[namespace]
+        assert (self.switch.value[namespace]['percent'] ==
                       [[INCLUDE, '0-50']])
-        assert_true(save.called)
+        assert save.called
 
     @patch('switchboard.models.Switch.save')
     def test_clear_conditions_whole_namespace(self, save):
         self.switch.clear_conditions(self.manager, self.condition_set.get_id())
-        assert_false(self.condition_set.get_namespace() in self.switch.value)
-        assert_true(save.called)
+        assert not self.condition_set.get_namespace() in self.switch.value
+        assert save.called
 
     @patch('switchboard.models.Switch.save')
     def test_clear_conditions_no_commit(self, save):
         set_id = self.condition_set.get_id()
         self.switch.clear_conditions(self.manager, set_id, commit=False)
-        assert_false(self.condition_set.get_namespace() in self.switch.value)
-        assert_false(save.called)
+        assert not self.condition_set.get_namespace() in self.switch.value
+        assert not save.called
 
     def test_get_active_conditions(self):
         conditions = self.switch.get_active_conditions(self.manager)
@@ -426,23 +425,23 @@ class TestSwitch(object):
         ]
         # field is an object, so direct comparison gets messy.
         for set_id, group, field, value, excluded in conditions:
-            assert_equals(set_id, self.condition_set.get_id())
-            assert_equals(group, 'IP Address')
-            assert_true(value in values)
-            assert_true(field.name in fields)
+            assert set_id == self.condition_set.get_id()
+            assert group == 'IP Address'
+            assert value in values
+            assert field.name in fields
 
     def test_get_status_label(self):
         self.switch.status = DISABLED
-        assert_equals(self.switch.get_status_label(),
+        assert (self.switch.get_status_label() ==
                       'Disabled for everyone')
         self.switch.status = GLOBAL
-        assert_equals(self.switch.get_status_label(),
+        assert (self.switch.get_status_label() ==
                       'Active for everyone')
         self.switch.status = SELECTIVE
-        assert_equals(self.switch.get_status_label(),
+        assert (self.switch.get_status_label() ==
                       'Active for conditions')
         self.switch.status = INHERIT
-        assert_equals(self.switch.get_status_label(),
+        assert (self.switch.get_status_label() ==
                       'Inherit from parent')
 
     def test_get_status_label_selective_no_conditions(self):
@@ -453,15 +452,14 @@ class TestSwitch(object):
         '''
         self.switch.status = SELECTIVE
         self.switch.value = None
-        assert_equals(self.switch.get_status_label(),
+        assert (self.switch.get_status_label() ==
                       'Active for everyone')
 
     def test_to_dict(self):
         switch_dict = self.switch.to_dict(self.manager)
         for cond in switch_dict['conditions']:
             cond['conditions'].sort()
-        assert_equals.__self__.maxDiff = None
-        assert_equals(switch_dict, {
+        assert switch_dict == {
             'key': 'test',
             'status': DISABLED,
             'status_label': 'Disabled for everyone',
@@ -481,4 +479,4 @@ class TestSwitch(object):
                     ]
                 }
             ]
-        })
+        }

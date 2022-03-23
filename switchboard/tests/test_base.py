@@ -11,12 +11,8 @@ from __future__ import absolute_import
 import time
 import threading
 
-from nose.tools import (
-    assert_equals,
-    assert_true,
-    assert_false,
-    assert_raises
-)
+import pytest
+import pytest as pytest
 from mock import Mock, patch
 from blinker import Signal
 
@@ -64,63 +60,63 @@ class TestMongoModelDict(object):
 
         mydict = MongoModelDict(MockModel, key='key', value='value')
         mydict['foo'] = MockModel(key='foo', value='bar')
-        assert_true(isinstance(mydict['foo'], MockModel))
-        assert_true(mydict['foo']._id)
-        assert_equals(mydict['foo'].value, 'bar')
-        assert_equals(MockModel.get(key='foo').value, 'bar')
-        assert_equals(MockModel.count(), base_count + 1)
+        assert isinstance(mydict['foo'], MockModel)
+        assert mydict['foo']._id
+        assert mydict['foo'].value == 'bar'
+        assert MockModel.get(key='foo').value == 'bar'
+        assert MockModel.count() == base_count + 1
         old_id = mydict['foo']._id
         mydict['foo'] = MockModel(key='foo', value='bar2')
-        assert_true(isinstance(mydict['foo'], MockModel))
-        assert_equals(mydict['foo']._id, old_id)
-        assert_equals(mydict['foo'].value, 'bar2')
-        assert_equals(MockModel.get(key='foo').value, 'bar2')
-        assert_equals(MockModel.count(), base_count + 1)
+        assert isinstance(mydict['foo'], MockModel)
+        assert mydict['foo']._id == old_id
+        assert mydict['foo'].value == 'bar2'
+        assert MockModel.get(key='foo').value == 'bar2'
+        assert MockModel.count() == base_count + 1
 
         # test deletion
         mydict['foo'].delete()
-        assert_true('foo' not in mydict)
+        assert 'foo' not in mydict
 
     def test_expirey(self):
         base_count = MockModel.count()
 
         mydict = MongoModelDict(MockModel, key='key', value='value')
 
-        assert_equals(mydict._cache, None)
+        assert mydict._cache == None
 
         instance = MockModel(key='test_expirey', value='hello')
         mydict['test_expirey'] = instance
 
-        assert_equals(len(mydict._cache), base_count + 1)
-        assert_equals(mydict['test_expirey'], instance)
+        assert len(mydict._cache) == base_count + 1
+        assert mydict['test_expirey'] == instance
 
         request_finished.send(Mock())
 
-        assert_equals(mydict._last_updated, None)
-        assert_equals(mydict['test_expirey'], instance)
-        assert_equals(len(mydict._cache), base_count + 1)
+        assert mydict._last_updated == None
+        assert mydict['test_expirey'] == instance
+        assert len(mydict._cache) == base_count + 1
 
     def test_no_auto_create(self):
         # without auto_create
         mydict = MongoModelDict(MockModel, key='key', value='value')
-        assert_raises(KeyError, lambda x: x['hello'], mydict)
-        assert_equals(MockModel.count(), 0)
+        pytest.raises(KeyError, lambda x: x['hello'], mydict)
+        assert MockModel.count() == 0
 
     def test_auto_create_no_value(self):
         # with auto_create and no value
         mydict = MongoModelDict(MockModel, key='key', value='value',
                                 auto_create=True)
         repr(mydict['hello'])
-        assert_equals(MockModel.count(), 1)
-        assert_false(hasattr(MockModel.get(key='hello'), 'value'), '')
+        assert MockModel.count() == 1
+        assert not hasattr(MockModel.get(key='hello'), 'value'), ''
 
     def test_auto_create(self):
         # with auto_create and value
         mydict = MongoModelDict(MockModel, key='key', value='value',
                                 auto_create=True)
         mydict['hello'] = MockModel(key='hello', value='foo')
-        assert_equals(MockModel.count(), 1)
-        assert_equals(MockModel.get(key='hello').value, 'foo')
+        assert MockModel.count() == 1
+        assert MockModel.get(key='hello').value == 'foo'
 
     def test_save_behavior(self):
         mydict = MongoModelDict(MockModel, key='key', value='value',
@@ -128,8 +124,8 @@ class TestMongoModelDict(object):
         mydict['hello'] = 'foo'
         for n in range(10):
             mydict[str(n)] = 'foo'
-        assert_equals(len(mydict), 11)
-        assert_equals(MockModel.count(), 11)
+        assert len(mydict) == 11
+        assert MockModel.count() == 11
 
         mydict = MongoModelDict(MockModel, key='key', value='value',
                                 auto_create=True)
@@ -137,9 +133,9 @@ class TestMongoModelDict(object):
         m.value = 'bar'
         m.save()
 
-        assert_equals(MockModel.count(), 11)
-        assert_equals(len(mydict), 11)
-        assert_equals(mydict['hello'].value, 'bar')
+        assert MockModel.count() == 11
+        assert len(mydict) == 11
+        assert mydict['hello'].value == 'bar'
 
         mydict = MongoModelDict(MockModel, key='key', value='value',
                                 auto_create=True)
@@ -147,18 +143,18 @@ class TestMongoModelDict(object):
         m.value = 'bar2'
         m.save()
 
-        assert_equals(MockModel.count(), 11)
-        assert_equals(len(mydict), 11)
-        assert_equals(mydict['hello'].value, 'bar2')
+        assert MockModel.count() == 11
+        assert len(mydict) == 11
+        assert mydict['hello'].value == 'bar2'
 
     def test_signals_are_connected(self):
         MongoModelDict(MockModel, key='key', value='value',
                        auto_create=True)
         post_save = VersioningMongoModel.post_save
         post_delete = VersioningMongoModel.post_delete
-        assert_true(post_save.has_receivers_for(MockModel))
-        assert_true(post_delete.has_receivers_for(MockModel))
-        assert_true(request_finished.has_receivers_for(Signal.ANY))
+        assert post_save.has_receivers_for(MockModel)
+        assert post_delete.has_receivers_for(MockModel)
+        assert request_finished.has_receivers_for(Signal.ANY)
 
 
 class TestCacheIntegration(object):
@@ -175,8 +171,8 @@ class TestCacheIntegration(object):
     def test_model_creation(self):
         instance = MockModel(key='hello', value='foo')
         self.mydict['hello'] = instance
-        assert_equals(self.cache.get.call_count, 0)
-        assert_equals(self.cache.set.call_count, 2)
+        assert self.cache.get.call_count == 0
+        assert self.cache.set.call_count == 2
         self.cache.set.assert_any_call(self.mydict.cache_key,
                                        dict(hello=instance))
         last_updated_key = self.mydict.last_updated_cache_key
@@ -188,8 +184,8 @@ class TestCacheIntegration(object):
         self.cache.reset_mock()
         instance = MockModel(key='hello', value='bar')
         self.mydict['hello'] = instance
-        assert_equals(self.cache.get.call_count, 0)
-        assert_equals(self.cache.set.call_count, 2)
+        assert self.cache.get.call_count == 0
+        assert self.cache.set.call_count == 2
         self.cache.set.assert_any_call(self.mydict.cache_key,
                                        dict(hello=instance))
         last_updated_key = self.mydict.last_updated_cache_key
@@ -200,8 +196,8 @@ class TestCacheIntegration(object):
         self.mydict['hello'] = MockModel(key='hello', value='foo')
         self.cache.reset_mock()
         del self.mydict['hello']
-        assert_equals(self.cache.get.call_count, 0)
-        assert_equals(self.cache.set.call_count, 2)
+        assert self.cache.get.call_count == 0
+        assert self.cache.set.call_count == 2
         self.cache.set.assert_any_call(self.mydict.cache_key, {})
         last_updated_key = self.mydict.last_updated_cache_key
         self.cache.set.assert_any_call(last_updated_key,
@@ -214,9 +210,9 @@ class TestCacheIntegration(object):
         foo = self.mydict['hello']
         foo = self.mydict['hello']
         foo = self.mydict['hello']
-        assert_equals(foo.value, 'foo')
-        assert_equals(self.cache.get.call_count, 0)
-        assert_equals(self.cache.set.call_count, 0)
+        assert foo.value == 'foo'
+        assert self.cache.get.call_count == 0
+        assert self.cache.set.call_count == 0
 
     def test_model_access_without_cache(self):
         spec = dict(key='hello', value='foo')
@@ -225,16 +221,16 @@ class TestCacheIntegration(object):
         self.mydict._last_updated = None
         self.cache.reset_mock()
         foo = self.mydict['hello']
-        assert_equals(foo.value, 'foo')
-        assert_equals(self.cache.get.call_count, 2)
-        assert_equals(self.cache.set.call_count, 0)
+        assert foo.value == 'foo'
+        assert self.cache.get.call_count == 2
+        assert self.cache.set.call_count == 0
         self.cache.get.assert_any_call(self.mydict.cache_key)
         self.cache.reset_mock()
         foo = self.mydict['hello']
         foo = self.mydict['hello']
         foo = self.mydict['hello']
-        assert_equals(self.cache.get.call_count, 0)
-        assert_equals(self.cache.set.call_count, 0)
+        assert self.cache.get.call_count == 0
+        assert self.cache.set.call_count == 0
 
     def test_model_access_with_expired_local_cache(self):
         spec = dict(key='hello', value='foo')
@@ -242,15 +238,15 @@ class TestCacheIntegration(object):
         self.mydict._last_updated = None
         self.cache.reset_mock()
         foo = self.mydict['hello']
-        assert_equals(foo.value, 'foo')
-        assert_equals(self.cache.get.call_count, 1)
-        assert_equals(self.cache.set.call_count, 0)
+        assert foo.value == 'foo'
+        assert self.cache.get.call_count == 1
+        assert self.cache.set.call_count == 0
         self.cache.get.assert_any_call(self.mydict.last_updated_cache_key)
         self.cache.reset_mock()
         foo = self.mydict['hello']
         foo = self.mydict['hello']
-        assert_equals(self.cache.get.call_count, 0)
-        assert_equals(self.cache.set.call_count, 0)
+        assert self.cache.get.call_count == 0
+        assert self.cache.set.call_count == 0
 
 
 class TestCachedDict(object):
@@ -270,7 +266,7 @@ class TestCachedDict(object):
         self.mydict._last_updated = time.time()
         self.mydict._populate()
 
-        assert_true(_update_cache_data.called)
+        assert _update_cache_data.called
 
     @patch('switchboard.base.CachedDict._update_cache_data')
     @patch('switchboard.base.CachedDict.is_local_expired',
@@ -282,7 +278,7 @@ class TestCachedDict(object):
         self.mydict._last_updated = time.time()
         self.mydict._populate()
 
-        assert_false(_update_cache_data.called)
+        assert not _update_cache_data.called
 
     @patch('switchboard.base.CachedDict._update_cache_data')
     @patch('switchboard.base.CachedDict.is_local_expired',
@@ -306,16 +302,16 @@ class TestCachedDict(object):
         self.mydict._last_updated = time.time()
         self.mydict._populate()
 
-        assert_false(_update_cache_data.called)
+        assert not _update_cache_data.called
 
     def test_is_expired_missing_last_updated(self):
         self.mydict._last_updated = None
-        assert_true(self.mydict.is_local_expired())
-        assert_false(self.cache.get.called)
+        assert self.mydict.is_local_expired()
+        assert not self.cache.get.called
 
     def test_is_expired_last_updated_beyond_timeout(self):
         self.mydict._last_updated = time.time() - 101
-        assert_true(self.mydict.is_local_expired())
+        assert self.mydict.is_local_expired()
 
     def test_is_expired_within_bounds(self):
         self.mydict._last_updated = time.time()
@@ -329,7 +325,7 @@ class TestCachedDict(object):
 
         last_updated = self.mydict.last_updated_cache_key
         self.cache.get.assert_called_once_with(last_updated)
-        assert_equals(result, False)
+        assert result == False
 
     def test_is_expired_if_remote_cache_is_new(self):
         # set it to an expired time
@@ -340,7 +336,7 @@ class TestCachedDict(object):
 
         last_updated = self.mydict.last_updated_cache_key
         self.cache.get.assert_called_once_with(last_updated)
-        assert_equals(result, True)
+        assert result == True
 
     def test_is_expired_if_never_updated(self):
         # _last_updated None
@@ -349,15 +345,15 @@ class TestCachedDict(object):
 
         result = self.mydict.has_global_changed()
 
-        assert_equals(result, True)
+        assert result == True
 
     @patch('switchboard.base.CachedDict._populate')
     @patch('switchboard.base.CachedDict.get_default')
     def test_returns_default_if_no_local_cache(self, get_default, populate):
         get_default.return_value = 'bar'
         value = self.mydict['foo']
-        assert_true(get_default.called)
-        assert_equals(value, 'bar')
+        assert get_default.called
+        assert value == 'bar'
 
 
 class TestCacheConcurrency(object):
@@ -390,9 +386,8 @@ class TestCacheConcurrency(object):
             # the parent thread in order for nose to see that something went
             # wrong.
             try:
-                assert_true(self.mydict._cache,
-                            'The cache was reset between threads')
-                assert_equals(self.mydict._cache['key'], 'test')
+                assert self.mydict._cache, 'The cache was reset between threads'
+                assert self.mydict._cache['key'] == 'test'
             except Exception as e:
                 self.exc = e
 

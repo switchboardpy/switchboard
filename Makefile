@@ -8,12 +8,8 @@ test:
 	tox
 
 functional-test:
-	python example/server.py > /dev/null 2>&1 & echo $$! > $(SERVER_PID)
-	nosetests --logging-filter=switchboard example/tests.py
-	if test -f $(SERVER_PID); then \
-		kill -9 `cat $(SERVER_PID)` || true; \
-		rm $(SERVER_PID) || true; \
-	fi
+	python -u example/server.py & echo $$! > $(SERVER_PID)
+	pytest --tb=short example/tests.py; ret=$$?; kill -9 `cat $(SERVER_PID)`; rm $(SERVER_PID); exit $$ret
 
 test-coverage:
 	tox -e coverage
