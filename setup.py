@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import setuptools
 from pathlib import Path
 
-VERSION = '1.5.3'
+VERSION = '1.6.0'
 INSTALL_REQUIRES = [
     'pymongo >= 3, < 4',
     'blinker >= 1.2',
