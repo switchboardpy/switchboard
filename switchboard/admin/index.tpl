@@ -202,6 +202,7 @@
       .switchboard .conditions label:after { content: ":"; }
       .switchboard .conditions .value { padding: 0 0.25em; margin-right: 0.25em; background-color: #e6e6e6; }
       .switchboard .conditions .delete-condition { margin-left: 0.25em; margin-top: -4px; padding: 0; border: 0; color: #666; }
+      .switchboard .group { overflow-x: auto; }
       /* versions */
       .switchboard .version-date { border-bottom: 1px solid #ccc; padding: 1rem 0; font-size: 0.8rem; }
       .switchboard .version-date:last-child { border-bottom: none; }
