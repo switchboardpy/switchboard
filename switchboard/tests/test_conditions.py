@@ -6,11 +6,9 @@ switchboard.tests.test_conditions
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import datetime
 
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 import pytest
 from webob import Request
 
@@ -31,7 +29,6 @@ from ..conditions import (
     titlize,
 )
 from ..models import INCLUDE, EXCLUDE
-import six
 
 
 def test_titlize():
@@ -39,7 +36,7 @@ def test_titlize():
     assert titlize('foobar') == 'Foobar'
 
 
-class TestField(object):
+class TestField:
     def setup(self):
         self.field = Field()
 
@@ -68,7 +65,7 @@ class TestField(object):
                       '<input type="text" value="bar" name="foo"/>')
 
 
-class TestBoolean(object):
+class TestBoolean:
     def setup(self):
         self.field = Boolean()
 
@@ -84,7 +81,7 @@ class TestBoolean(object):
                       '<input type="hidden" value="1" name="foo"/>')
 
 
-class TestChoice(object):
+class TestChoice:
     def setup(self):
         choices = ['foo', 'scooby']
         self.field = Choice(choices)
@@ -96,7 +93,7 @@ class TestChoice(object):
 
     def test_clean_valid_choice(self):
         cleaned = self.field.clean('foo')
-        assert isinstance(cleaned, six.string_types)
+        assert isinstance(cleaned, str)
         assert cleaned == 'foo'
 
     def test_clean_invalid_choice(self):
@@ -104,7 +101,7 @@ class TestChoice(object):
             self.field.clean('bar')
 
 
-class TestRange(object):
+class TestRange:
     def setup(self):
         self.field = Range()
         self.field.name = 'qi'
@@ -146,7 +143,7 @@ class TestRange(object):
         assert self.field.render([0, 50]) == html
 
 
-class TestPercent(object):
+class TestPercent:
     def setup(self):
         self.field = Percent()
         self.field.label = 'Foo'
@@ -179,7 +176,7 @@ class TestPercent(object):
             assert 'less than' in e.args[0]
 
 
-class TestRegex(object):
+class TestRegex:
     def setup(self):
         self.field = Regex()
         self.field.name = 'foo'
@@ -194,7 +191,7 @@ class TestRegex(object):
         assert self.field.render('^abc') == html
 
 
-class TestAbstractDate(object):
+class TestAbstractDate:
     def setup(self):
         self.field = AbstractDate()
 
@@ -247,7 +244,7 @@ class TestAbstractDate(object):
             self.field.is_active('1900-01-01', 'foo')
 
 
-class TestBeforeDate(object):
+class TestBeforeDate:
     def setup(self):
         self.field = BeforeDate()
 
@@ -260,7 +257,7 @@ class TestBeforeDate(object):
         assert not is_before(new_date, new_date)
 
 
-class TestOnOrAfterDate(object):
+class TestOnOrAfterDate:
     def setup(self):
         self.field = OnOrAfterDate()
 
@@ -273,7 +270,7 @@ class TestOnOrAfterDate(object):
         assert on_or_after(new_date, new_date)
 
 
-class TestConditionSet(object):
+class TestConditionSet:
     def setup(self):
         self.cs = ConditionSet()
 
@@ -393,7 +390,7 @@ class TestConditionSet(object):
         field.is_active.assert_called_with(field_condition, value)
 
 
-class TestModelConditionSet(object):
+class TestModelConditionSet:
     def setup(self):
         class OurModelConditionSet(ModelConditionSet):
             def get_namespace(self):
@@ -412,7 +409,7 @@ class TestModelConditionSet(object):
         assert self.cs.get_group_label() == 'Ourmodel'
 
 
-class TestRequestConditionSet(object):
+class TestRequestConditionSet:
     def setup(self):
         self.cs = RequestConditionSet()
 

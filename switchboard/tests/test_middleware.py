@@ -6,16 +6,14 @@ switchboard.tests.test_manager
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 from webob import Request
 
 from .. import operator
 from ..middleware import SwitchboardMiddleware
 
 
-class TestSwitchboardMiddleware(object):
+class TestSwitchboardMiddleware:
     def setup(self):
         self.app = Mock()
         self.middleware = SwitchboardMiddleware(self.app)

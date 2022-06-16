@@ -15,8 +15,6 @@ example``, the example app should already be running in another console.
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 
 import os
 
@@ -44,7 +42,7 @@ def assert_switch_inactive(browser, url=url):
     assert browser.is_text_present('is NOT active'), 'Switch is not inactive'
 
 
-class TestAdmin(object):
+class TestAdmin:
     @classmethod
     def setup_class(cls):
         browser_kwargs = {}
@@ -162,13 +160,13 @@ class TestAdmin(object):
         drawer.find_by_css('input[name="key"]').first.fill(key)
         drawer.find_by_css('a.submit-switch').first.click()
         # Verify the addition.
-        is_added = self.b.is_element_present_by_css('#id_{}'.format(key),
+        is_added = self.b.is_element_present_by_css(f'#id_{key}',
                                                     wait_time=10)
         assert is_added, 'Switch was not added.'
         assert not drawer.visible, 'Drawer is not hidden'
         # Edit the switch.
         self.show_switch_actions()
-        css = '#id_{} a[href="#edit-switch"]'.format(key)
+        css = f'#id_{key} a[href="#edit-switch"]'
         self.b.find_by_css(css).first.click()
         assert drawer.visible, 'Drawer is not visible'
         label = 'Foobar'
@@ -180,12 +178,12 @@ class TestAdmin(object):
         assert not drawer.visible, 'Drawer is not hidden'
         # Delete the switch.
         self.show_switch_actions()
-        css = '#id_{} a[href="#delete-switch"]'.format(key)
+        css = f'#id_{key} a[href="#delete-switch"]'
         self.b.find_by_css(css).first.click()
         alert = self.b.get_alert()
         alert.accept()
         # Verify the deletion.
-        is_deleted = self.b.is_element_not_present_by_css('#id_{}'.format(key),
+        is_deleted = self.b.is_element_not_present_by_css(f'#id_{key}',
                                                           wait_time=10)
         assert is_deleted, 'Switch was not deleted.'
 

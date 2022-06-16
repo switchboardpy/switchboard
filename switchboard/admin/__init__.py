@@ -6,8 +6,6 @@ switchboard.admin
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from datetime import datetime
 import logging
 from operator import attrgetter
@@ -24,7 +22,6 @@ from .utils import (
     valid_sort_orders
 )
 from ..settings import settings
-import six
 
 log = logging.getLogger(__name__)
 
@@ -92,7 +89,7 @@ def add():
                            description=description)
 
     log.info('Switch %r added (%%s)' % switch.key,
-             ', '.join('%s=%r' % (k, getattr(switch, k)) for k in
+             ', '.join(f'{k}={getattr(switch, k)!r}' for k in
                        sorted(('key', 'label', 'description', ))))
 
     signals.switch_added.send(switch)
@@ -124,7 +121,7 @@ def update():
     )
 
     changes = {}
-    for k, v in six.iteritems(values):
+    for k, v in values.items():
         old_value = getattr(switch, k)
         if old_value != v:
             changes[k] = (v, old_value)
@@ -140,8 +137,8 @@ def update():
         switch.save()
 
         log.info('Switch %r updated %%s' % switch.key,
-                 ', '.join('%s=%r->%r' % (k, v[0], v[1]) for k, v in
-                           sorted(six.iteritems(changes))))
+                 ', '.join(f'{k}={v[0]!r}->{v[1]!r}' for k, v in
+                           sorted(changes.items())))
 
         signals.switch_updated.send(switch)
 
@@ -229,7 +226,7 @@ def remove_condition():
     switch = operator[key]
     switch.remove_condition(condition_set_id, field_name, value)
 
-    log.info('Condition removed from %r (%r, %s=%r)' % (switch.key,
+    log.info('Condition removed from {!r} ({!r}, {}={!r})'.format(switch.key,
              condition_set_id, field_name, value))
 
     signals.switch_condition_removed.send(switch)

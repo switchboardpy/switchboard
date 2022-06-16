@@ -6,28 +6,24 @@ switchboard.tests.test_base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import time
 import threading
 
 import pytest
 import pytest as pytest
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 from blinker import Signal
 
 from ..base import MongoModelDict, CachedDict
 from ..models import VersioningMongoModel
 from ..signals import request_finished
-import six
-from six.moves import range
 
 
 class MockModel(VersioningMongoModel):
 
     def __init__(self, *args, **kwargs):
         self._attrs = []
-        for k, v in six.iteritems(kwargs):
+        for k, v in kwargs.items():
             if not hasattr(self, k):
                 self._attrs.append(k)
                 setattr(self, k, v)
@@ -50,7 +46,7 @@ class MockModel(VersioningMongoModel):
         return True
 
 
-class TestMongoModelDict(object):
+class TestMongoModelDict:
 
     def teardown(self):
         MockModel.c.drop()
@@ -157,7 +153,7 @@ class TestMongoModelDict(object):
         assert request_finished.has_receivers_for(Signal.ANY)
 
 
-class TestCacheIntegration(object):
+class TestCacheIntegration:
     def setup(self):
         self.cache = Mock()
         self.cache.get.return_value = {}
@@ -249,7 +245,7 @@ class TestCacheIntegration(object):
         assert self.cache.set.call_count == 0
 
 
-class TestCachedDict(object):
+class TestCachedDict:
     def setup(self):
         self.cache = Mock()
         self.mydict = CachedDict(timeout=100)
@@ -356,7 +352,7 @@ class TestCachedDict(object):
         assert value == 'bar'
 
 
-class TestCacheConcurrency(object):
+class TestCacheConcurrency:
 
     def setup(self):
         self.mydict = CachedDict()

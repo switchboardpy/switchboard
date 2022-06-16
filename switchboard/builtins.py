@@ -5,8 +5,6 @@ switchboard.builtins
 :copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import socket
 
 from . import operator
@@ -20,7 +18,6 @@ from .conditions import (
     Invalid,
 )
 from .settings import settings
-import six
 
 
 class IPAddress(String):
@@ -30,7 +27,7 @@ class IPAddress(String):
             import ipaddress
             # The third-party ipaddress lib (not the builtin Python 3 library)
             # requires a unicode string.
-            ipaddress.ip_address(six.text_type(value))
+            ipaddress.ip_address(str(value))
         except ImportError:  # pragma: nocover
             pass
         except ValueError:
@@ -50,12 +47,12 @@ class IPAddressConditionSet(RequestConditionSet):
         # XXX: can we come up w/ a better API?
         # Ensure we map ``percent`` to the ``id`` column
         if field_name == 'percent':
-            return sum([int(x) for x in instance.remote_addr.split('.')])
+            return sum(int(x) for x in instance.remote_addr.split('.'))
         elif field_name == 'ip_address':
             return instance.remote_addr
         elif field_name == 'internal_ip':
             return instance.remote_addr in settings.SWITCHBOARD_INTERNAL_IPS
-        return super(IPAddressConditionSet, self).get_field_value(instance,
+        return super().get_field_value(instance,
                                                                   field_name)
 
     def get_group_label(self):  # pragma: nocover

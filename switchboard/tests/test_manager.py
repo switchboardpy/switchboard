@@ -5,12 +5,10 @@ switchboard.tests.test_manager
 :copyright: (c) 2015 Kyle Adams.
 :license: Apache License 2.0, see LICENSE for more details.
 """
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import threading
 
 import pytest
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 from webob import Request
 from webob.exc import HTTPNotFound, HTTPFound
 
@@ -29,10 +27,9 @@ from ..models import (
 from ..manager import registry, SwitchManager
 from ..helpers import MockCollection
 from ..settings import settings
-import six
 
 
-class TestAPI(object):
+class TestAPI:
     def setup(self):
         settings.SWITCHBOARD_SWITCH_DEFAULTS = {
             'active_by_default': {
@@ -700,7 +697,7 @@ class TestAPI(object):
         class OurUser:
             @property
             def username(self):
-                raise IOError('whoops')
+                raise OSError('whoops')
         switch = Mock()
         switch.save_version = Mock()
         self.operator.context = dict(user=OurUser())
@@ -739,7 +736,7 @@ class TestAPI(object):
         assert not operator.is_active('test', default=False)
 
 
-class TestConfigure(object):
+class TestConfigure:
     def setup(self):
         self.config = dict(
             mongo_host='mongodb',
@@ -757,7 +754,7 @@ class TestConfigure(object):
         Switch.c = MockCollection()
 
     def assert_settings(self):
-        for k, v in six.iteritems(self.config):
+        for k, v in self.config.items():
             assert getattr(settings, 'SWITCHBOARD_%s' % k.upper()) == v
 
     @patch('switchboard.manager.MongoClient')
@@ -769,7 +766,7 @@ class TestConfigure(object):
     @patch('switchboard.manager.MongoClient')
     def test_nested(self, MongoClient):
         cfg = {}
-        for k, v in six.iteritems(self.config):
+        for k, v in self.config.items():
             cfg['switchboard.%s' % k] = v
         cfg['foo.bar'] = 'baz'
         configure(cfg, nested=True, allow_no_mongo=True)
@@ -791,7 +788,7 @@ class TestConfigure(object):
             configure(self.config)
 
 
-class TestManagerConcurrency(object):
+class TestManagerConcurrency:
 
     def setup(self):
         self.operator = SwitchManager(auto_create=True)
@@ -822,7 +819,7 @@ class TestManagerConcurrency(object):
             raise self.exc
 
 
-class TestManagerResultCaching(object):
+class TestManagerResultCaching:
 
     def setup(self):
         self.operator = SwitchManager(auto_create=True)
@@ -850,7 +847,7 @@ class TestManagerResultCaching(object):
         assert not self.operator.is_active('test')
 
 
-class TestManagerResultCacheDecorator(object):
+class TestManagerResultCacheDecorator:
 
     def setup(self):
         # Gets a pure function, otherwise we get an unbound function that we
@@ -908,7 +905,7 @@ class TestManagerResultCacheDecorator(object):
         assert operator_self.result_cache == {}
 
 
-class TestManagerConstants(object):
+class TestManagerConstants:
     def setup(self):
         self.operator = SwitchManager()
 

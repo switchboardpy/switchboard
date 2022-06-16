@@ -8,14 +8,10 @@ switchboard.conditions
 
 # Credit to Haystack for abstraction concepts
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import datetime
 import re
 
 from .models import EXCLUDE
-import six
-from six.moves import map
 
 
 class Invalid(Exception):  # pragma: nocover
@@ -26,7 +22,7 @@ def titlize(s):
     return s.title().replace('_', ' ')
 
 
-class Field(object):
+class Field:
     '''
     Field represents a user input on a parent :class:`ConditionSet`. The user
     provides a value in the Field; that value is the "expected" value. Some
@@ -61,7 +57,7 @@ class Field(object):
         value = data.get(self.name)
         if value:
             value = self.clean(value)
-            is_string = isinstance(value, six.string_types)
+            is_string = isinstance(value, str)
             assert is_string, 'clean methods must return strings'
         return value
 
@@ -98,7 +94,7 @@ class Choice(Field):
     '''
     def __init__(self, choices, **kwargs):
         self.choices = choices
-        super(Choice, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def is_active(self, value, actual_value):
         return actual_value in self.choices and actual_value == value
@@ -145,7 +141,7 @@ class Range(Field):
 
     def display(self, value):
         value = value.split('-')
-        return '%s: %s-%s' % (self.label, value[0], value[1])
+        return f'{self.label}: {value[0]}-{value[1]}'
 
 
 class Percent(Range):
@@ -159,17 +155,17 @@ class Percent(Range):
     def is_active(self, value, actual_value):
         value = list(map(int, value.split('-')))
         mod = actual_value % 100
-        return super(Percent, self).is_active(value, mod)
+        return super().is_active(value, mod)
 
     def display(self, value):
         value = value.split('-')
         min_value = value[0]
         max_value = value[1]
         diff = int(max_value) - int(min_value)
-        return '%s: %s%% (%s-%s)' % (self.label, diff, min_value, max_value)
+        return f'{self.label}: {diff}% ({min_value}-{max_value})'
 
     def clean(self, value):
-        value = super(Percent, self).clean(value)
+        value = super().clean(value)
         if value:
             numeric = value.split('-')
             if int(numeric[0]) < 0 or int(numeric[1]) > 100:
@@ -222,7 +218,7 @@ class AbstractDate(Field):
 
     def display(self, value):
         date = self.str_to_date(value)
-        return "%s: %s" % (self.label, date.strftime(self.PRETTY_DATE_FORMAT))
+        return f"{self.label}: {date.strftime(self.PRETTY_DATE_FORMAT)}"
 
     def clean(self, value):
         try:
@@ -238,7 +234,7 @@ class AbstractDate(Field):
         if not value:
             value = datetime.date.today().strftime(self.DATE_FORMAT)
 
-        return '<input type="text" value="%s" name="%s"/>' % (value, self.name)
+        return f'<input type="text" value="{value}" name="{self.name}"/>'
 
     def is_active(self, value, actual_value):
         assert isinstance(actual_value, datetime.date)
@@ -291,19 +287,19 @@ class ConditionSetBase(type):
                 field.set_values(field_name)
                 attrs['fields'][field_name] = field
 
-        return super(ConditionSetBase, cls).__new__(cls, name, bases, attrs)
+        return super().__new__(cls, name, bases, attrs)
 
 
-class ConditionSet(six.with_metaclass(ConditionSetBase, object)):
+class ConditionSet(metaclass=ConditionSetBase):
     def __repr__(self):  # pragma: nocover
-        return '<%s>' % (self.__class__.__name__,)
+        return f'<{self.__class__.__name__}>'
 
     def get_id(self):  # pragma: nocover
         """
         Returns a string representing a unique identifier for this ConditionSet
         instance.
         """
-        return '%s.%s' % (self.__module__, self.__class__.__name__)
+        return f'{self.__module__}.{self.__class__.__name__}'
 
     def can_execute(self, instance):  # pragma: nocover
         """
@@ -358,7 +354,7 @@ class ConditionSet(six.with_metaclass(ConditionSetBase, object)):
         a boolean representing if the feature is active.
         """
         return_value = None
-        for name, field_conditions in six.iteritems(condition):
+        for name, field_conditions in condition.items():
             field = self.fields.get(name)
             if field:
                 value = self.get_field_value(instance, name)
@@ -385,13 +381,13 @@ class ModelConditionSet(ConditionSet):
         self.model = model
 
     def __repr__(self):  # pragma: nocover
-        return '<%s: %s>' % (self.__class__.__name__, self.model.__name__)
+        return f'<{self.__class__.__name__}: {self.model.__name__}>'
 
     def can_execute(self, instance):
         return isinstance(instance, self.model)
 
     def get_id(self):
-        return '%s.%s(%s)' % (self.__module__, self.__class__.__name__, self.get_namespace())
+        return f'{self.__module__}.{self.__class__.__name__}({self.get_namespace()})'
 
     def get_namespace(self):
         raise NotImplementedError('Subclasses should implement this, returning a unique identifier. '

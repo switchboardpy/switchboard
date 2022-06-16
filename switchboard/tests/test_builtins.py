@@ -6,8 +6,6 @@ switchboard.tests.test_builtins
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import socket
 
 import pytest
@@ -29,7 +27,7 @@ def teardown_collection():
     Switch.c.drop()
 
 
-class TestIPAddress(object):
+class TestIPAddress:
     def setup(self):
         self.ip = IPAddress()
 
@@ -44,7 +42,7 @@ class TestIPAddress(object):
             self.ip.clean('foobar')
 
 
-class TestIPAddressConditionSet(object):
+class TestIPAddressConditionSet:
     def setup(self):
         self.cs = 'switchboard.builtins.IPAddressConditionSet'
         self.ip = '192.168.0.1'
@@ -103,7 +101,7 @@ class TestIPAddressConditionSet(object):
         assert self.operator.is_active('test', req)
 
 
-class TestHostConditionSet(object):
+class TestHostConditionSet:
     def setup(self):
         self.operator = SwitchManager(auto_create=True)
         self.operator.register(HostConditionSet())
@@ -127,7 +125,7 @@ class TestHostConditionSet(object):
         assert self.operator.is_active('test')
 
 
-class TestQueryStringConditionSet(object):
+class TestQueryStringConditionSet:
     def setup(self):
         self.operator = SwitchManager(auto_create=True)
         self.operator.register(QueryStringConditionSet())

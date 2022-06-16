@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Switchboard documentation build configuration file, created by
 # sphinx-quickstart on Thu Mar 13 12:31:24 2014.
@@ -12,8 +11,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import sys
 import os
 

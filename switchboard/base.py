@@ -6,8 +6,6 @@ switchboard.base
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import time
 import logging
 import threading
@@ -15,7 +13,6 @@ import threading
 from .models import MongoModel
 from .signals import request_finished
 from .settings import settings
-import six
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +33,7 @@ class CachedDict(threading.local):
         self.timeout = timeout
         self.cache = settings.SWITCHBOARD_CACHE
         self.cache_key = cls_name
-        self.last_updated_cache_key = '%s.last_updated' % (cls_name,)
+        self.last_updated_cache_key = f'{cls_name}.last_updated'
 
     def __getitem__(self, key):
         self._populate()
@@ -71,21 +68,21 @@ class CachedDict(threading.local):
 
     def iteritems(self):  # pragma: nocover
         self._populate()
-        return six.iteritems(self._cache)
+        return self._cache.items()
 
     def itervalues(self):  # pragma: nocover
         self._populate()
-        return six.itervalues(self._cache)
+        return self._cache.values()
 
     def iterkeys(self):  # pragma: nocover
         self._populate()
-        return six.iterkeys(self._cache)
+        return self._cache.keys()
 
     def keys(self):  # pragma: nocover
-        return list(six.iterkeys(self))
+        return list(self.keys())
 
     def values(self):  # pragma: nocover
-        return list(six.itervalues(self))
+        return list(self.values())
 
     def items(self):  # pragma: nocover
         self._populate()
@@ -274,7 +271,7 @@ class MongoModelDict(CachedDict):
                  auto_create=False, *args, **kwargs):
         assert value is not None
 
-        super(MongoModelDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         cls_name = type(self).__name__
         name = model.__name__
@@ -285,8 +282,8 @@ class MongoModelDict(CachedDict):
         self.model = model
         self.auto_create = auto_create
 
-        self.cache_key = '%s:%s:%s' % (cls_name, name, self.key)
-        self.last_updated_cache_key = '%s.last_updated:%s:%s' % (cls_name,
+        self.cache_key = f'{cls_name}:{name}:{self.key}'
+        self.last_updated_cache_key = '{}.last_updated:{}:{}'.format(cls_name,
                                                                  name,
                                                                  self.key)
         request_finished.connect(self._cleanup)
@@ -325,7 +322,7 @@ class MongoModelDict(CachedDict):
         return result
 
     def _get_cache_data(self):
-        return dict((getattr(i, self.key), i) for i in self.model.all())
+        return {getattr(i, self.key): i for i in self.model.all()}
 
     # Signals
     def _post_save(self, sender, **kwargs):

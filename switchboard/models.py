@@ -6,8 +6,6 @@ switchboard.models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from datetime import datetime
 import logging
 
@@ -16,7 +14,6 @@ from pymongo import DESCENDING
 
 from .settings import settings
 from .helpers import MockCollection
-import six
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +26,7 @@ INCLUDE = 'i'
 EXCLUDE = 'e'
 
 
-class MongoModel(object):
+class MongoModel:
     # May be lazy initialized to a real Mongo connection by calling
     # switchboard.configure()
     c = MockCollection()
@@ -137,7 +134,7 @@ class MongoModel(object):
 class VersioningMongoModel(MongoModel):
 
     def __init__(self, *args, **kwargs):
-        super(VersioningMongoModel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def _versioned_collection(cls):
@@ -162,9 +159,9 @@ class VersioningMongoModel(MongoModel):
             changed = [f for f in current_fields if (f in previous_fields
                                                      and prev[f] != curr[f])]
             delta = dict(
-                added=dict([(k, curr[k]) for k in added]),
-                deleted=dict([(k, prev[k]) for k in deleted]),
-                changed=dict([(k, (prev[k], curr[k])) for k in changed]),
+                added={k: curr[k] for k in added},
+                deleted={k: prev[k] for k in deleted},
+                changed={k: (prev[k], curr[k]) for k in changed},
             )
         elif prev:  # Model's been deleted
             delta = dict(
@@ -227,7 +224,7 @@ class VersioningMongoModel(MongoModel):
                 for k in deleted.keys():
                     if k in previous:
                         del previous[k]
-                for k, v in six.iteritems(changed):
+                for k, v in changed.items():
                     old, new = v
                     previous[k] = new
         previous = self.__class__(**previous) if previous else None
@@ -289,10 +286,10 @@ class Switch(VersioningMongoModel):
         self.date_modified = kwargs.get('date_modified', datetime.utcnow())
         self.description = kwargs.get('description', '')
         self.status = kwargs.get('status', DISABLED)
-        super(Switch, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __unicode__(self):
-        return '%s=%s' % (self.key, self.value)
+        return f'{self.key}={self.value}'
 
     def get_status_display(self):
         return self.STATUS_CHOICES[self.status]
@@ -312,7 +309,7 @@ class Switch(VersioningMongoModel):
         """
         condition_set = manager.get_condition_set_by_id(condition_set)
 
-        assert isinstance(condition, six.string_types), 'conditions must be strings'
+        assert isinstance(condition, str), 'conditions must be strings'
 
         namespace = condition_set.get_namespace()
 
@@ -416,7 +413,7 @@ class Switch(VersioningMongoModel):
             condition_set_id = condition_set.get_id()
             if ns in self.value:
                 group = condition_set.get_group_label()
-                for name, field in six.iteritems(condition_set.fields):
+                for name, field in condition_set.fields.items():
                     for value in self.value[ns].get(name, []):
                         try:
                             yield (condition_set_id, group, field, value[1],

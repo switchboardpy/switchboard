@@ -6,7 +6,6 @@ switchboard
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
 from .manager import operator, configure
 
 __all__ = ('operator', 'configure', 'VERSION')

@@ -6,8 +6,7 @@ switchboard.proxy
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-class SwitchProxy(object):
+class SwitchProxy:
     def __init__(self, manager, switch):
         self._switch = switch
         self._manager = manager

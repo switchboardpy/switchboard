@@ -6,10 +6,7 @@ switchboard.admin.utils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import json
-import six
 
 from switchboard.conditions import Invalid
 from switchboard.settings import settings
@@ -53,7 +50,7 @@ def json_api(func):
             if hasattr(obj, 'isoformat'):
                 return obj.isoformat()
             else:
-                return six.text_type(obj)
+                return str(obj)
         santized_response = json.loads(json.dumps(response, default=handler))
         return santized_response
     return wrapper

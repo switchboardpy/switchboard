@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from blinker import signal
 
 #: This signal is sent when a switch is added.

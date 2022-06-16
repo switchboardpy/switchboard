@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import setuptools
 from pathlib import Path
 
@@ -10,7 +8,6 @@ INSTALL_REQUIRES = [
     'WebOb >= 0.9',
     'Mako >= 0.9',
     'bottle >= 0.12.8',
-    'six',
 ]
 
 this_directory = Path(__file__).parent

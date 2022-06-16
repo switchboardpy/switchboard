@@ -6,11 +6,9 @@ switchboard.tests.admin.test_utils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from datetime import datetime
 
-from mock import patch
+from unittest.mock import patch
 import pytest
 
 from switchboard.admin.utils import (
@@ -94,7 +92,7 @@ def test_json_api_datetime():
 
 
 def test_json_api_object():
-    class MockObject(object):
+    class MockObject:
         def __str__(self):
             return 'foobar'
     foobar = MockObject()

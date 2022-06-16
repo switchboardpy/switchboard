@@ -6,8 +6,6 @@ switchboard.tests.test_testutils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 
 from ..models import (
     Switch,
@@ -21,7 +19,7 @@ def teardown_collection():
     Switch.c.drop()
 
 
-class TestSwitchContextManager(object):
+class TestSwitchContextManager:
     def setup(self):
         self.operator = SwitchManager(auto_create=True)
 

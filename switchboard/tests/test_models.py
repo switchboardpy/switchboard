@@ -6,11 +6,9 @@ switchboard.tests.test_models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from datetime import datetime
 
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from ..builtins import IPAddressConditionSet
 from ..manager import SwitchManager
@@ -24,7 +22,7 @@ from ..models import (
 from ..settings import settings
 
 
-class TestMongoModel(object):
+class TestMongoModel:
     def setup(self):
         self.m = MongoModel()
 
@@ -51,7 +49,7 @@ class TestMongoModel(object):
         assert instance.foo == 'bar'
 
 
-class TestVersioningMongoModel(object):
+class TestVersioningMongoModel:
     def setup(self):
         self.m = VersioningMongoModel(_id='0')
 
@@ -151,7 +149,7 @@ class TestVersioningMongoModel(object):
         assert not hasattr(prev, 'a')
 
 
-class TestConstant(object):
+class TestConstant:
     def setup(self):
         self.operator = SwitchManager()
 
@@ -176,7 +174,7 @@ class TestConstant(object):
         assert self.operator.EXCLUDE == 'e'
 
 
-class TestSwitch(object):
+class TestSwitch:
     def setup(self):
         self.condition_set = IPAddressConditionSet()
         self.manager = SwitchManager(auto_create=True)
