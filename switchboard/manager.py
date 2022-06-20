@@ -99,7 +99,7 @@ class SwitchManager(MongoModelDict):
         MongoModel.post_delete.connect(self.version_switch)
         super().__init__(*new_args, **kwargs)
 
-    def __unicode__(self):  # pragma: nocover
+    def __str__(self):
         return "<{}: {} ({})>".format(self.__class__.__name__,
                                   getattr(self, 'model', ''),
                                   list(registry.values()))
