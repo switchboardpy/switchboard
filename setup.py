@@ -42,7 +42,6 @@ setuptools.setup(
     zip_safe=False,
     tests_require=[
         'pytest',
-        'mock',
         'selenium >= 3.0',
         'splinter',
     ],
