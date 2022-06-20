@@ -153,7 +153,7 @@ class TestAdmin:
     def test_add_edit_delete_switch(self):
         self.b.visit(admin_url)
         # Add the switch.
-        self.b.find_link_by_href('#add-switch').first.click()
+        self.b.find_by_css('.add-switch').first.click()
         drawer = self.b.find_by_css('.drawer').first
         assert drawer.visible, 'Drawer is not visible'
         key = 'test1'
