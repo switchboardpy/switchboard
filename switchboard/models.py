@@ -288,7 +288,7 @@ class Switch(VersioningMongoModel):
         self.status = kwargs.get('status', DISABLED)
         super().__init__(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return f'{self.key}={self.value}'
 
     def get_status_display(self):
