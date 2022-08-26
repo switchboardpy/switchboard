@@ -4,6 +4,7 @@
 *.swp
 dist
 .tox
+.idea
 .coverage
 coverage.xml
 docs/_build

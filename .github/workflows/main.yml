@@ -25,7 +25,8 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
-          - "3.10"
+          - '3.10'
+          - '3.11-dev'
 
     services:
       mongodb:
@@ -48,7 +49,7 @@ jobs:
 
       - name: Run tox targets for ${{ matrix.python-version }}
         # sed is used to remove the '.' so '3.7' becomes '37' for tox (and pypy3 doesn't become pypypy3)
-        run: tox -e py`echo ${{ matrix.python-version }} | sed s/\\\.// | sed s/pypy/py/`
+        run: tox -e py`echo ${{ matrix.python-version }} | sed s/\\\.// | sed s/pypy/py/ | sed s/-dev//`
 
       - name: Run coverage
         # TODO kind of redundant with main `tox` run above
