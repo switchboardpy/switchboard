@@ -78,7 +78,7 @@ class TestMongoModelDict:
 
         mydict = MongoModelDict(MockModel, key='key', value='value')
 
-        assert mydict._cache == None
+        assert mydict._cache is None
 
         instance = MockModel(key='test_expirey', value='hello')
         mydict['test_expirey'] = instance
@@ -88,7 +88,7 @@ class TestMongoModelDict:
 
         request_finished.send(Mock())
 
-        assert mydict._last_updated == None
+        assert mydict._last_updated is None
         assert mydict['test_expirey'] == instance
         assert len(mydict._cache) == base_count + 1
 
@@ -321,7 +321,7 @@ class TestCachedDict:
 
         last_updated = self.mydict.last_updated_cache_key
         self.cache.get.assert_called_once_with(last_updated)
-        assert result == False
+        assert result is False
 
     def test_is_expired_if_remote_cache_is_new(self):
         # set it to an expired time
@@ -332,7 +332,7 @@ class TestCachedDict:
 
         last_updated = self.mydict.last_updated_cache_key
         self.cache.get.assert_called_once_with(last_updated)
-        assert result == True
+        assert result is True
 
     def test_is_expired_if_never_updated(self):
         # _last_updated None
@@ -341,7 +341,7 @@ class TestCachedDict:
 
         result = self.mydict.has_global_changed()
 
-        assert result == True
+        assert result is True
 
     @patch('switchboard.base.CachedDict._populate')
     @patch('switchboard.base.CachedDict.get_default')

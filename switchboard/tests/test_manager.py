@@ -60,7 +60,7 @@ class TestAPI:
     def test_unregister(self):
         self.operator.unregister(QueryStringConditionSet)
         condition_set_id = 'switchboard.builtins.QueryStringConditionSet'
-        assert not condition_set_id in registry
+        assert condition_set_id not in registry
         assert len(list(self.operator.get_condition_sets())) == 2, self.operator
 
     def test_get_all_conditions(self):
@@ -261,7 +261,7 @@ class TestAPI:
 
         switch.delete()
 
-        assert not 'test' in self.operator
+        assert 'test' not in self.operator
 
     def test_expiration(self):
         switch = Switch.create(key='test')
@@ -804,7 +804,7 @@ class TestManagerConcurrency:
 
         def verify_context():
             try:
-                assert self.operator.context.get('foo') == None
+                assert self.operator.context.get('foo') is None
             except Exception as e:
                 self.exc = e
 
@@ -865,7 +865,7 @@ class TestManagerResultCacheDecorator:
         operator_self = Mock(result_cache=None)
         result = self.cached_is_active_func(operator_self, 'mykey')
         assert result
-        assert operator_self.result_cache == None
+        assert operator_self.result_cache is None
 
     def test_decorator_simple(self):
         operator_self = Mock(result_cache={})

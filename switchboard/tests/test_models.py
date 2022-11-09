@@ -323,7 +323,7 @@ class TestSwitch:
             condition='127.0.0.1',
         )
         assert self.condition_set.get_namespace() in self.switch.value
-        assert not 'ip_address' in self.switch.value[namespace]
+        assert 'ip_address' not in self.switch.value[namespace]
         assert (self.switch.value[namespace]['percent'] ==
                       [[INCLUDE, '0-50']])
         assert save.call_count == 3
@@ -333,7 +333,7 @@ class TestSwitch:
             field_name='percent',
             condition='0-50',
         )
-        assert not self.condition_set.get_namespace() in self.switch.value
+        assert self.condition_set.get_namespace() not in self.switch.value
         assert save.call_count == 4
 
     @patch('switchboard.models.Switch.save')
@@ -388,7 +388,7 @@ class TestSwitch:
         self.switch.clear_conditions(self.manager, self.condition_set.get_id(),
                                      field_name='ip_address')
         namespace = self.condition_set.get_namespace()
-        assert not 'ip_address' in self.switch.value[namespace]
+        assert 'ip_address' not in self.switch.value[namespace]
         assert (self.switch.value[namespace]['percent'] ==
                       [[INCLUDE, '0-50']])
         assert save.called
@@ -396,14 +396,14 @@ class TestSwitch:
     @patch('switchboard.models.Switch.save')
     def test_clear_conditions_whole_namespace(self, save):
         self.switch.clear_conditions(self.manager, self.condition_set.get_id())
-        assert not self.condition_set.get_namespace() in self.switch.value
+        assert self.condition_set.get_namespace() not in self.switch.value
         assert save.called
 
     @patch('switchboard.models.Switch.save')
     def test_clear_conditions_no_commit(self, save):
         set_id = self.condition_set.get_id()
         self.switch.clear_conditions(self.manager, set_id, commit=False)
-        assert not self.condition_set.get_namespace() in self.switch.value
+        assert self.condition_set.get_namespace() not in self.switch.value
         assert not save.called
 
     def test_get_active_conditions(self):

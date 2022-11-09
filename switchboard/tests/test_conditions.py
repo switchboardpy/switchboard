@@ -302,7 +302,7 @@ class TestConditionSet:
         instances = ['foo']
         has_active_condition = self.cs.has_active_condition(conditions,
                                                             instances)
-        assert has_active_condition == True
+        assert has_active_condition is True
         can_execute.assert_any_call(instances[0])
         is_active.assert_any_call(instances[0], conditions)
 
@@ -314,7 +314,7 @@ class TestConditionSet:
         instances = ['foo']
         has_active_condition = self.cs.has_active_condition(conditions,
                                                             instances)
-        assert has_active_condition == None
+        assert has_active_condition is None
         can_execute.assert_any_call(instances[0])
         assert not is_active.called
 
@@ -327,7 +327,7 @@ class TestConditionSet:
         instances = ['foo']
         has_active_condition = self.cs.has_active_condition(conditions,
                                                             instances)
-        assert has_active_condition == False
+        assert has_active_condition is False
         can_execute.assert_any_call(instances[0])
         is_active.assert_any_call(instances[0], conditions)
 
@@ -342,7 +342,7 @@ class TestConditionSet:
         get_field_value.return_value = value
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert is_active == True
+        assert is_active is True
         get_field_value.assert_called_with(instance, name)
         field.is_active.assert_called_with(field_condition, value)
 
@@ -355,7 +355,7 @@ class TestConditionSet:
         condition = {}
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert is_active == None
+        assert is_active is None
         assert not get_field_value.called
         assert not field.is_active.called
 
@@ -370,7 +370,7 @@ class TestConditionSet:
         get_field_value.return_value = value
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert is_active == None
+        assert is_active is None
         get_field_value.assert_called_with(instance, name)
         field.is_active.assert_called_with(field_condition, value)
 
@@ -385,7 +385,7 @@ class TestConditionSet:
         get_field_value.return_value = value
         instance = 'test'
         is_active = self.cs.is_active(instance, condition)
-        assert is_active == False
+        assert is_active is False
         get_field_value.assert_called_with(instance, name)
         field.is_active.assert_called_with(field_condition, value)
 
