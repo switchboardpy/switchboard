@@ -30,7 +30,7 @@ from ..settings import settings
 
 
 class TestAPI:
-    def setup(self):
+    def setup_method(self):
         settings.SWITCHBOARD_SWITCH_DEFAULTS = {
             'active_by_default': {
                 'is_active': True,
@@ -48,7 +48,7 @@ class TestAPI:
         self.operator.register(IPAddressConditionSet)
         self.operator.register(HostConditionSet)
 
-    def teardown(self):
+    def teardown_method(self):
         Switch.c.drop()
 
     def test_builtin_registration(self):
@@ -737,7 +737,7 @@ class TestAPI:
 
 
 class TestConfigure:
-    def setup(self):
+    def setup_method(self):
         self.config = dict(
             mongo_host='mongodb',
             mongo_port=8080,
@@ -750,7 +750,7 @@ class TestConfigure:
             cache_hosts=['127.0.0.1']
         )
 
-    def teardown(self):
+    def teardown_method(self):
         Switch.c = MockCollection()
 
     def assert_settings(self):
@@ -790,7 +790,7 @@ class TestConfigure:
 
 class TestManagerConcurrency:
 
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager(auto_create=True)
         self.exc = None
 
@@ -821,7 +821,7 @@ class TestManagerConcurrency:
 
 class TestManagerResultCaching:
 
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager(auto_create=True)
         self.operator.result_cache = {}
 
@@ -849,7 +849,7 @@ class TestManagerResultCaching:
 
 class TestManagerResultCacheDecorator:
 
-    def setup(self):
+    def setup_method(self):
         # Gets a pure function, otherwise we get an unbound function that we
         # can't call.
         self.with_result_cache = SwitchManager.__dict__['with_result_cache']
@@ -906,7 +906,7 @@ class TestManagerResultCacheDecorator:
 
 
 class TestManagerConstants:
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager()
 
     def test_disabled(self):

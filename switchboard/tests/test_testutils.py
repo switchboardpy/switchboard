@@ -20,10 +20,10 @@ def teardown_collection():
 
 
 class TestSwitchContextManager:
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager(auto_create=True)
 
-    def teardown(self):
+    def teardown_method(self):
         teardown_collection()
 
     def test_as_decorator(self):

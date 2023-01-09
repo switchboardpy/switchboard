@@ -60,12 +60,12 @@ class TestAdmin:
     def teardown_class(cls):
         cls.b.quit()
 
-    def setup(self):
+    def setup_method(self):
         # Make sure the example switch is activated by at least
         # one visit.
         self.b.visit(url)
 
-    def teardown(self):
+    def teardown_method(self):
         Switch.c.drop()
 
     def test_root(self):

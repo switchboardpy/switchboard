@@ -14,7 +14,7 @@ from ..middleware import SwitchboardMiddleware
 
 
 class TestSwitchboardMiddleware:
-    def setup(self):
+    def setup_method(self):
         self.app = Mock()
         self.middleware = SwitchboardMiddleware(self.app)
 

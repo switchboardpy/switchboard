@@ -23,10 +23,10 @@ from ..settings import settings
 
 
 class TestMongoModel:
-    def setup(self):
+    def setup_method(self):
         self.m = MongoModel()
 
-    def teardown(self):
+    def teardown_method(self):
         MongoModel.c.drop()
 
     @patch('switchboard.models.MongoModel.update')
@@ -50,10 +50,10 @@ class TestMongoModel:
 
 
 class TestVersioningMongoModel:
-    def setup(self):
+    def setup_method(self):
         self.m = VersioningMongoModel(_id='0')
 
-    def teardown(self):
+    def teardown_method(self):
         VersioningMongoModel._versioned_collection().drop()
 
     def test_diff_fields_added(self):
@@ -150,7 +150,7 @@ class TestVersioningMongoModel:
 
 
 class TestConstant:
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager()
 
     def test_disabled(self):
@@ -175,7 +175,7 @@ class TestConstant:
 
 
 class TestSwitch:
-    def setup(self):
+    def setup_method(self):
         self.condition_set = IPAddressConditionSet()
         self.manager = SwitchManager(auto_create=True)
         self.manager.register(self.condition_set)
@@ -191,7 +191,7 @@ class TestSwitch:
             ],
         }
 
-    def teardown(self):
+    def teardown_method(self):
         Switch.c.drop()
         Switch._versioned_collection().drop()
 

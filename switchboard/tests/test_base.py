@@ -48,7 +48,7 @@ class MockModel(VersioningMongoModel):
 
 class TestMongoModelDict:
 
-    def teardown(self):
+    def teardown_method(self):
         MockModel.c.drop()
 
     def test_api(self):
@@ -154,14 +154,14 @@ class TestMongoModelDict:
 
 
 class TestCacheIntegration:
-    def setup(self):
+    def setup_method(self):
         self.cache = Mock()
         self.cache.get.return_value = {}
         self.mydict = MongoModelDict(MockModel, key='key', value='value',
                                      auto_create=True)
         self.mydict.cache = self.cache
 
-    def teardown(self):
+    def teardown_method(self):
         MockModel.c.drop()
 
     def test_model_creation(self):
@@ -246,7 +246,7 @@ class TestCacheIntegration:
 
 
 class TestCachedDict:
-    def setup(self):
+    def setup_method(self):
         self.cache = Mock()
         self.mydict = CachedDict(timeout=100)
         self.mydict.cache =self.cache
@@ -354,7 +354,7 @@ class TestCachedDict:
 
 class TestCacheConcurrency:
 
-    def setup(self):
+    def setup_method(self):
         self.mydict = CachedDict()
         self.exc = None
 
