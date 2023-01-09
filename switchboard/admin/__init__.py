@@ -73,12 +73,12 @@ def add():
     if not key:
         raise SwitchboardException("Key cannot be empty")
 
-    if len(key) > 32:
-        raise SwitchboardException("Key must be less than or equal to 32"
+    if len(key) > 1000:
+        raise SwitchboardException("Key must be less than or equal to 1000"
                                    + " characters in length")
 
-    if len(label) > 32:
-        raise SwitchboardException("Name must be less than or equal to 32"
+    if len(label) > 1000:
+        raise SwitchboardException("Name must be less than or equal to 1000"
                                    + " characters in length")
 
     if Switch.get(key=key):
@@ -106,12 +106,12 @@ def update():
 
     switch = Switch.get(key=curkey)
 
-    if len(key) > 32:
-        raise SwitchboardException("Key must be less than or equal to 32"
+    if len(key) > 1000:
+        raise SwitchboardException("Key must be less than or equal to 1000"
                                    + " characters in length")
 
-    if len(label) > 32:
-        raise SwitchboardException("Name must be less than or equal to 32"
+    if len(label) > 1000:
+        raise SwitchboardException("Name must be less than or equal to 1000"
                                    + " characters in length")
 
     values = dict(
