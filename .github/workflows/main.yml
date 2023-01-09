@@ -76,3 +76,4 @@ jobs:
           flags: tests-${{ matrix.python-version }}
           name: codecov-umbrella
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
