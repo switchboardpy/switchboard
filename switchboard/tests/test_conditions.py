@@ -37,7 +37,7 @@ def test_titlize():
 
 
 class TestField:
-    def setup(self):
+    def setup_method(self):
         self.field = Field()
 
     def test_set_values(self):
@@ -66,7 +66,7 @@ class TestField:
 
 
 class TestBoolean:
-    def setup(self):
+    def setup_method(self):
         self.field = Boolean()
 
     def test_is_active(self):
@@ -82,7 +82,7 @@ class TestBoolean:
 
 
 class TestChoice:
-    def setup(self):
+    def setup_method(self):
         choices = ['foo', 'scooby']
         self.field = Choice(choices)
 
@@ -102,7 +102,7 @@ class TestChoice:
 
 
 class TestRange:
-    def setup(self):
+    def setup_method(self):
         self.field = Range()
         self.field.name = 'qi'
 
@@ -144,7 +144,7 @@ class TestRange:
 
 
 class TestPercent:
-    def setup(self):
+    def setup_method(self):
         self.field = Percent()
         self.field.label = 'Foo'
 
@@ -177,7 +177,7 @@ class TestPercent:
 
 
 class TestRegex:
-    def setup(self):
+    def setup_method(self):
         self.field = Regex()
         self.field.name = 'foo'
 
@@ -192,7 +192,7 @@ class TestRegex:
 
 
 class TestAbstractDate:
-    def setup(self):
+    def setup_method(self):
         self.field = AbstractDate()
 
     def test_str_to_date(self):
@@ -245,7 +245,7 @@ class TestAbstractDate:
 
 
 class TestBeforeDate:
-    def setup(self):
+    def setup_method(self):
         self.field = BeforeDate()
 
     def test_date_is_active(self):
@@ -258,7 +258,7 @@ class TestBeforeDate:
 
 
 class TestOnOrAfterDate:
-    def setup(self):
+    def setup_method(self):
         self.field = OnOrAfterDate()
 
     def test_date_is_active(self):
@@ -271,7 +271,7 @@ class TestOnOrAfterDate:
 
 
 class TestConditionSet:
-    def setup(self):
+    def setup_method(self):
         self.cs = ConditionSet()
 
     def test_get_field_value_str(self):
@@ -391,7 +391,7 @@ class TestConditionSet:
 
 
 class TestModelConditionSet:
-    def setup(self):
+    def setup_method(self):
         class OurModelConditionSet(ModelConditionSet):
             def get_namespace(self):
                 return 'ourmodel'
@@ -410,7 +410,7 @@ class TestModelConditionSet:
 
 
 class TestRequestConditionSet:
-    def setup(self):
+    def setup_method(self):
         self.cs = RequestConditionSet()
 
     def test_can_execute(self):

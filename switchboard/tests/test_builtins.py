@@ -28,7 +28,7 @@ def teardown_collection():
 
 
 class TestIPAddress:
-    def setup(self):
+    def setup_method(self):
         self.ip = IPAddress()
 
     def test_clean_valid_ipv4(self):
@@ -43,13 +43,13 @@ class TestIPAddress:
 
 
 class TestIPAddressConditionSet:
-    def setup(self):
+    def setup_method(self):
         self.cs = 'switchboard.builtins.IPAddressConditionSet'
         self.ip = '192.168.0.1'
         self.operator = SwitchManager(auto_create=True)
         self.operator.register(IPAddressConditionSet())
 
-    def teardown(self):
+    def teardown_method(self):
         teardown_collection()
 
     def test_ip_address(self):
@@ -102,11 +102,11 @@ class TestIPAddressConditionSet:
 
 
 class TestHostConditionSet:
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager(auto_create=True)
         self.operator.register(HostConditionSet())
 
-    def teardown(self):
+    def teardown_method(self):
         teardown_collection()
 
     def test_simple(self):
@@ -126,7 +126,7 @@ class TestHostConditionSet:
 
 
 class TestQueryStringConditionSet:
-    def setup(self):
+    def setup_method(self):
         self.operator = SwitchManager(auto_create=True)
         self.operator.register(QueryStringConditionSet())
 
@@ -144,7 +144,7 @@ class TestQueryStringConditionSet:
         )
         return switch
 
-    def teardown(self):
+    def teardown_method(self):
         teardown_collection()
 
     def test_flag_present(self):
