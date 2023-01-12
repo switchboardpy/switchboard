@@ -1,7 +1,7 @@
 import setuptools
 from pathlib import Path
 
-VERSION = '1.6.1'
+VERSION = '1.6.2'
 INSTALL_REQUIRES = [
     'pymongo >= 3, < 4',
     'blinker >= 1.2',
