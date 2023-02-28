@@ -42,7 +42,8 @@ class IPAddressConditionSet(RequestConditionSet):
         # XXX: can we come up w/ a better API?
         # Ensure we map ``percent`` to the ``id`` column
         if field_name == 'percent':
-            return sum(int(x) for x in instance.remote_addr.split('.'))
+            # any number is fine, `Percent` takes it mod 100
+            return int(ipaddress.ip_address(instance.remote_addr))
         elif field_name == 'ip_address':
             return instance.remote_addr
         elif field_name == 'internal_ip':

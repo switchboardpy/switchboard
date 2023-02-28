@@ -46,6 +46,8 @@ class TestIPAddressConditionSet:
     def setup_method(self):
         self.cs = 'switchboard.builtins.IPAddressConditionSet'
         self.ip = '192.168.0.1'
+        self.ipv6 = '2001:db8:85a3:8d3:1319:8a2e:370:7348'
+        self.ipv6alt = '2001:db8:85a3:8d3:1319:8a2e:370:7448'  # different at end, so Percent calculation is different
         self.operator = SwitchManager(auto_create=True)
         self.operator.register(IPAddressConditionSet())
 
@@ -67,6 +69,15 @@ class TestIPAddressConditionSet:
         )
         assert self.operator.is_active('test', req)
 
+        req_ipv6 = Request.blank('', environ=dict(REMOTE_ADDR=self.ipv6))
+        assert not self.operator.is_active('test', req_ipv6)
+        switch.add_condition(
+            condition_set=self.cs,
+            field_name='ip_address',
+            condition=self.ipv6,
+        )
+        assert self.operator.is_active('test', req_ipv6)
+
     def test_percent(self):
         switch = Switch.create(
             key='test',
@@ -78,9 +89,13 @@ class TestIPAddressConditionSet:
         switch.add_condition(
             condition_set=self.cs,
             field_name='percent',
-            condition='50-100',  # Upper 50%; the test IP falls in that range.
+            condition='0-50',  # Lower 50%; the test IPs happen to fall in that range.
         )
         assert self.operator.is_active('test', req)
+
+        assert self.operator.is_active('test', Request.blank('', environ=dict(REMOTE_ADDR=self.ipv6)))
+
+        assert not self.operator.is_active('test', Request.blank('', environ=dict(REMOTE_ADDR=self.ipv6alt)))
 
     def test_internal_ip(self):
         ip = '192.168.0.1'
