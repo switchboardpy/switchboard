@@ -68,7 +68,6 @@ class TestIPAddressConditionSet:
         assert self.operator.is_active('test', req)
 
     def test_percent(self):
-        ip = '192.168.0.1'
         switch = Switch.create(
             key='test',
             status=SELECTIVE
