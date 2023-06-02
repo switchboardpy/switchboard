@@ -48,24 +48,20 @@ class MockCollection:
         for k, v in new.items():
             old[k] = v
 
-    def update(self, spec, update, upsert=False):
+    def update_one(self, spec, update, upsert=False):
         current = self.find_one(spec)
         if not current:
             if upsert:
+                update = update.get('$set', update)
                 spec.update(update)
-                return self.save(spec)
-            else:
-                return {
-                    'err': None,
-                    'n': 1,
-                    'ok': 1.0,
-                    'updatedExisting': True
-                }
-        for k, v in update.items():
-            if k == '$set':
-                self._update_partial(current, v)
-            else:
-                current[k] = v
+                return self.insert_one(spec)
+        else:
+            for k, v in update.items():
+                if k == '$set':
+                    self._update_partial(current, v)
+                else:
+                    current[k] = v
+
         return {
             'err': None,
             'n': 1,
@@ -73,20 +69,19 @@ class MockCollection:
             'updatedExisting': True
         }
 
-    def remove(self, spec):
+    def delete_one(self, spec):
         doc = self.find_one(spec)
         if doc:
             self._data.remove(doc)
             return {'err': None, 'n': 1, 'ok': 1.0}
 
-    def save(self, document):
-        if not document.get('_id'):
+    def insert_one(self, document):
+        _id = document.get('_id')
+        if not _id:
             _id = str(len(self._data))
             document['_id'] = _id
-            self._data.append(document)
-        else:
-            _id = document['_id']
-            self.update({'_id': _id}, document)
+
+        self._data.append(document)
         return _id
 
     def drop(self):

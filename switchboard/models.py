@@ -11,6 +11,7 @@ import logging
 
 from blinker import signal
 from pymongo import DESCENDING
+from pymongo.results import InsertOneResult
 
 from .settings import settings
 from .helpers import MockCollection
@@ -50,7 +51,17 @@ class MongoModel:
         else:
             previous = None
         self.pre_save.send(previous)
-        _id = self.c.save(self.to_bson())
+
+        if not previous:
+            result = self.c.insert_one(self.to_bson())
+            # When pymongo's implementation of insert_one is used, it returns an InsertOneResult
+            # instead of a plain _id, so we need to check the type to return the proper value
+            _id = result.inserted_id if type(result) is InsertOneResult else result
+        else:
+            document = self.to_bson()
+            _id = document['_id']
+            self.c.update_one({'_id': _id}, {'$set': document})
+
         if not hasattr(self, '_id'):
             self._id = _id
         self.post_save.send(self)
@@ -87,7 +98,7 @@ class MongoModel:
             # Do an upsert here instead of a straight create to avoid a race
             # condition with another instance creating the same record at
             # nearly the same time.
-            cls.update(result, result, upsert=True)
+            cls.update(result, {'$set': result}, upsert=True)
             result = cls.c.find_one(kwargs)
             instance = cls(**result)
         else:
@@ -109,7 +120,7 @@ class MongoModel:
         '''
         previous = cls.get(**spec)
         cls.pre_save.send(previous)
-        result = cls.c.update(spec, document, upsert=upsert)
+        result = cls.c.update_one(spec, document, upsert=upsert)
         current = cls.get(**spec)
         cls.post_save.send(current)
         return result
@@ -118,7 +129,7 @@ class MongoModel:
     def remove(cls, **kwargs):
         instance = cls.get(**kwargs)
         cls.pre_delete.send(instance)
-        result = cls.c.remove(kwargs)
+        result = cls.c.delete_one(kwargs)
         cls.post_delete.send(instance)
         return result
 
@@ -193,7 +204,7 @@ class VersioningMongoModel(MongoModel):
                 delta=delta,
                 **kwargs
             )
-            self._versioned_collection().save(doc)
+            self._versioned_collection().insert_one(doc)
 
     def _unpack_delta(self, version):
         '''
