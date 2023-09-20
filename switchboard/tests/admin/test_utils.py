@@ -6,7 +6,6 @@ switchboard.tests.admin.test_utils
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from datetime import datetime
 
 from unittest.mock import patch
 import pytest
@@ -18,6 +17,7 @@ from switchboard.admin.utils import (
 )
 from switchboard.conditions import Invalid
 from switchboard.settings import settings
+from switchboard.helpers import utcnow
 
 
 def test_json_api_success():
@@ -79,7 +79,7 @@ def test_json_api_exception_debug(print_exc):
 
 
 def test_json_api_datetime():
-    now = datetime.utcnow()
+    now = utcnow()
 
     @json_api
     def tester():

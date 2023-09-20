@@ -6,7 +6,6 @@ switchboard.admin
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from datetime import datetime
 import logging
 from operator import attrgetter
 
@@ -14,7 +13,7 @@ from bottle import Bottle, request, mako_view as view
 from webob.exc import HTTPNotFound
 
 from .. import operator, signals
-from ..helpers import MockCollection
+from ..helpers import MockCollection, utcnow
 from ..models import Switch
 from .utils import (
     json_api,
@@ -133,7 +132,7 @@ def update():
 
         switch.label = label
         switch.description = description
-        switch.date_modified = datetime.utcnow()
+        switch.date_modified = utcnow()
         switch.save()
 
         log.info('Switch %r updated %%s' % switch.key,
@@ -161,7 +160,7 @@ def status():
 
     if switch.status != status:
         switch.status = status
-        switch.date_modified = datetime.utcnow()
+        switch.date_modified = utcnow()
         switch.save()
 
         log.info('Switch %r updated (status=%%s->%%s)' % switch.key,

@@ -6,7 +6,6 @@ switchboard.models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from datetime import datetime
 import logging
 
 from blinker import signal
@@ -14,7 +13,7 @@ from pymongo import DESCENDING
 from pymongo.results import InsertOneResult
 
 from .settings import settings
-from .helpers import MockCollection
+from .helpers import MockCollection, utcnow
 
 log = logging.getLogger(__name__)
 
@@ -200,7 +199,7 @@ class VersioningMongoModel(MongoModel):
         if delta and (delta['added'] or delta['deleted'] or delta['changed']):
             doc = dict(
                 switch_id=self._id,
-                timestamp=datetime.utcnow(),
+                timestamp=utcnow(),
                 delta=delta,
                 **kwargs
             )
@@ -293,8 +292,8 @@ class Switch(VersioningMongoModel):
         self.key = kwargs.get('key')
         self.value = kwargs.get('value', {})
         self.label = kwargs.get('label', '')
-        self.date_created = kwargs.get('date_created', datetime.utcnow())
-        self.date_modified = kwargs.get('date_modified', datetime.utcnow())
+        self.date_created = kwargs.get('date_created', utcnow())
+        self.date_modified = kwargs.get('date_modified', utcnow())
         self.description = kwargs.get('description', '')
         self.status = kwargs.get('status', DISABLED)
         super().__init__(*args, **kwargs)

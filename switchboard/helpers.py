@@ -9,6 +9,7 @@ switchboard.helpers
 import logging
 from collections import defaultdict
 from copy import deepcopy
+from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
 
@@ -89,3 +90,7 @@ class MockCollection:
 
     def count(self):
         return len(self._data)
+
+
+def utcnow():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
