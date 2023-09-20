@@ -6,7 +6,7 @@ switchboard.tests.test_models
 :license: Apache License 2.0, see LICENSE for more details.
 """
 
-from datetime import datetime
+from switchboard.helpers import utcnow
 
 from unittest.mock import Mock, patch
 
@@ -116,7 +116,7 @@ class TestVersioningMongoModel:
             added=dict(a=1, b=2)
         )
         c = Mock()
-        c.find.return_value = [dict(timestamp=datetime.utcnow(),
+        c.find.return_value = [dict(timestamp=utcnow(),
                                     delta=delta)]
         self.m._versioned_collection = lambda: c
         prev = self.m.previous_version()
@@ -125,19 +125,19 @@ class TestVersioningMongoModel:
 
     def test_previous_version_multidiff(self):
         v1 = dict(
-            timestamp=datetime.utcnow(),
+            timestamp=utcnow(),
             delta=dict(added=dict(a=1, b=2))
         )
         v2 = dict(
-            timestamp=datetime.utcnow(),
+            timestamp=utcnow(),
             delta=dict(changed=dict(b=(2, 3)))
         )
         v3 = dict(
-            timestamp=datetime.utcnow(),
+            timestamp=utcnow(),
             delta=dict(added=dict(c=4))
         )
         v4 = dict(
-            timestamp=datetime.utcnow(),
+            timestamp=utcnow(),
             delta=dict(deleted=dict(a=1))
         )
         c = Mock()
