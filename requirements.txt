@@ -8,5 +8,5 @@ mock
 coverage
 bottle
 splinter
-selenium<4.10
+selenium
 tox
