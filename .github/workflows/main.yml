@@ -38,7 +38,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -71,9 +71,9 @@ jobs:
           SELENIUM_REMOTE=1 MUST_USE_REAL_MONGO=1 make functional-test
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           flags: tests-${{ matrix.python-version }}
           name: codecov-umbrella
           verbose: true
