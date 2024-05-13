@@ -43,7 +43,7 @@ setuptools.setup(
     zip_safe=False,
     tests_require=[
         'pytest',
-        'selenium < 4.10',
+        'selenium',
         'splinter',
     ],
 )
