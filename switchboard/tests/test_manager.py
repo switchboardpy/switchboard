@@ -143,7 +143,8 @@ class TestAPI:
         def test():
             return True
 
-        pytest.raises(HTTPNotFound, test)
+        with pytest.raises(HTTPNotFound):
+            test()
 
         switch.status = SELECTIVE
         switch.save()
@@ -170,7 +171,8 @@ class TestAPI:
             condition='192.168.1.1',
         )
 
-        pytest.raises(HTTPNotFound, test)
+        with pytest.raises(HTTPNotFound):
+            test()
 
         switch.add_condition(
             condition_set=condition_set,
@@ -203,7 +205,8 @@ class TestAPI:
             condition='0-50',
         )
 
-        pytest.raises(HTTPNotFound, test)
+        with pytest.raises(HTTPNotFound):
+            test()
 
     def test_decorator_with_redirect(self):
         Switch.create(
@@ -218,7 +221,8 @@ class TestAPI:
         def test():
             return True
 
-        pytest.raises(HTTPFound, test)
+        with pytest.raises(HTTPFound):
+            test()
 
     def test_global(self):
         switch = Switch.create(
