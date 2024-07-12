@@ -95,7 +95,8 @@ class TestMongoModelDict:
     def test_no_auto_create(self):
         # without auto_create
         mydict = MongoModelDict(MockModel, key='key', value='value')
-        pytest.raises(KeyError, lambda x: x['hello'], mydict)
+        with pytest.raises(KeyError):
+            mydict['hello']
         assert MockModel.count() == 0
 
     def test_auto_create_no_value(self):
