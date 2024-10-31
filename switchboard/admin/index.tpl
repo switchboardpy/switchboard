@@ -163,7 +163,7 @@
         content: " ▾";
       }
       /* table */
-      .switchboard .switches { width: 100%; collapse; margin-bottom: 1.65rem; }
+      .switchboard .switches { width: 100%; collapse; margin-bottom: 1.65rem; display: flex; flex-direction: column;}
       .switchboard .switches .switch { border-top: 1px solid #bbb; padding: 1.65rem 0; position: relative; }
       .switchboard .switches .switch.overlayed { opacity: 0.6; }
       .switchboard .switches .switch > div { vertical-align: top; overflow:hidden; }
@@ -842,21 +842,23 @@
 
         $('input[type=search]').keyup(function () {
           var query = $(this).val();
-          $('.switches .switch', $sb).removeClass('hidden');
+          $('.switches .switch', $sb).removeClass('hidden').css('order', 0);
           if (!query) {
             return;
           }
           $('.switches .switch', $sb).each(function (_, el) {
             var $el = $(el);
             var score = 0;
-            score += $el.attr('data-switch-key').score(query);
-            score += $el.attr('data-switch-label').score(query);
+            score += $el.attr('data-switch-key').score(query) * 10;
+            score += $el.attr('data-switch-label').score(query) * 5;
             if ($el.attr('data-switch-description')) {
-              score += $el.attr('data-switch-description').score(query);
+              score += $el.attr('data-switch-description').score(query) * 5;
             }
+            score += $('.conditions', $el).text().score(query);
             if (score === 0) {
               $el.addClass('hidden');
             }
+            $el.css('order', Math.round(-score*1000));  // smallest first; convert to large ints
           });
         });
 
