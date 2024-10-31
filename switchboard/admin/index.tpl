@@ -61,7 +61,7 @@
       p + p { text-indent: 1.5em; margin-top: -1.5em; }
       /* more typography, Switchboard-specific (i.e., not from Typelate) */
       .switchboard .sort { line-height: 2.16667rem; }
-      .switchboard input[type="search"] { margin-left: 1rem; }
+      .switchboard input[type="search"] { margin-left: 1rem; width: 25%; }
       /* general */
       #content { width: 80%; margin: 0 auto; }
       .switchboard { margin-bottom: 2rem; margin-top: 132px; }
@@ -174,10 +174,10 @@
       .switchboard .switches .name small { color: #666; }
       .switchboard .switches .description, .switchboard .switches .description p { margin-bottom: 0; }
       /* statuses */
-      .switchboard .switches .status { text-align: right; width: 100%; position: absolute; right: 0; top: 1.65rem; }
+      .switchboard .switches .status { text-align: right; position: absolute; right: 0; top: 1.65rem; }
       .switchboard .switches .status label { display: inline-block; font-weight: bold; color: #222; }
       .switchboard .switches .status label:after { content: ':'; }
-      .switchboard .switches .status select, .switchboard input[type="search"] { width: 25%; }
+      .switchboard .switches .status select { width: 25em; }
       .switchboard .switch[data-switch-status="1"] .status select { border-left: 10px solid #cc4036; }
       .switchboard .switch[data-switch-status="2"] .status select { border-left: 10px solid #faa732; }
       .switchboard .switch[data-switch-status="3"] .status select { border-left: 10px solid #5bb75b; }
