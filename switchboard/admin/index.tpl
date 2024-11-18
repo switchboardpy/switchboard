@@ -61,7 +61,7 @@
       p + p { text-indent: 1.5em; margin-top: -1.5em; }
       /* more typography, Switchboard-specific (i.e., not from Typelate) */
       .switchboard .sort { line-height: 2.16667rem; }
-      .switchboard input[type="search"] { margin-left: 1rem; }
+      .switchboard input[type="search"] { margin-left: 1rem; width: 25%; }
       /* general */
       #content { width: 80%; margin: 0 auto; }
       .switchboard { margin-bottom: 2rem; margin-top: 132px; }
@@ -163,7 +163,7 @@
         content: " ▾";
       }
       /* table */
-      .switchboard .switches { width: 100%; collapse; margin-bottom: 1.65rem; }
+      .switchboard .switches { width: 100%; collapse; margin-bottom: 1.65rem; display: flex; flex-direction: column;}
       .switchboard .switches .switch { border-top: 1px solid #bbb; padding: 1.65rem 0; position: relative; }
       .switchboard .switches .switch.overlayed { opacity: 0.6; }
       .switchboard .switches .switch > div { vertical-align: top; overflow:hidden; }
@@ -174,10 +174,10 @@
       .switchboard .switches .name small { color: #666; }
       .switchboard .switches .description, .switchboard .switches .description p { margin-bottom: 0; }
       /* statuses */
-      .switchboard .switches .status { text-align: right; width: 100%; position: absolute; right: 0; top: 1.65rem; }
+      .switchboard .switches .status { text-align: right; position: absolute; right: 0; top: 1.65rem; }
       .switchboard .switches .status label { display: inline-block; font-weight: bold; color: #222; }
       .switchboard .switches .status label:after { content: ':'; }
-      .switchboard .switches .status select, .switchboard input[type="search"] { width: 25%; }
+      .switchboard .switches .status select { width: 25em; }
       .switchboard .switch[data-switch-status="1"] .status select { border-left: 10px solid #cc4036; }
       .switchboard .switch[data-switch-status="2"] .status select { border-left: 10px solid #faa732; }
       .switchboard .switch[data-switch-status="3"] .status select { border-left: 10px solid #5bb75b; }
@@ -842,22 +842,31 @@
 
         $('input[type=search]').keyup(function () {
           var query = $(this).val();
-          $('.switches .switch', $sb).removeClass('hidden');
+          $('.switches .switch', $sb).removeClass('hidden').css('order', 0);
           if (!query) {
             return;
           }
           $('.switches .switch', $sb).each(function (_, el) {
             var $el = $(el);
             var score = 0;
-            score += $el.attr('data-switch-key').score(query);
-            score += $el.attr('data-switch-label').score(query);
+            score += $el.attr('data-switch-key').score(query) * 10;
+            score += $el.attr('data-switch-label').score(query) * 5;
             if ($el.attr('data-switch-description')) {
-              score += $el.attr('data-switch-description').score(query);
+              score += $el.attr('data-switch-description').score(query) * 5;
             }
+            score += $('.conditions', $el).text().score(query);
             if (score === 0) {
               $el.addClass('hidden');
             }
+            $el.css('order', Math.round(-score*1000));  // smallest first; convert to large ints
           });
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (!$('input[type=search]').is(':focus') && (e.code === 'F3' || e.code === 'Slash' || ((e.ctrlKey || e.metaKey) && e.code === 'KeyF'))) {
+            e.preventDefault();
+            $('input[type=search]').focus();
+          }
         });
 
         function closer($message) {
