@@ -7,6 +7,7 @@ switchboard.builtins
 """
 import socket
 import ipaddress
+import urllib
 
 from . import operator
 from .conditions import (
@@ -60,11 +61,40 @@ operator.register(IPAddressConditionSet())
 class QueryStringConditionSet(RequestConditionSet):
     regex = Regex()
 
+    def _should_include_referrer(self, instance):
+        """
+        if the request is a POST submit or an AJAX request, then we should include the referrer's query string.
+        See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Mode
+        """ 
+        # early exit
+        if not instance.referrer:
+            return False
+        # form POST
+        if (
+            instance.method == 'POST'
+            and instance.headers.get('Sec-Fetch-Mode', '') == 'navigate'
+            and instance.headers.get('Content-Type', '') in ('application/x-www-form-urlencoded',
+                                                             'multipart/form-data')
+        ):
+            return True
+        # fetch()
+        if instance.headers.get('Sec-Fetch-Mode', '') in ('cors', 'no-cors', 'same-origin'):
+            return True
+        # xhr request
+        if instance.headers.get('X-Requested-With', '') == 'XMLHttpRequest':
+            return True
+
+        return False
+
     def get_namespace(self):
         return 'querystring'
 
     def get_field_value(self, instance, field_name):
-        return instance.query_string
+        value = instance.query_string
+        if self._should_include_referrer(instance):
+            # quick 'n' dirty way to append the referrer's query string
+            value = value + '&' + urllib.parse.urlparse(instance.referrer).query
+        return value
 
     def get_group_label(self):
         return 'Query String'
