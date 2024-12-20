@@ -14,3 +14,4 @@ example/.switches
 .venv
 geckodriver.log
 server.pid
+.vscode
