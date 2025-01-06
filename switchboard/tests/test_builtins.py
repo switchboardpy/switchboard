@@ -178,14 +178,14 @@ class TestQueryStringConditionSet:
 
     def test_referrer_POST(self):
         req = Request.blank('/', method='POST', referrer='http://example.com/?alpha',
-                            headers={'Sec-Fetch-Mode': 'cors',
+                            headers={'Sec-Fetch-Mode': 'navigate',
                                      'Content-Type': 'application/x-www-form-urlencoded'})
         self.setup_switch(req)
         assert self.operator.is_active('test', req)
 
     def test_referrer_combined(self):
         req = Request.blank('/?beta', method='POST', referrer='http://example.com/?alpha',
-                            headers={'Sec-Fetch-Mode': 'cors',
+                            headers={'Sec-Fetch-Mode': 'navigate',
                                      'Content-Type': 'multipart/form-data'})
         self.setup_switch(req)
         assert self.operator.is_active('test', req)
