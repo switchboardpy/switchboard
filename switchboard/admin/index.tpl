@@ -373,7 +373,7 @@
         </script>
 
         <script type="text/x-handlebars-template" id="switchData">
-          <div id="id_{{key}}" class="switch" data-switch-key="{{key}}" data-switch-label="{{label}}" data-switch-description="{{description}}" data-switch-status="{{status}}">
+          <div id="id_{{key}}" class="switch" data-switch-key="{{key}}" data-switch-label="{{label}}" data-switch-description="{{description}}" data-switch-status="{{status}}" style="order:{{ cssOrder }}">
             <div class="status">
               <label for="status_{{key}}">Status</label>
               <select name="status_{{key}}">
@@ -724,9 +724,9 @@
         $('.switches', $sb).on('submit', '.conditions-form form', function(e) {
           e.preventDefault();
           var $form = $(this);
-
+          var $switch = $form.parents('.switch:first');
           var data = {
-            key: $form.parents('.switch:first').attr('data-switch-key'),
+            key: $switch.attr('data-switch-key'),
             id: $form.attr('data-switch'),
             field: $form.attr('data-field')
           };
@@ -744,6 +744,7 @@
           });
 
           api(SWITCHBOARD.addCondition, data, function (swtch) {
+            swtch.cssOrder = $switch.css('order');
             var result = templates.switchData(swtch);
             $('.switches .switch[data-switch-key="' + data.key + '"]', $sb).replaceWith(result);
           });
@@ -753,15 +754,16 @@
           e.preventDefault();
 
           var $el = $(this).parents('span:first');
-
+          var $switch = $el.parents('.switch:first');
           var data = {
-            key:   $el.parents('.switch:first').attr('data-switch-key'),
+            key:   $switch.attr('data-switch-key'),
             id:    $el.attr('data-switch'),
             field: $el.attr('data-field'),
             value: $el.attr('data-value')
           };
 
           api(SWITCHBOARD.delCondition, data, function (swtch) {
+            swtch.cssOrder = $switch.css('order');
             var result = templates.switchData(swtch);
             $('.switches .switch[data-switch-key="' + data.key + '"]').replaceWith(result);
           });
@@ -814,6 +816,7 @@
             },
 
             function (swtch) {
+              swtch.cssOrder = -999999;
               var result = templates.switchData(swtch);
 
               if (action === 'add') {
