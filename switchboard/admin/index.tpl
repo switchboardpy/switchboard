@@ -474,23 +474,13 @@
         </script>
       </div>
     </div>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.3.0/handlebars.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.js"></script>
     <script type="text/javascript">
-      /*!
-       * string_score.js: String Scoring Algorithm 0.1.10
-       *
-       * http://joshaven.com/string_score
-       * https://github.com/joshaven/string_score
-       *
-       * Copyright (C) 2009-2011 Joshaven Potter <yourtech@gmail.com>
-       * Special thanks to all of the contributors listed here https://github.com/joshaven/string_score
-       * MIT license: http://www.opensource.org/licenses/mit-license.php
-       *
-       * Date: Tue Mar 1 2011
-      */
-      String.prototype.score=function(m,s){if(this==m){return 1}if(m==""){return 0}var f=0,q=m.length,g=this,p=g.length,o,k,e=1,j;for(var d=0,r,n,h,a,b,l;d<q;++d){h=m.charAt(d);a=g.indexOf(h.toLowerCase());b=g.indexOf(h.toUpperCase());l=Math.min(a,b);n=(l>-1)?l:Math.max(a,b);if(n===-1){if(s){e+=1-s;continue}else{return 0}}else{r=0.1}if(g[n]===h){r+=0.1}if(n===0){r+=0.6;if(d===0){o=1}}else{if(g.charAt(n-1)===" "){r+=0.8}}g=g.substring(n+1,p);f+=r}k=f/q;j=((k*(q/p))+k)/2;j=j/e;if(o&&(j+0.15<1)){j+=0.15}return j};
+        // String Scoring Algorithm 0.1.22 | (c) 2009-2015 Joshaven Potter <yourtech@gmail.com>
+        // MIT License: http://opensource.org/licenses/MIT | https://github.com/joshaven/string_score
+        String.prototype.score=function(e,f){if(this===e)return 1;if(""===e)return 0;var d=0,a,g=this.toLowerCase(),n=this.length,h=e.toLowerCase(),k=e.length,b;a=0;var l=1,m,c;f&&(m=1-f);if(f)for(c=0;c<k;c+=1)b=g.indexOf(h[c],a),-1===b?l+=m:(a===b?a=.7:(a=.1," "===this[b-1]&&(a+=.8)),this[b]===e[c]&&(a+=.1),d+=a,a=b+1);else for(c=0;c<k;c+=1){b=g.indexOf(h[c],a);if(-1===b)return 0;a===b?a=.7:(a=.1," "===this[b-1]&&(a+=.8));this[b]===e[c]&&(a+=.1);d+=a;a=b+1}d=.5*(d/n+d/k)/l;h[0]===g[0]&&.85>d&&(d+=.15);return d};
     </script>
     <script type="text/javascript">
       /*global alert, confirm, jQuery, Handlebars, SWITCHBOARD */
