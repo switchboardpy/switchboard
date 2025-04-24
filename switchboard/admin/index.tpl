@@ -863,7 +863,7 @@
         });
 
         window.addEventListener("keydown", (e) => {
-          if (!$('input[type=search]').is(':focus') && (e.code === 'F3' || e.code === 'Slash' || ((e.ctrlKey || e.metaKey) && e.code === 'KeyF'))) {
+          if (!$('input[type=search]').is(':focus') && (e.code === 'F3' || (e.code === 'Slash' && document.activeElement === document.body) || ((e.ctrlKey || e.metaKey) && e.code === 'KeyF'))) {
             e.preventDefault();
             $('input[type=search]').focus();
           }
