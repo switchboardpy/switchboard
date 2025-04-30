@@ -71,6 +71,8 @@
       .switchboard a:hover { color: #fff; background-color: #666; text-decoration: none; }
       .switchboard a:active { color: #fff; background-color: #555; text-decoration: none; }
       .switchboard .hidden { display: none; }
+      .switchboard .grayed-out { opacity: 0.2; }
+      .switchboard .gray-slight { opacity: 0.7; }
       .switchboard .btn,
       .switchboard .btn:link,
       .switchboard .btn:visited {
@@ -835,8 +837,8 @@
 
         $('input[type=search]').keyup(function () {
           var query = $(this).val();
-          $('.switches .switch', $sb).removeClass('hidden').css('order', 0);
           if (!query) {
+            $('.switches .switch', $sb).removeClass('grayed-out').removeClass('gray-slight').css('order', 0);
             return;
           }
           $('.switches .switch', $sb).each(function (_, el) {
@@ -848,9 +850,9 @@
               score += $el.attr('data-switch-description').score(query) * 5;
             }
             score += $('.conditions', $el).text().score(query);
-            if (score === 0) {
-              $el.addClass('hidden');
-            }
+            // $el.toggleClass('hidden', score === 0);  // hiding (in any way) the first time triggers very poor performance in Firefox's FormAutofillHeuristics.sys.mjs
+            $el.toggleClass('grayed-out', score === 0);
+            $el.toggleClass('gray-slight', score < 2 && score !== 0);
             $el.css('order', Math.round(-score*1000));  // smallest first; convert to large ints
           });
         });
