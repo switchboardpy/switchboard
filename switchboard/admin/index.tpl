@@ -14,6 +14,13 @@
     else:
       return field
 
+  def switch_display_name(switch):
+    key = switch['key']
+    label = switch.get('label')
+    if label and label.lower() != key.lower():
+      return f'{label} <small class="command micro">({key})</small>'
+    return key
+
   from datetime import datetime
   def timesince(dt):
     if isinstance(dt, str):
@@ -56,7 +63,7 @@
       h4, .delta { font-size: 24px; font-size: 1.33333rem; margin-bottom: 1.2375rem; }
       h5, .epsilon { font-size: 21px; font-size: 1.16667rem; margin-bottom: 1.41429rem; }
       h6, .zeta { font-size: 18px; font-size: 1rem; margin-bottom: 1.65rem; }
-      .micro { font-size: 12px; font-size: 0.67777rem; margin-bottom: 0.94444rem; }
+      .micro { font-size: 14px; margin-bottom: 0.94444rem; }
       p { margin: 0 0 1.5em; }
       p + p { text-indent: 1.5em; margin-top: -1.5em; }
       /* more typography, Switchboard-specific (i.e., not from Typelate) */
@@ -187,9 +194,7 @@
       /* metadata */
       .switchboard .switches .metadata { clear: both; }
       /* actions */
-      .switchboard .switches .actions { visibility: hidden; }
-      .switchboard .switches .switch:hover .actions { visibility: visible; margin: 0 0 0 1em; }
-      .switchboard .switches .actions .btn-link { padding: 0; border: 0; margin-left: 0.5em; }
+      .switchboard .switches .actions .btn-link { padding: 0; border: 0; margin-left: 0.8em; }
       /* drawer */
       .switchboard .drawer { display: none; margin-bottom: 1em; position: absolute; background-color: #efefef; z-index: 1; opacity: 0.9; padding: 1rem; left: 20%; width: 60%; border: 1px solid #ccc; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
       .switchboard .drawer.header { position: fixed; z-index: 2; }
@@ -203,6 +208,8 @@
       .switchboard .conditions label { font-weight: bold; margin-right: 0.25em; width: 8em; display: inline-block; }
       .switchboard .conditions label:after { content: ":"; }
       .switchboard .conditions .value { padding: 0 0.25em; margin-right: 0.25em; background-color: #e6e6e6; }
+      .switchboard .conditions .value[data-value=".*"] { background-color: lightgreen; }
+      .switchboard .conditions .value.is_exclude strong { color: orangered; }
       .switchboard .conditions .delete-condition { margin-left: 0.25em; margin-top: -4px; padding: 0; border: 0; color: #666; }
       .switchboard .group { overflow-x: auto; }
       /* versions */
@@ -213,6 +220,7 @@
       .switchboard .version-summary { float: left; }
       .switchboard .version-meta { float: right; font-style: italic; color: #666; }
       .switchboard .changed { font-weight: 600; }
+      .switchboard .fa { font-size: 16px; }
       .switchboard .status-label-1 .fa-circle { color: #cc4036; }
       .switchboard .status-label-2 .fa-circle { color: #faa732; }
       .switchboard .status-label-3 .fa-circle { color: #5bb75b; }
@@ -279,14 +287,7 @@
               </select>
             </div>
             <div class="name">
-              <h5 class="title">
-                % if switch.get('label'):
-                ${switch['label']}
-                % else:
-                ${switch['key'].title()}
-                % endif
-                <small class="command micro">(${switch['key']})</small>
-                <div class="actions btn-group">
+              <h5 class="title">${switch_display_name(switch) | n}<div class="actions btn-group">
                   <a href="#edit-switch" class="btn btn-link edit" title="Edit Switch"><i class="fa fa-pencil"></i></a>
                   <a href="#delete-switch" class="btn btn-link delete" title="Delete Switch"><i class="fa fa-trash-o"></i></a>
                   <a href="#history-switch" class="btn btn-link history" title="View Switch History"><i class="fa fa-clock-o"></i></a>
@@ -311,7 +312,7 @@
                 <div class="group">
                   <label>${group['label']}</label>
                   % for field, value, display, is_exclude in group['conditions']:
-                  <span data-switch="${group['id']}" data-field="${field}" data-value="${value}" class="value">
+                  <span data-switch="${group['id']}" data-field="${field}" data-value="${value}" class="value ${'is_exclude' if is_exclude else ''}">
                     <nobr>
                       % if is_exclude:
                       <strong>not</strong>
@@ -388,7 +389,7 @@
 
             <div class="name">
               <h5 class="title">
-                {{label}} <small class="command micro">({{key}})</small>
+                {{#ifLabelDiffers}}{{label}} <small class="command micro">({{key}})</small>{{else}}{{key}}{{/ifLabelDiffers~}}
                 <div class="actions btn-group">
                   <a href="#edit-switch" class="edit btn-link btn" title="Edit Switch"><i class="fa fa-pencil"></i></a>
                   <a href="#delete-switch" class="delete btn-link btn" title="Delete Switch"><i class="fa fa-trash-o"></i></a>
@@ -412,7 +413,7 @@
                   <div class="group">
                     <label>{{label}}</label>
                     {{#each conditions}}
-                      <span data-switch="{{../id}}" data-field="{{[0]}}" data-value="{{[1]}}" class="value">
+                      <span data-switch="{{../id}}" data-field="{{[0]}}" data-value="{{[1]}}" class="value {{#if [3]}}is_exclude{{/if}}">
                         <nobr>{{#if [3]}}<strong>not</strong> {{/if}}{{[2]}}
                           <a href="#delete-condition" class="btn btn-link delete-condition" title="Delete this condition">
                             <i class="fa fa-times"></i>
@@ -519,6 +520,12 @@
           if (this.status === status) {
             return options.fn(this);
           }
+        });
+        Handlebars.registerHelper('ifLabelDiffers', function(options) {
+          if (this.label && this.label.toLowerCase() !== this.key.toLowerCase()) {
+            return options.fn(this);
+          }
+          return options.inverse(this);
         });
         Handlebars.registerHelper('summarize', function(version) {
           function isEmpty(obj) {
