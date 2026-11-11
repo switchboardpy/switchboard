@@ -38,18 +38,7 @@ def nested_config(config):
     return cfg
 
 
-def configure(config={}, nested=False, cache=None, allow_no_mongo=False):
-    """
-    Useful for when you need to control Switchboard's setup
-    """
-    if nested:
-        config = nested_config(config)
-    # Re-read settings to make sure we have everything
-    Settings.init(cache=cache, **config)
-
-    operator.cache = cache
-
-    # Establish the connection to Mongo
+def _connect(allow_no_mongo):
     mongo_timeout = getattr(settings, 'SWITCHBOARD_MONGO_TIMEOUT', None)
     # Ensure we have an integer for port and not a string
     mongo_port = int(settings.SWITCHBOARD_MONGO_PORT)
@@ -65,13 +54,33 @@ def configure(config={}, nested=False, cache=None, allow_no_mongo=False):
                            )
         conn.admin.command('ping')  # make sure we're actually connected
         db = conn[settings.SWITCHBOARD_MONGO_DB]
-        collection = db[settings.SWITCHBOARD_MONGO_COLLECTION]
-        Switch.c = collection
+        Switch.c = db[settings.SWITCHBOARD_MONGO_COLLECTION]
     except Exception:
         if allow_no_mongo:
             log.exception('Unable to connect to the datastore, will use in-memory switch collection')
         else:
             raise
+
+
+def configure(config={}, nested=False, cache=None, allow_no_mongo=False, collection=None):
+    """
+    Useful for when you need to control Switchboard's setup
+
+    Pass ``collection`` (a pymongo Collection) to use an existing MongoClient
+    instead of creating one from the ``mongo_*`` settings.
+    """
+    if nested:
+        config = nested_config(config)
+    # Re-read settings to make sure we have everything
+    Settings.init(cache=cache, **config)
+
+    operator.cache = cache
+
+    if collection is not None:
+        # caller's own pymongo collection, so its MongoClient is reused instead of creating another
+        Switch.c = collection
+    else:
+        _connect(allow_no_mongo)
     # Register the builtins
     __import__('switchboard.builtins')
 
