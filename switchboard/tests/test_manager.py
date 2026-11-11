@@ -791,6 +791,14 @@ class TestConfigure:
         with pytest.raises(CustomException):
             configure(self.config)
 
+    @patch('switchboard.manager.MongoClient')
+    def test_collection_reuses_client(self, MongoClient):
+        collection = Mock()
+        configure(self.config, collection=collection)
+        self.assert_settings()
+        assert Switch.c is collection
+        MongoClient.assert_not_called()
+
 
 class TestManagerConcurrency:
 
