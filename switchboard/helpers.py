@@ -88,8 +88,8 @@ class MockCollection:
     def drop(self):
         self._data = []
 
-    def count(self):
-        return len(self._data)
+    def count_documents(self, spec):
+        return len(self.find(spec))
 
 
 def utcnow():
