@@ -138,7 +138,7 @@ class MongoModel:
 
     @classmethod
     def count(cls):
-        return cls.c.count()
+        return cls.c.count_documents({})
 
 
 class VersioningMongoModel(MongoModel):

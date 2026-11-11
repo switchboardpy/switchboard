@@ -184,6 +184,13 @@ enable ``is_active`` result caching do::
 It is recommended to do that in the ``pre_request`` method of your switchboard
 `middleware`_ so that it is reset for each request.
 
+To reuse a MongoClient your application already has, instead of letting
+Switchboard create its own, pass a pymongo collection to ``configure``::
+
+    configure(config, collection=client['switchboard']['switches'])
+
+The ``mongo_*`` connection settings are then ignored.
+
 
 An Example
 ==========
